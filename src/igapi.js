@@ -26,6 +26,11 @@ const DOC_HIGHLIGHTS = { name: "PolarisProfileStoryHighlightsTrayContentQuery", 
 const DOC_REEL = { name: "PolarisStoriesV3ReelPageStandaloneQuery", id: "29341065465524437" }; // a story ring or highlight
 const DOC_REELS_TAB = { name: "PolarisProfileReelsTabContentQuery_connection", id: "39544804838467783" }; // a user's reels
 const DOC_SAVED_COLLECTIONS = { name: "PolarisProfileSavedTabContentQuery", id: "27584326974521636" }; // your saved collections
+const DOC_TAGGED = { name: "PolarisProfileTaggedTabContentQuery_connection", id: "28780673414922723" }; // posts a user is tagged in
+const TAGGED_FLAGS = {
+  __relay_internal__pv__PolarisSEOIsCrawlerrelayprovider: false,
+  __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: true,
+};
 const TIMELINE_FLAGS = {
   include_multi_captions: true,
   __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: true,
@@ -422,11 +427,39 @@ export async function paginateSaved(collectionId, onItems) {
   }
 }
 
+/**
+ * Page through the posts a user is tagged in. The Tagged tab's list has no
+ * dates or video files, so each post's full details are fetched one by one
+ * (like reels). onItems(fullItems) returns true to stop.
+ */
+export async function paginateTagged(userId, onItems) {
+  let after = null;
+  for (;;) {
+    const data = await graphql(DOC_TAGGED, { after, before: null, count: 12, first: 12, last: null, user_id: String(userId), ...TAGGED_FLAGS });
+    const conn = data?.xdt_api__v1__usertags__user_id__feed_connection;
+    const full = [];
+    for (const { node } of conn?.edges || []) {
+      if (!node?.code) continue;
+      full.push(await getMediaInfo(shortcodeToMediaId(node.code)).catch(() => node));
+    }
+    if (await onItems(full)) return;
+    if (!conn?.page_info?.has_next_page || !conn.page_info.end_cursor) return;
+    after = conn.page_info.end_cursor;
+  }
+}
+
+/** Several reels at once (archive days, story rings): [{ id, items }]. */
+export async function getReels(reelIds) {
+  const data = await graphql(DOC_REEL, { reel_ids_arr: reelIds, is_highlight: false, ...REEL_FLAGS });
+  return (data.xdt_api__v1__feed__reels_media?.reels_media || []).map((r) => ({ id: String(r.id || ""), items: Array.isArray(r.items) ? r.items : [] }));
+}
+
 export async function getHighlightsTray(userId) {
   const data = await graphql(DOC_HIGHLIGHTS, { user_id: String(userId) });
   return (data.highlights?.edges || []).map(({ node }) => ({
     id: String(node.id || "").replace(/^highlight:/, ""),
     title: node.title || "Highlight",
+    cover: node.cover_media?.cropped_image_version?.url || "",
   }));
 }
 

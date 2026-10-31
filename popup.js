@@ -430,6 +430,18 @@ function detectContext(url) {
     state.context = "inbox";
     setContext("inbox", "Your inbox: open a chat, or export several");
     switchTab("chatPanel");
+  } else if (path.startsWith("/archive/stories")) {
+    state.context = "archive";
+    setContext("story", "Your story archive");
+    els.modeSelect.value = "archive";
+    switchTab("profilePanel");
+    refreshProfileFields();
+  } else if (/^\/[^/]+\/tagged\/?$/.test(path) && username) {
+    state.context = "tagged";
+    setContext("profile", `Posts @${username} is tagged in`);
+    els.modeSelect.value = "tagged";
+    switchTab("profilePanel");
+    refreshProfileFields();
   } else if (/^\/[^/]+\/saved(\/|$)/.test(path)) {
     state.context = "saved";
     setContext("download", "Your saved posts");
@@ -473,6 +485,8 @@ function updateMainAction() {
     highlights: state.profile.detectedHighlightId ? "Export this highlight" : `Export ${whose}highlights`,
     profilePic: `Save ${whose}profile picture`,
     post: "Export this post",
+    tagged: who ? `Export posts @${who} is tagged in` : "Export tagged posts",
+    archive: "Export your archived stories",
     saved: els.collectionSelect.value === "all" ? "Export your saved posts" : els.collectionSelect.value === "every" ? "Export every collection" : `Export “${els.collectionSelect.selectedOptions[0]?.textContent || "collection"}”`,
   }[mode];
   els.profileExportBtn.textContent = label || "Export";
@@ -501,8 +515,8 @@ function updateProfileHint() {
 
 function refreshProfileFields() {
   const mode = els.modeSelect.value;
-  const isFeed = mode === "posts" || mode === "images" || mode === "reels" || mode === "saved";
-  els.usernameField.hidden = mode === "saved";
+  const isFeed = ["posts", "images", "reels", "saved", "tagged", "archive", "highlights"].includes(mode) && !(mode === "highlights" && state.profile.detectedHighlightId);
+  els.usernameField.hidden = mode === "saved" || mode === "archive";
   els.collectionField.hidden = mode !== "saved";
   if (mode === "saved") loadCollections();
   const filter = els.filterSelect.value;
@@ -627,12 +641,14 @@ function buildJobFromForm() {
     options.shortcode = state.profile.detectedShortcode;
   } else if (mode === "saved") {
     options.collection = els.collectionSelect.value;
+  } else if (mode === "archive") {
+    // your own archive: no username
   } else if (!username && !(mode === "highlights" && state.profile.detectedHighlightId)) {
     showProfileError("Username required", "Enter the @username you want to export.");
     return null;
   }
 
-  if (mode === "posts" || mode === "images" || mode === "reels" || mode === "saved") {
+  if (!els.filterField.hidden) {
     const ftype = els.filterSelect.value;
     const filter = { type: ftype };
     if (ftype === "recent" || ftype === "oldest") {

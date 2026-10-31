@@ -24,6 +24,8 @@ import {
   getHighlightsTray,
   getCollections,
   paginateSaved,
+  paginateTagged,
+  getReels,
   setWaitReporter,
   idSources,
   IGError,
@@ -294,6 +296,62 @@ function galleryItem(ex, paths, saved, url = "", group = "") {
 }
 const addGallery = (sink, username, type, items) => sink.add("index.html", textEncoder.encode(profilePage({ username, type, items })));
 
+/* ===== range filters for lists that aren't paged newest-first ===== */
+
+// Everything, the newest or oldest n, or a From/To date range, by each item's time.
+function byRange(items, filter, timeOf) {
+  if (!filter || filter.type === "all") return items;
+  const sorted = [...items].sort((a, b) => timeOf(b) - timeOf(a));
+  const n = Math.max(1, filter.n | 0);
+  if (filter.type === "recent") return sorted.slice(0, n);
+  if (filter.type === "oldest") return sorted.slice(-n);
+  const from = filter.fromDate ? Date.parse(filter.fromDate + "T00:00:00") / 1000 : -Infinity;
+  const to = filter.toDate ? Date.parse(filter.toDate + "T23:59:59") / 1000 : Infinity;
+  return sorted.filter((x) => timeOf(x) >= from && timeOf(x) <= to);
+}
+
+// Your story archive, by month. Whole days outside a date range aren't loaded.
+async function exportArchive(job) {
+  const { jobId } = job;
+  const filter = job.options.filter || { type: "all" };
+  progress(jobId, "enumerating", 0, null, "Loading your story archive…");
+  const resp = await chrome.runtime.sendMessage({ type: "IG_TAB", action: "ARCHIVE_DAYS" });
+  if (!resp?.days) throw new IGError(resp?.error || "Couldn't load your story archive.", resp?.status || 0);
+  let days = resp.days.sort((a, b) => b.timestamp - a.timestamp);
+  if (filter.type === "range") {
+    const from = filter.fromDate ? Date.parse(filter.fromDate + "T00:00:00") / 1000 - 86400 : -Infinity;
+    const to = filter.toDate ? Date.parse(filter.toDate + "T23:59:59") / 1000 + 86400 : Infinity;
+    days = days.filter((d) => d.timestamp >= from && d.timestamp <= to);
+  }
+  let stories = [];
+  for (let i = 0; i < days.length; i += 10) {
+    for (const reel of await getReels(days.slice(i, i + 10).map((d) => d.id))) for (const raw of reel.items) stories.push(extractMedia(raw));
+    progress(jobId, "enumerating", stories.length, null, `Found ${stories.length} archived stories…`);
+    if (filter.type === "recent" && stories.length >= (filter.n | 0)) break; // days come newest first
+  }
+  stories = skipSeen(job, byRange(stories, filter, (ex) => ex.takenAt));
+  if (!stories.length) throw new IGError("No archived stories found for this selection.", 0);
+
+  const sink = makeSink(job, "you/archived-stories", "you");
+  const month = (t) => dateStr(t).slice(0, 7);
+  const queue = [];
+  stories.forEach((ex, i) => {
+    const m = primaryMedia(ex);
+    if (m) queue.push({ path: `${month(ex.takenAt)}/${sink.name(ex, i + 1)}.${m.type}`, url: m.url, ex, id: ex.shortcode, time: ex.takenAt });
+  });
+  const { failed, total, saved } = await fetchQueue(job, queue, "stories", sink);
+  const monthName = (t) => new Date(t * 1000).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  await addGallery(sink, "you", "archived stories", queue.map((q) => galleryItem(q.ex, [q.path], saved, "", monthName(q.ex.takenAt))));
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({
+    type: "archived stories",
+    exported_at: nowStamp(),
+    count: queue.length,
+    items: queue.map((q) => ({ file: q.path, taken_at: q.ex.takenAt, date: dateStr(q.ex.takenAt), kind: q.ex.kind })),
+  }, null, 2)));
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`instagram_archived_stories_${nowStamp()}.zip`, { stories: total, failed });
+}
+
 /* ===== picking before exporting ===== */
 
 // The items ticked in the picker: from its listing when it's still in memory,
@@ -316,7 +374,7 @@ async function runList({ jobId, username, mode }) {
     if (!user.can_view) throw new IGError(`@${user.username} is private and you don't follow them.`, 403);
     if (mode === "highlights") {
       const tray = await getHighlightsTray(user.id);
-      send({ type: "PICK_ITEMS", jobId, username: user.username, items: tray.map((h) => ({ id: h.id, title: h.title })) });
+      send({ type: "PICK_ITEMS", jobId, username: user.username, items: tray.map((h) => ({ id: h.id, title: h.title, thumb: h.cover })) });
     } else {
       const cache = new Map();
       pickCache.set(`${user.username.toLowerCase()}:${mode}`, cache);
@@ -364,12 +422,12 @@ function planPostFiles(post, { imagesOnly = false } = {}) {
 }
 
 // Shared pipeline for the foldered ZIP modes (posts / images).
-async function exportFolderedZip(job, user, { imagesOnly }) {
+async function exportFolderedZip(job, user, { imagesOnly, tagged = false }) {
   const { jobId } = job;
   // Images-only counts posts that have an image, so "most recent 5" means five
   // posts with images, not the five newest posts minus the reels among them.
   const hasImage = (ex) => ex.media.some((m) => !m.isVideo && !m.isThumb);
-  const grid = (onItems) => paginateFeed(user.username, onItems);
+  const grid = tagged ? (onItems) => paginateTagged(user.id, onItems) : (onItems) => paginateFeed(user.username, onItems);
   const items = skipSeen(job, await pickedOr(job, user, () => collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter)));
 
   // Attach a planned file list to each post; drop posts that contribute nothing.
@@ -388,7 +446,7 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
   }
 
   // Flatten to a download queue (captions too) for real file-level progress.
-  const suffix = imagesOnly ? "images" : "posts";
+  const suffix = tagged ? "tagged" : imagesOnly ? "images" : "posts";
   const sink = makeSink(job, `${ident(user.username)}/${suffix}`, user.username);
   const queue = [];
   posts.forEach((p, i) => {
@@ -524,8 +582,8 @@ async function exportHighlights(job, user) {
     }
     progress(jobId, "enumerating", found.length, null, `Scanned ${hi + 1}/${selected.length} highlights…`);
   }
-  found = skipSeen(job, found, (f) => f.ex.shortcode);
-  if (found.length === 0) throw new IGError("No downloadable media found in those highlights.", 0);
+  found = skipSeen(job, byRange(found, job.options.filter, (f) => f.ex.takenAt), (f) => f.ex.shortcode);
+  if (found.length === 0) throw new IGError("No downloadable media found in those highlights for this selection.", 0);
 
   // One folder per highlight. Folder mode names it by title alone, since
   // the tray order (and so the number) changes as highlights are added.
@@ -536,16 +594,25 @@ async function exportHighlights(job, user) {
     perFolder[folder] = (perFolder[folder] || 0) + 1;
     return { path: `${folder}/${sink.name(f.ex, perFolder[folder])}.${f.m.type}`, url: f.m.url, ex: f.ex, title: f.title, id: f.ex.shortcode, time: f.ex.takenAt };
   });
+  // Each highlight's cover image, as cover.jpg in its folder.
+  const covers = [];
+  for (const f of found) {
+    const h = selected[f.hi];
+    const folder = sink.folder ? sanitize(f.title) : `${pad(f.hi + 1, 2)}_${sanitize(f.title)}`;
+    if (h?.cover && !covers.some((c) => c.path.startsWith(folder + "/"))) covers.push({ path: `${folder}/cover.jpg`, url: h.cover });
+  }
+  queue.push(...covers);
 
   const { failed, total, saved } = await fetchQueue(job, queue, "items", sink);
-  await addGallery(sink, owner, "highlights", queue.map((q) => galleryItem(q.ex, [q.path], saved, "", q.title)));
+  await addGallery(sink, owner, "highlights", queue.filter((q) => q.ex).map((q) => galleryItem(q.ex, [q.path], saved, "", q.title)));
   await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: owner,
       exported_at: nowStamp(),
       type: "highlights",
       highlights: selected.length,
-      count: queue.length,
-      items: queue.map((q, i) => ({
+      count: queue.filter((q) => q.ex).length,
+      covers: queue.filter((q) => !q.ex && saved.has(q.path)).map((q) => q.path),
+      items: queue.filter((q) => q.ex).map((q, i) => ({
         index: i + 1,
         file: q.path,
         highlight: q.title,
@@ -556,7 +623,7 @@ async function exportHighlights(job, user) {
   }, null, 2)));
 
   progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
-  sink.finish(`${ident(owner || "instagram")}_highlights_${nowStamp()}.zip`, { highlights: selected.length, files: total, failed });
+  sink.finish(`${ident(owner || "instagram")}_highlights_${nowStamp()}.zip`, { highlights: new Set(found.map((f) => f.hi)).size, files: total, failed });
 }
 
 // Your saved posts: everything ("all"), one collection (its id), or every
@@ -713,6 +780,10 @@ async function runExport(job) {
       await exportSaved(job);
       return;
     }
+    if (mode === "archive") {
+      await exportArchive(job);
+      return;
+    }
 
     progress(jobId, "resolving", null, null, `Resolving @${username}…`);
     const user = await resolveUser(username);
@@ -731,6 +802,8 @@ async function runExport(job) {
       await exportFolderedZip(job, user, { imagesOnly: false });
     } else if (mode === "images") {
       await exportFolderedZip(job, user, { imagesOnly: true });
+    } else if (mode === "tagged") {
+      await exportFolderedZip(job, user, { imagesOnly: false, tagged: true });
     } else if (mode === "reels") {
       await exportReels(job, user);
     } else if (mode === "stories") {

@@ -82,7 +82,11 @@ function row(it, index) {
   label.addEventListener("click", (e) => (state.shift = e.shiftKey));
   const name = document.createElement("span");
   name.textContent = it.title;
-  label.append(box, name);
+  const cover = document.createElement("img");
+  cover.className = "cover";
+  cover.alt = "";
+  if (it.thumb) loadThumb(cover, it.thumb);
+  label.append(box, cover, name);
   li.append(label);
   return li;
 }

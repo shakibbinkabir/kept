@@ -85,7 +85,7 @@ function rememberSeen(key, ids) {
     .catch(() => {});
 }
 
-const MULTI = ["posts", "images", "reels", "stories", "highlights", "saved"];
+const MULTI = ["posts", "images", "reels", "stories", "highlights", "saved", "tagged", "archive"];
 
 /* ===== finished jobs: their files, and the history ===== */
 
@@ -141,7 +141,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       try {
         await ensureOffscreen();
         const options = msg.options || {};
-        const who = String(msg.mode === "saved" ? `you/${options.collection || "all"}` : msg.username || options.highlightId || "").toLowerCase();
+        const who = String(msg.mode === "saved" ? `you/${options.collection || "all"}` : msg.mode === "archive" ? "you" : msg.username || options.highlightId || "").toLowerCase();
         const seenKey = !chat && MULTI.includes(msg.mode) ? `seen:${who}:${msg.mode}` : null;
         const seen = seenKey && options.onlyNew ? (await chrome.storage.local.get(seenKey))[seenKey] || [] : null;
         chrome.runtime.sendMessage({
@@ -212,6 +212,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: true, jobId });
       })
       .catch((err) => sendResponse({ ok: false, error: err?.message || "Could not start the check." }));
+    return true; // async sendResponse
+  }
+
+  // From offscreen: something only the instagram.com tab can do (your story archive's day list).
+  if (msg?.type === "IG_TAB" && msg.action === "ARCHIVE_DAYS") {
+    (async () => {
+      const [tab] = await chrome.tabs.query({ url: "https://www.instagram.com/*", discarded: false });
+      if (!tab) return { error: "Open instagram.com in a tab (logged in), then try again." };
+      return chrome.tabs.sendMessage(tab.id, { action: "ARCHIVE_DAYS" });
+    })().then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't reach the instagram.com tab." }));
     return true; // async sendResponse
   }
 

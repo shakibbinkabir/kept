@@ -2,6 +2,18 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.5.0] — 2026-10-31
+
+"More from profiles." Tested end to end against live Instagram: the popup opened on an account's Tagged tab offered its tagged posts and exported the newest three with their dates and authors; on your story archive it exported the newest archived stories by month, and a From/To range kept exactly the stories inside it; highlights with a date range saved only the stories in range, with each highlight's cover.
+
+### Added
+
+- **Posts they're tagged in.** A new **Posts they're tagged in** choice saves the posts an account is tagged in, each with the account that posted it, its date and caption, and the usual Range, folder and file name options. Instagram's Tagged list leaves out dates and videos, so Kept loads each post's details one at a time, like reels.
+- **Your archived stories.** **My archived stories** saves the stories in your own archive, sorted into a folder per month, with a gallery grouped the same way. A From/To range skips whole days outside it, so short ranges are quick.
+- **Highlight covers.** Each highlight's cover image is saved as `cover.jpg` in its folder, and the picker shows covers next to highlight names.
+- **A date range for highlights.** The Range options (everything, newest, oldest, From/To) now work for highlights too.
+- The popup recognises an account's Tagged tab and your story archive, and picks the matching choice.
+
 ## [4.4.0] — 2026-10-31
 
 "Chat insights." Checked in a browser on a 20,000-message sample chat (every number cross-checked against the table views, hover labels, light and dark, reduced motion) and in a real export, which now carries `chat.md` and the Insights view.

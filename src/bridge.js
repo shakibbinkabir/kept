@@ -89,12 +89,42 @@
       throw new Error("Network request failed.");
     }
     dtsg = html.match(/"DTSGInitialData",\[\],\{"token":"([^"]+)"/)?.[1] || null;
+    asyncToken = html.match(/"async_get_token":"([^"]+)"/)?.[1] || null;
     // The viewer's messaging id doubles as the id of their mailbox (chat list).
     mailboxId = html.match(/"IG_USER_EIMU":"(\d+)"/)?.[1] || mailboxId;
     if (!dtsg) throw new Error("Not authorized — make sure you're logged in to Instagram in this browser.");
     return dtsg;
   }
   let mailboxId = null;
+  let asyncToken = null; // the page's token for Instagram's GET endpoints
+
+  // Your story archive: one entry per day, newest first ({ id: "archiveDay:…", timestamp, count }).
+  async function archiveDays() {
+    await getDtsg();
+    if (!asyncToken) throw new Error("Couldn't read Instagram's page token. Refresh the instagram.com tab and try again.");
+    const days = [];
+    let maxId = "";
+    for (;;) {
+      await pace();
+      const res = await fetch(`/api/v1/archive/reel/day_shells/?__a=1&fb_dtsg_ag=${encodeURIComponent(asyncToken)}${maxId ? `&max_id=${encodeURIComponent(maxId)}` : ""}`, {
+        credentials: "include",
+        headers: { "x-ig-app-id": APP_ID, "x-requested-with": "XMLHttpRequest" },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (res.status === 429) throw failure("Instagram is rate-limiting requests (429). Wait a few minutes and retry.", 429);
+      let body;
+      try {
+        body = JSON.parse((await res.text()).replace(/^for \(;;\);/, ""));
+      } catch {
+        throw failure("Instagram returned a non-JSON response.", res.status);
+      }
+      if (!body.payload) throw failure(body.errorSummary || "Instagram didn't return your story archive.", res.status);
+      for (const d of body.payload.items || []) days.push({ id: d.id, timestamp: d.timestamp, count: d.media_count });
+      if (!body.payload.more_available || !body.payload.max_id) break;
+      maxId = body.payload.max_id;
+    }
+    return days;
+  }
 
   function failure(message, status = 0, tryOtherId = false) {
     return Object.assign(new Error(message), { status, tryOtherId });
@@ -718,6 +748,11 @@
     }
 
     // The popup's chat picker: one page of a folder.
+    if (message.action === "ARCHIVE_DAYS") {
+      archiveDays().then((days) => sendResponse({ days }), (err) => sendResponse({ error: err.message, status: err.status || 0 }));
+      return true;
+    }
+
     if (message.action === "LIST_CHATS") {
       listChats(message.folder, message.cursor).then(sendResponse, (err) => sendResponse({ error: err?.message || String(err) }));
       return true;
