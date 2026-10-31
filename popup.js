@@ -93,6 +93,9 @@ const els = {
   welcome: document.getElementById("welcome"),
   welcomeBtn: document.getElementById("welcomeBtn"),
   pickBtn: document.getElementById("pickBtn"),
+  usernameField: document.getElementById("usernameField"),
+  collectionField: document.getElementById("collectionField"),
+  collectionSelect: document.getElementById("collectionSelect"),
 };
 
 const REPO = "https://github.com/shakibbinkabir/kept";
@@ -427,6 +430,13 @@ function detectContext(url) {
     state.context = "inbox";
     setContext("inbox", "Your inbox: open a chat, or export several");
     switchTab("chatPanel");
+  } else if (/^\/[^/]+\/saved(\/|$)/.test(path)) {
+    state.context = "saved";
+    setContext("download", "Your saved posts");
+    els.modeSelect.value = "saved";
+    state.wantCollection = (path.match(/^\/[^/]+\/saved\/[^/]+\/(\d+)\/?$/) || [])[1] || "all";
+    switchTab("profilePanel");
+    refreshProfileFields();
   } else if (shortcode) {
     state.context = "post";
     setContext("image", username ? `A post by @${username}` : "A post or reel");
@@ -463,6 +473,7 @@ function updateMainAction() {
     highlights: state.profile.detectedHighlightId ? "Export this highlight" : `Export ${whose}highlights`,
     profilePic: `Save ${whose}profile picture`,
     post: "Export this post",
+    saved: els.collectionSelect.value === "all" ? "Export your saved posts" : els.collectionSelect.value === "every" ? "Export every collection" : `Export “${els.collectionSelect.selectedOptions[0]?.textContent || "collection"}”`,
   }[mode];
   els.profileExportBtn.textContent = label || "Export";
 }
@@ -490,7 +501,10 @@ function updateProfileHint() {
 
 function refreshProfileFields() {
   const mode = els.modeSelect.value;
-  const isFeed = mode === "posts" || mode === "images" || mode === "reels";
+  const isFeed = mode === "posts" || mode === "images" || mode === "reels" || mode === "saved";
+  els.usernameField.hidden = mode === "saved";
+  els.collectionField.hidden = mode !== "saved";
+  if (mode === "saved") loadCollections();
   const filter = els.filterSelect.value;
   els.filterField.hidden = !isFeed;
   els.saveOpts.hidden = mode === "post" || mode === "profilePic";
@@ -544,7 +558,7 @@ function profileHintFor(body) {
   if (m.includes("logged in") || m.includes("authoriz")) return "Open instagram.com and log in, then try again.";
   if (m.includes("rate") || m.includes("429")) return "Instagram is throttling requests. Wait a minute and retry.";
   if (m.includes("no such user") || m.includes("not found")) return "Check the username spelling.";
-  if (m.includes("no posts") || m.includes("no images") || m.includes("no reels")) return "Try a different range or mode.";
+  if (m.includes("no posts") || m.includes("no images") || m.includes("no reels") || m.includes("no saved")) return "Try a different range or mode.";
   if (m.includes("nothing new")) return "Untick “Only what I haven't downloaded yet” to download everything again.";
   if (m.includes("post") && m.includes("open")) return "Open a post/reel page first, or pick a different mode.";
   return "";
@@ -579,6 +593,27 @@ function summaryLabel(s) {
   return "complete";
 }
 
+// Your saved collections, loaded once for the "Which saved posts" list.
+let collectionsLoaded = false;
+function loadCollections() {
+  if (collectionsLoaded) return;
+  collectionsLoaded = true;
+  chrome.runtime.sendMessage({ type: "LIST_COLLECTIONS" }, (resp) => {
+    if (chrome.runtime.lastError || !resp?.collections) {
+      collectionsLoaded = false;
+      return;
+    }
+    for (const c of resp.collections.filter((c) => !c.auto)) {
+      const o = document.createElement("option");
+      o.value = c.id;
+      o.textContent = c.count != null ? `${c.name} (${c.count})` : c.name;
+      els.collectionSelect.append(o);
+    }
+    if (state.wantCollection && [...els.collectionSelect.options].some((o) => o.value === state.wantCollection)) els.collectionSelect.value = state.wantCollection;
+    updateMainAction();
+  });
+}
+
 function buildJobFromForm() {
   const mode = els.modeSelect.value;
   const username = els.usernameInput.value.trim().replace(/^@/, "");
@@ -590,12 +625,14 @@ function buildJobFromForm() {
       return null;
     }
     options.shortcode = state.profile.detectedShortcode;
+  } else if (mode === "saved") {
+    options.collection = els.collectionSelect.value;
   } else if (!username && !(mode === "highlights" && state.profile.detectedHighlightId)) {
     showProfileError("Username required", "Enter the @username you want to export.");
     return null;
   }
 
-  if (mode === "posts" || mode === "images" || mode === "reels") {
+  if (mode === "posts" || mode === "images" || mode === "reels" || mode === "saved") {
     const ftype = els.filterSelect.value;
     const filter = { type: ftype };
     if (ftype === "recent" || ftype === "oldest") {
@@ -1260,6 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
   els.tabProfile.addEventListener("click", () => switchTab("profilePanel"));
 
   els.modeSelect.addEventListener("change", refreshProfileFields);
+  els.collectionSelect.addEventListener("change", updateMainAction);
   els.filterSelect.addEventListener("change", refreshProfileFields);
   els.usernameInput.addEventListener("input", () => {
     state.profile.detectedUsername = els.usernameInput.value.trim();

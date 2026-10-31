@@ -22,6 +22,8 @@ import {
   getMediaInfo,
   getReel,
   getHighlightsTray,
+  getCollections,
+  paginateSaved,
   setWaitReporter,
   idSources,
   IGError,
@@ -45,8 +47,14 @@ function progress(jobId, phase, done, total, message) {
   send({ type: "EXPORT_PROGRESS", jobId, phase, done, total, message });
 }
 
-chrome.runtime.onMessage.addListener((msg) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.target !== "offscreen") return;
+
+  // The popup's collection list (your saved collections).
+  if (msg.type === "GET_COLLECTIONS") {
+    getCollections().then((collections) => sendResponse({ collections }), (err) => sendResponse({ error: err?.message || "Couldn't load your collections." }));
+    return true;
+  }
 
   if (msg.type === "RUN_EXPORT") {
     runExport(msg.job);
@@ -180,7 +188,7 @@ function makeSink(job, root = "", username = "") {
   return {
     folder,
     entries,
-    name: (ex, index) => fileBase(job.options?.pattern, { folder, username, takenAt: ex.takenAt, code: ex.shortcode, index }),
+    name: (ex, index) => fileBase(job.options?.pattern, { folder, username: ex.owner || username, takenAt: ex.takenAt, code: ex.shortcode, index }),
     async add(path, bytes, time) {
       if (!folder) return entries.push({ path, bytes, date: time ? new Date(time * 1000) : undefined }) > 0;
       // Each run's index gets its own name, so repeat runs into one folder keep theirs.
@@ -282,7 +290,7 @@ function galleryItem(ex, paths, saved, url = "", group = "") {
   const ok = paths.filter((p) => saved.has(p));
   const files = ok.filter((p) => !/_thumb\.\w+$/.test(p));
   const cover = files.find((p) => !/\.mp4$/.test(p)) || ok.find((p) => /_thumb\./.test(p)) || files[0];
-  return { files, cover, caption: ex.caption || "", takenAt: ex.takenAt, kind: ex.kind, url, group };
+  return { files, cover, caption: ex.caption || "", takenAt: ex.takenAt, kind: ex.kind, url, group, author: ex.owner || "" };
 }
 const addGallery = (sink, username, type, items) => sink.add("index.html", textEncoder.encode(profilePage({ username, type, items })));
 
@@ -551,6 +559,84 @@ async function exportHighlights(job, user) {
   sink.finish(`${ident(owner || "instagram")}_highlights_${nowStamp()}.zip`, { highlights: selected.length, files: total, failed });
 }
 
+// Your saved posts: everything ("all"), one collection (its id), or every
+// collection you made ("every"), each in its own folder. Every post keeps its
+// author, link, date and caption; the gallery groups them by collection.
+async function exportSaved(job) {
+  const { jobId } = job;
+  const which = job.options.collection || "all";
+  progress(jobId, "resolving", null, null, "Loading your collections…");
+  let targets = [{ id: "all", name: "All saved posts" }];
+  if (which !== "all") {
+    const cols = await getCollections();
+    targets = which === "every" ? cols.filter((c) => !c.auto) : cols.filter((c) => c.id === which);
+    if (!targets.length) throw new IGError(which === "every" ? "You have no collections yet." : "That collection wasn't found.", 0);
+  }
+  const several = targets.length > 1;
+  const label = several ? "collections" : sanitize(targets[0].name);
+  const sink = makeSink(job, `saved/${label}`);
+  const groups = [];
+  let skipped = 0;
+  for (const col of targets) {
+    progress(jobId, "enumerating", 0, null, `Loading ${col.name}…`);
+    const found = await collectItems(jobId, (onItems) => paginateSaved(col.id, onItems), () => true, job.options.filter);
+    let items;
+    try {
+      items = skipSeen(job, found);
+    } catch {
+      items = []; // all of this collection was saved before
+      job.skipped = found.length;
+    }
+    skipped += job.skipped || 0;
+    groups.push({ col, items });
+  }
+  job.skipped = skipped;
+  if (!groups.some((g) => g.items.length)) {
+    throw new IGError(skipped ? "Nothing new since your last export." : "No saved posts found for this selection.", 0);
+  }
+
+  const queue = [];
+  const posts = [];
+  for (const { col, items } of groups) {
+    items.forEach((ex, i) => {
+      const files = planPostFiles(ex);
+      if (!files.length) return;
+      const folder = `${several ? sanitize(col.name) + "/" : ""}${sink.name(ex, i + 1)}`;
+      const item = { id: ex.shortcode, time: ex.takenAt };
+      for (const f of files) queue.push({ path: `${folder}/${f.name}`, url: f.url, file: f, ...item });
+      if (ex.caption) queue.push({ path: `${folder}/caption.txt`, bytes: textEncoder.encode(ex.caption), ...item });
+      posts.push({ ex, files, folder, collection: col.name });
+    });
+  }
+  const { failed, total, saved } = await fetchQueue(job, queue, "files", sink);
+  for (const q of queue) if (q.file) q.file.name = q.path.slice(q.path.lastIndexOf("/") + 1);
+
+  const url = (ex) => `https://www.instagram.com/p/${ex.shortcode}/`;
+  await addGallery(sink, "you", several ? "saved collections" : `saved · ${targets[0].name}`, posts.map((p) =>
+    galleryItem(p.ex, p.files.map((f) => `${p.folder}/${f.name}`), saved, url(p.ex), several ? p.collection : "")));
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({
+    type: "saved",
+    exported_at: nowStamp(),
+    collections: targets.map((c) => c.name),
+    count: posts.length,
+    posts: posts.map((p) => ({
+      folder: p.folder,
+      collection: p.collection,
+      author: p.ex.owner,
+      shortcode: p.ex.shortcode,
+      url: url(p.ex),
+      taken_at: p.ex.takenAt,
+      date: dateStr(p.ex.takenAt),
+      kind: p.ex.kind,
+      caption: p.ex.caption,
+      files: p.files.map((f) => f.name),
+    })),
+  }, null, 2)));
+
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`instagram_saved_${label}_${nowStamp()}.zip`, { posts: posts.length, files: total, failed });
+}
+
 async function exportProfilePic(job, user) {
   if (!user.profile_pic_url_hd) throw new IGError("No profile picture available.", 0);
   const bytes = await fetchBytes(user.profile_pic_url_hd);
@@ -621,6 +707,10 @@ async function runExport(job) {
     }
     if (mode === "highlights" && job.options.highlightId) {
       await exportHighlights(job, null);
+      return;
+    }
+    if (mode === "saved") {
+      await exportSaved(job);
       return;
     }
 

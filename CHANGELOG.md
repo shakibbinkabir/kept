@@ -2,6 +2,16 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.3.0] — 2026-10-31
+
+"Everything you saved." Tested end to end against live Instagram: opened on one of your collections, the popup switched to it by itself and exported its newest posts with their authors, links, dates and captions; "every collection" exported four collections into four folders with a gallery grouped the same way; "all saved posts" exported the newest saved posts.
+
+### Added
+
+- **Your saved posts and collections.** Pick **My saved posts and collections** in the Profiles tab, then **All saved posts**, one of your collections, or **Every collection, each in its own folder**. Every post is saved with its photos and videos, its caption, the account that posted it, a link back to it and its date (in `index.json`, and `caption.txt` beside the files). The usual Range, folder, only-new and file name options apply, and `{username}` in a file name pattern means the post's author.
+- **Opens on the right collection.** On instagram.com/you/saved/ the popup offers your saved posts straight away, with the collection you're looking at already chosen.
+- **A collection browser.** The export's offline gallery groups posts by collection and searches captions, authors and collection names; each post shows who posted it.
+
 ## [4.2.0] — 2026-10-31
 
 "Pick before you export." Tested end to end against live Instagram: the picker listed an account's posts with thumbnails and stopped on request, a shift-click ticked three posts and exactly those three were exported; one of five highlights was picked and exported alone; the gallery pages of both exports opened offline with every file present; a folder export got its own gallery file; and the file name previews matched what the exports produced.

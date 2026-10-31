@@ -25,6 +25,7 @@ const DOC_USER = { name: "PolarisProfilePageContentQuery", id: "4015883812036699
 const DOC_HIGHLIGHTS = { name: "PolarisProfileStoryHighlightsTrayContentQuery", id: "26970053832668570" };
 const DOC_REEL = { name: "PolarisStoriesV3ReelPageStandaloneQuery", id: "29341065465524437" }; // a story ring or highlight
 const DOC_REELS_TAB = { name: "PolarisProfileReelsTabContentQuery_connection", id: "39544804838467783" }; // a user's reels
+const DOC_SAVED_COLLECTIONS = { name: "PolarisProfileSavedTabContentQuery", id: "27584326974521636" }; // your saved collections
 const TIMELINE_FLAGS = {
   include_multi_captions: true,
   __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: true,
@@ -331,6 +332,7 @@ export function extractMedia(item) {
     // Pinned posts lead the grid (and pinned reels the Reels tab) out of date order.
     pinned: !!(item.timeline_pinned_user_ids?.length || item.clips_tab_pinned_user_ids?.length),
     thumb: thumbOf(item.media_type === 8 ? item.carousel_media?.[0] : item) || thumbOf(item),
+    owner: item.user?.username || item.owner?.username || "",
     media,
   };
 }
@@ -384,6 +386,42 @@ export async function getReel(reelId) {
 }
 
 /** Highlights tray for a user → [{ id (numeric string), title }]. */
+/**
+ * Your saved collections: the automatic "All posts" one and those you made.
+ * @returns {Promise<Array<{id: string, name: string, count: number|null, auto: boolean}>>}
+ */
+export async function getCollections() {
+  const data = await graphql(DOC_SAVED_COLLECTIONS, {
+    collection_types: ["ALL_MEDIA_AUTO_COLLECTION", "PLAYLIST_AUTO_COLLECTION", "MEDIA", "AUDIO_AUTO_COLLECTION"],
+    first: 100,
+  });
+  const edges = data?.viewer?.collections_unified_with_auto_collections?.edges || [];
+  return edges
+    .map(({ node }) => ({
+      id: String(node.collection_id || ""),
+      name: node.collection_name || "Saved",
+      count: node.collection_media_count ?? null,
+      auto: node.__typename !== "MediaCollection",
+    }))
+    .filter((c) => c.id);
+}
+
+/**
+ * Page through your saved posts ("all") or one collection, newest saved first.
+ * onItems(rawItems) returns true to stop.
+ */
+export async function paginateSaved(collectionId, onItems) {
+  const base = collectionId && collectionId !== "all" ? `/api/v1/feed/collection/${collectionId}/posts/` : "/api/v1/feed/saved/posts/";
+  let maxId = "";
+  for (;;) {
+    const data = await fetchJson(base + (maxId ? `?max_id=${encodeURIComponent(maxId)}` : ""));
+    const items = (data.items || []).map((i) => i.media).filter(Boolean);
+    if (await onItems(items)) return;
+    if (!data.more_available || !data.next_max_id) return;
+    maxId = data.next_max_id;
+  }
+}
+
 export async function getHighlightsTray(userId) {
   const data = await graphql(DOC_HIGHLIGHTS, { user_id: String(userId) });
   return (data.highlights?.edges || []).map(({ node }) => ({

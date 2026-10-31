@@ -92,7 +92,7 @@
 
   <!-- ===== Profiles ===== -->
   <section class="panel" id="profilePanel" role="tabpanel" aria-labelledby="tabProfile" hidden>
-    <div class="field username-wrap">
+    <div class="field username-wrap" id="usernameField">
       <label class="field-label" for="usernameInput">Account</label>
       <span class="at">@</span>
       <input type="text" id="usernameInput" placeholder="username" autocomplete="off" spellcheck="false" />
@@ -108,6 +108,15 @@
         <option value="highlights">Story highlights</option>
         <option value="profilePic">Profile picture</option>
         <option value="post">This post / reel</option>
+        <option value="saved">My saved posts and collections</option>
+      </select>
+    </div>
+
+    <div class="field" id="collectionField" hidden>
+      <label class="field-label" for="collectionSelect">Which saved posts</label>
+      <select id="collectionSelect">
+        <option value="all">All saved posts</option>
+        <option value="every">Every collection, each in its own folder</option>
       </select>
     </div>
 

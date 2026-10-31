@@ -56,9 +56,9 @@ data.items.forEach((it, i) => {
   const cover = it.cover || it.files[0];
   const m = el(isVideo(cover) ? "video" : "img"); m.src = src(cover);
   if (m.tagName === "IMG") { m.loading = "lazy"; m.alt = ""; } else { m.muted = true; m.preload = "metadata"; }
-  const tag = el("span", "tag"); tag.append(el("span", null, fmt(it.takenAt)), el("span", null, it.files.length > 1 ? it.files.length + " files" : isVideo(it.files[0]) ? "▶" : ""));
+  const tag = el("span", "tag"); tag.append(el("span", null, it.author ? "@" + it.author : fmt(it.takenAt)), el("span", null, it.files.length > 1 ? it.files.length + " files" : isVideo(it.files[0]) ? "▶" : ""));
   b.append(m, tag); b.onclick = () => open(i, 0);
-  grid.append(b); tiles.push({ b, text: ((it.caption || "") + " " + (it.group || "")).toLowerCase() });
+  grid.append(b); tiles.push({ b, text: ((it.caption || "") + " " + (it.group || "") + " " + (it.author || "")).toLowerCase() });
 });
 document.getElementById("q").addEventListener("input", (e) => {
   const v = e.target.value.trim().toLowerCase();
@@ -74,7 +74,7 @@ function open(i, f) {
   video.pause();
   img.hidden = isVideo(file); video.hidden = !isVideo(file);
   if (isVideo(file)) video.src = src(file); else img.src = src(file);
-  document.getElementById("when").textContent = fmt(it.takenAt) + (it.group ? " · " + it.group : "");
+  document.getElementById("when").textContent = (it.author ? "@" + it.author + " · " : "") + fmt(it.takenAt) + (it.group ? " · " + it.group : "");
   document.getElementById("cap").textContent = it.caption || "";
   document.getElementById("count").textContent = (it.files.length > 1 ? "File " + (f + 1) + " of " + it.files.length + " · " : "") + "Item " + (i + 1) + " of " + data.items.length;
   const link = document.getElementById("link");
@@ -114,7 +114,7 @@ export function profilePage({ username, type, items, exportedAt = new Date() }) 
 <title>${esc(title)}</title><style>${CSS}</style></head>
 <body>
 <header><div><h1>${esc(title)}</h1><p>${kept.length} saved · exported with Kept on ${esc(exportedAt.toLocaleDateString("en-GB"))}</p></div>
-<input id="q" type="search" placeholder="Search captions" aria-label="Search captions"></header>
+<input id="q" type="search" placeholder="Search captions, people, collections" aria-label="Search captions, people and collections"></header>
 <main id="grid-host"></main>
 <div id="viewer" hidden role="dialog" aria-modal="true" aria-label="Viewer">
 <div class="stage"><button class="nav" id="prev" aria-label="Previous (←)">←</button><img id="vImg" alt=""><video id="vVideo" controls hidden></video><button class="nav" id="next" aria-label="Next (→)">→</button></div>

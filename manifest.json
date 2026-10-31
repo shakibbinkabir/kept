@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Kept: Instagram chat & post backup",
   "short_name": "Kept",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Keep Instagram chats with their photos and voice notes, and posts, reels, stories and highlights, on your own computer.",
   "permissions": [
     "activeTab",

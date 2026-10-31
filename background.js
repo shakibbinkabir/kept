@@ -85,7 +85,7 @@ function rememberSeen(key, ids) {
     .catch(() => {});
 }
 
-const MULTI = ["posts", "images", "reels", "stories", "highlights"];
+const MULTI = ["posts", "images", "reels", "stories", "highlights", "saved"];
 
 /* ===== finished jobs: their files, and the history ===== */
 
@@ -141,7 +141,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       try {
         await ensureOffscreen();
         const options = msg.options || {};
-        const who = String(msg.username || options.highlightId || "").toLowerCase();
+        const who = String(msg.mode === "saved" ? `you/${options.collection || "all"}` : msg.username || options.highlightId || "").toLowerCase();
         const seenKey = !chat && MULTI.includes(msg.mode) ? `seen:${who}:${msg.mode}` : null;
         const seen = seenKey && options.onlyNew ? (await chrome.storage.local.get(seenKey))[seenKey] || [] : null;
         chrome.runtime.sendMessage({
@@ -176,6 +176,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: false, error: err?.message || "Could not start the export." });
       }
     })();
+    return true; // async sendResponse
+  }
+
+  // From the popup: your saved collections, for its collection list.
+  if (msg?.type === "LIST_COLLECTIONS") {
+    ensureOffscreen()
+      .then(() => chrome.runtime.sendMessage({ target: "offscreen", type: "GET_COLLECTIONS" }))
+      .then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't load your collections." }));
     return true; // async sendResponse
   }
 

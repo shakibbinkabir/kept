@@ -79,7 +79,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Offline `index.html` gallery in profile exports
 - Settings page in sections, with a live preview of file name patterns
 
-## 4.3: Everything you saved
+## 4.3: Everything you saved ✅ shipped in v4.3.0
 
 - Saved posts and collections, with media, captions, authors, links and dates
 - Collection browser with search in the gallery page

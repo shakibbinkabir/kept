@@ -62,6 +62,7 @@ const ABOUT = [
   [/^Profile picture/, "Profile picture", "The full-size picture, saved as it is."],
   [/^Single post/, "One post or reel", "The post or reel open in your tab, including private ones you follow."],
   [/^Folder saves/, "Folders, only new, resume", "Files straight into a folder with no size limit, skipping what you saved before."],
+  [/^Saved posts/, "Your saved posts", "All your saved posts, one collection or every collection, each post with its author, link, date and caption."],
   [/^Choose posts/, "Choosing what to export", "A grid of an account's posts or highlights: tick the ones you want, export only those, and browse them offline in a gallery."],
 ];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
