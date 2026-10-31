@@ -98,7 +98,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Date range for highlights
 - Your own archived stories
 
-## 4.6: Your audience
+## 4.6: Your audience ✅ shipped in v4.6.0
 
 - Your own followers and following as CSV
 - Snapshot comparison for your own account: new followers, unfollowers, who doesn't follow you back

@@ -64,6 +64,7 @@ const ABOUT = [
   [/^Folder saves/, "Folders, only new, resume", "Files straight into a folder with no size limit, skipping what you saved before."],
   [/^Saved posts/, "Your saved posts", "All your saved posts, one collection or every collection, each post with its author, link, date and caption."],
   [/^Tagged posts/, "Tagged posts and your archive", "Posts an account is tagged in, your own archived stories by month, and highlight covers."],
+  [/^Followers and following/, "Followers and following", "Your followers and following as CSV, with who doesn't follow back and who followed or unfollowed since last time."],
   [/^Choose posts/, "Choosing what to export", "A grid of an account's posts or highlights: tick the ones you want, export only those, and browse them offline in a gallery."],
 ];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

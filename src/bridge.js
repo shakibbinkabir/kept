@@ -748,6 +748,11 @@
     }
 
     // The popup's chat picker: one page of a folder.
+    if (message.action === "VIEWER") {
+      sendResponse({ id: document.cookie.match(/(?:^|; )ds_user_id=(\d+)/)?.[1] || null });
+      return;
+    }
+
     if (message.action === "ARCHIVE_DAYS") {
       archiveDays().then((days) => sendResponse({ days }), (err) => sendResponse({ error: err.message, status: err.status || 0 }));
       return true;

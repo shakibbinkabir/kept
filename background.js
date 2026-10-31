@@ -144,12 +144,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const who = String(msg.mode === "saved" ? `you/${options.collection || "all"}` : msg.mode === "archive" ? "you" : msg.username || options.highlightId || "").toLowerCase();
         const seenKey = !chat && MULTI.includes(msg.mode) ? `seen:${who}:${msg.mode}` : null;
         const seen = seenKey && options.onlyNew ? (await chrome.storage.local.get(seenKey))[seenKey] || [] : null;
+        const snapshot = msg.mode === "myaudience" ? (await chrome.storage.local.get("audience:me"))["audience:me"] || null : null;
         chrome.runtime.sendMessage({
           target: "offscreen",
           type: chat ? "RUN_CHAT_EXPORT" : "RUN_EXPORT",
           job: chat
             ? { jobId, chat: msg.chat, options }
-            : { jobId, mode: msg.mode, username: msg.username, options, seenKey, seen },
+            : { jobId, mode: msg.mode, username: msg.username, options, seenKey, seen, snapshot },
         });
         setBadge("…");
         sendResponse({ ok: true, jobId });
@@ -216,11 +217,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   // From offscreen: something only the instagram.com tab can do (your story archive's day list).
-  if (msg?.type === "IG_TAB" && msg.action === "ARCHIVE_DAYS") {
+  if (msg?.type === "IG_TAB" && (msg.action === "ARCHIVE_DAYS" || msg.action === "VIEWER")) {
     (async () => {
       const [tab] = await chrome.tabs.query({ url: "https://www.instagram.com/*", discarded: false });
       if (!tab) return { error: "Open instagram.com in a tab (logged in), then try again." };
-      return chrome.tabs.sendMessage(tab.id, { action: "ARCHIVE_DAYS" });
+      return chrome.tabs.sendMessage(tab.id, { action: msg.action });
     })().then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't reach the instagram.com tab." }));
     return true; // async sendResponse
   }
@@ -245,6 +246,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       pendingDownloads.set(downloadId, { url: msg.url, done: sendResponse });
     }, false);
     return true; // async sendResponse
+  }
+
+  // From offscreen: your followers/following snapshot, compared against next time.
+  if (msg?.type === "AUDIENCE_SNAPSHOT") {
+    chrome.storage.local.set({ "audience:me": msg.snapshot }).catch(() => {});
+    return;
   }
 
   // From offscreen (folder mode): items saved so far, for "only new" / resume.

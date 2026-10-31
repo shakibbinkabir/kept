@@ -486,6 +486,8 @@ function updateMainAction() {
     profilePic: `Save ${whose}profile picture`,
     post: "Export this post",
     tagged: who ? `Export posts @${who} is tagged in` : "Export tagged posts",
+    myaudience: "Export your followers and following",
+    audience: who ? `Export @${who}'s followers and following` : "Export followers and following",
     archive: "Export your archived stories",
     saved: els.collectionSelect.value === "all" ? "Export your saved posts" : els.collectionSelect.value === "every" ? "Export every collection" : `Export “${els.collectionSelect.selectedOptions[0]?.textContent || "collection"}”`,
   }[mode];
@@ -516,7 +518,7 @@ function updateProfileHint() {
 function refreshProfileFields() {
   const mode = els.modeSelect.value;
   const isFeed = ["posts", "images", "reels", "saved", "tagged", "archive", "highlights"].includes(mode) && !(mode === "highlights" && state.profile.detectedHighlightId);
-  els.usernameField.hidden = mode === "saved" || mode === "archive";
+  els.usernameField.hidden = mode === "saved" || mode === "archive" || mode === "myaudience";
   els.collectionField.hidden = mode !== "saved";
   if (mode === "saved") loadCollections();
   const filter = els.filterSelect.value;
@@ -598,6 +600,7 @@ function summaryLabel(s) {
   if (!s) return "complete";
   const count = (n, one, many = one + "s") => `${n} ${n === 1 ? one : many}`;
   const fail = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "");
+  if (s.followers != null) return `${count(s.followers, "follower")}, ${s.following} following` + (s.newFollowers != null ? ` · ${s.newFollowers} new, ${s.unfollowers} unfollowed, ${s.notBack} not following back` : "");
   if (s.posts != null) return count(s.posts, "post") + fail;
   if (s.reels != null) return count(s.reels, "reel") + fail;
   if (s.stories != null) return count(s.stories, "story", "stories") + fail;
@@ -641,8 +644,8 @@ function buildJobFromForm() {
     options.shortcode = state.profile.detectedShortcode;
   } else if (mode === "saved") {
     options.collection = els.collectionSelect.value;
-  } else if (mode === "archive") {
-    // your own archive: no username
+  } else if (mode === "archive" || mode === "myaudience") {
+    // your own account: no username
   } else if (!username && !(mode === "highlights" && state.profile.detectedHighlightId)) {
     showProfileError("Username required", "Enter the @username you want to export.");
     return null;

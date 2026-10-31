@@ -17,6 +17,7 @@ function summaryLabel(s = {}) {
   const n = (v, one, many = one + "s") => `${v} ${v === 1 ? one : many}`;
   const extra = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "");
   if (s.messages != null) return `${s.chats > 1 ? n(s.chats, "chat") + ", " : ""}${n(s.messages, "message")}${s.media ? `, ${n(s.media - (s.failed || 0), "media file")}` : ""}`;
+  if (s.followers != null) return `${n(s.followers, "follower")}, ${s.following} following` + (s.newFollowers != null ? ` · ${s.newFollowers} new, ${s.unfollowers} unfollowed` : "");
   if (s.posts != null) return n(s.posts, "post") + extra;
   if (s.reels != null) return n(s.reels, "reel") + extra;
   if (s.stories != null) return n(s.stories, "story", "stories") + extra;
@@ -145,10 +146,12 @@ async function loadSettings() {
   $("sEncoding").checked = !!c.instagramEncoding;
   const seen = Object.keys(all).filter((k) => k.startsWith("seen:"));
   const items = seen.reduce((n, k) => n + (all[k]?.length || 0), 0);
-  $("seenInfo").textContent = seen.length
+  const snap = all["audience:me"];
+  $("seenInfo").textContent = (seen.length
     ? `Kept remembers ${items} saved item${items === 1 ? "" : "s"} across ${seen.length} account and type pair${seen.length === 1 ? "" : "s"}, so "only new" can skip them.`
-    : 'Nothing remembered yet. Exports remember what they saved, so "only new" can skip it next time.';
-  $("forgetSeen").disabled = !seen.length;
+    : 'Nothing remembered yet. Exports remember what they saved, so "only new" can skip it next time.') +
+    (snap ? ` Your follower snapshot is from ${new Date(snap.at).toLocaleDateString()}.` : "");
+  $("forgetSeen").disabled = !seen.length && !snap;
   showPreview();
 }
 // A live example of the file names the pattern gives, for a post and a reel.
@@ -170,8 +173,8 @@ function saveSettings() {
 for (const id of ["sFolder", "sOnlyNew", "sMedia", "sEncoding", "sPattern"]) $(id).addEventListener("change", saveSettings);
 $("forgetSeen").addEventListener("click", async () => {
   const all = await store.get(null);
-  await store.remove(Object.keys(all).filter((k) => k.startsWith("seen:")));
-  toast("Forgotten. The next export downloads everything again.");
+  await store.remove(Object.keys(all).filter((k) => k.startsWith("seen:") || k === "audience:me"));
+  toast("Forgotten. The next export downloads everything again, and starts a new follower snapshot.");
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {

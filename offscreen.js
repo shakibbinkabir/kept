@@ -13,6 +13,7 @@ import { planMedia, chatFolder, chatText, chatJson, chatMarkdown } from "./src/c
 import { chatPage, inboxPage } from "./src/chatpage.js";
 import { pad, dateStr, sanitize, ident, fileBase } from "./src/names.js";
 import { profilePage } from "./src/profilepage.js";
+import { usersCsv, snapshotOf, compare } from "./src/audience.js";
 import {
   resolveUser,
   paginateFeed,
@@ -26,6 +27,7 @@ import {
   paginateSaved,
   paginateTagged,
   getReels,
+  paginateFriends,
   setWaitReporter,
   idSources,
   IGError,
@@ -350,6 +352,70 @@ async function exportArchive(job) {
   }, null, 2)));
   progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
   sink.finish(`instagram_archived_stories_${nowStamp()}.zip`, { stories: total, failed });
+}
+
+/* ===== followers and following ===== */
+
+// Your own lists in full, compared with your last snapshot; another account's
+// capped at 1,000 each and paced slowly, so Instagram doesn't flag your account.
+async function exportAudience(job, user) {
+  const { jobId } = job;
+  const own = job.mode === "myaudience";
+  let id = user?.id;
+  if (own) {
+    const v = await chrome.runtime.sendMessage({ type: "IG_TAB", action: "VIEWER" });
+    if (!v?.id) throw new IGError(v?.error || "Couldn't tell which account you're logged in as. Open instagram.com and try again.", 0);
+    id = v.id;
+  }
+  const cap = own ? Infinity : 1000;
+  const lists = {};
+  for (const kind of ["followers", "following"]) {
+    const byPk = new Map();
+    await paginateFriends(id, kind, async (page) => {
+      for (const u of page) byPk.set(String(u.pk), u);
+      progress(jobId, "enumerating", byPk.size, null, `${kind === "followers" ? "Followers" : "Following"}: ${byPk.size.toLocaleString()} loaded…`);
+      if (!own) await new Promise((r) => setTimeout(r, 2000 + Math.random() * 1000));
+      return byPk.size >= cap;
+    });
+    lists[kind] = [...byPk.values()].slice(0, cap);
+  }
+
+  const name = own ? "you" : ident(user.username);
+  const day = dateStr(Date.now() / 1000);
+  const sink = makeSink(job, `${name}/audience`);
+  const add = (file, text) => sink.add(file.includes(".") ? file.replace(".", `_${day}.`) : `${file}_${day}.csv`, textEncoder.encode(text));
+  await add("followers", usersCsv(lists.followers));
+  await add("following", usersCsv(lists.following));
+  const summary = { followers: lists.followers.length, following: lists.following.length };
+  const lines = [
+    own ? "Your followers and following" : `@${user.username}'s followers and following`,
+    `Saved by Kept on ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
+    "",
+    `${summary.followers.toLocaleString()} followers · ${summary.following.toLocaleString()} following`,
+  ];
+  if (own) {
+    const prev = job.snapshot?.id === id ? job.snapshot : null;
+    const now = { ...snapshotOf(lists.followers, lists.following), id };
+    const diff = compare(prev, now);
+    const full = (list, users) => users.map((u) => list.find((x) => String(x.pk) === u.pk) || u);
+    await add("not_following_back", usersCsv(full(lists.following, diff.notFollowingBack)));
+    if (prev) {
+      await add("new_followers", usersCsv(full(lists.followers, diff.newFollowers)));
+      await add("unfollowers", usersCsv(diff.unfollowers));
+      lines.push(`Since ${new Date(prev.at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}: ${diff.newFollowers.length} new followers, ${diff.unfollowers.length} unfollowed you.`);
+    } else {
+      lines.push("This is your first snapshot: next time, Kept also lists who followed and unfollowed you since today.");
+    }
+    lines.push(`${diff.notFollowingBack.length} accounts you follow don't follow you back.`);
+    Object.assign(summary, { newFollowers: diff.newFollowers.length, unfollowers: diff.unfollowers.length, notBack: diff.notFollowingBack.length });
+    // ponytail: saved before the download is confirmed; a cancelled save still moves the comparison point.
+    send({ type: "AUDIENCE_SNAPSHOT", snapshot: now });
+  } else {
+    lines.push("", "Instagram shows other people only part of a large account's follower list; these files have what it showed, up to 1,000 accounts each, loaded slowly so Instagram doesn't flag your account.");
+  }
+  await add("summary.txt", lines.join("\r\n") + "\r\n");
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`instagram_${name}_followers_${nowStamp()}.zip`, summary);
 }
 
 /* ===== picking before exporting ===== */
@@ -784,6 +850,10 @@ async function runExport(job) {
       await exportArchive(job);
       return;
     }
+    if (mode === "myaudience") {
+      await exportAudience(job, null);
+      return;
+    }
 
     progress(jobId, "resolving", null, null, `Resolving @${username}…`);
     const user = await resolveUser(username);
@@ -802,6 +872,8 @@ async function runExport(job) {
       await exportFolderedZip(job, user, { imagesOnly: false });
     } else if (mode === "images") {
       await exportFolderedZip(job, user, { imagesOnly: true });
+    } else if (mode === "audience") {
+      await exportAudience(job, user);
     } else if (mode === "tagged") {
       await exportFolderedZip(job, user, { imagesOnly: false, tagged: true });
     } else if (mode === "reels") {

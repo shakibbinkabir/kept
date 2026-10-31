@@ -2,6 +2,17 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.6.0] — 2026-10-31
+
+"Your audience." Tested end to end against live Instagram: your own followers and following were exported in full as CSV with the accounts that don't follow you back; a second export compared itself with the first and listed new followers and unfollowers; another account's lists were exported slowly and capped.
+
+### Added
+
+- **Your followers and following, as CSV.** **My followers and following (CSV)** saves both lists in full (username, name, id, private, verified and a profile link), opens in any spreadsheet app, and lists the accounts you follow that don't follow you back.
+- **What changed since last time.** Kept keeps a snapshot of your lists in the browser, so the next export adds `new_followers` and `unfollowers` files and a summary of the change. Each file is dated, so a folder export builds up a history. The Export Center can forget the snapshot.
+- **Another account's lists, once.** **Their followers and following (up to 1,000)** saves a public account's (or one you follow) lists, capped at 1,000 each and paced slowly so Instagram doesn't flag your account. Instagram shows other people only part of a large account's follower list; the summary says so. Kept never tracks other accounts over time.
+- CSV files are safe to open in spreadsheet apps: text that would run as a formula is neutralised.
+
 ## [4.5.0] — 2026-10-31
 
 "More from profiles." Tested end to end against live Instagram: the popup opened on an account's Tagged tab offered its tagged posts and exported the newest three with their dates and authors; on your story archive it exported the newest archived stories by month, and a From/To range kept exactly the stories inside it; highlights with a date range saved only the stories in range, with each highlight's cover.

@@ -448,6 +448,20 @@ export async function paginateTagged(userId, onItems) {
   }
 }
 
+/**
+ * Page through an account's followers or following ("followers" | "following").
+ * onUsers(users) returns true to stop.
+ */
+export async function paginateFriends(userId, kind, onUsers) {
+  let maxId = "";
+  for (;;) {
+    const data = await fetchJson(`/api/v1/friendships/${userId}/${kind}/?count=50${maxId ? `&max_id=${encodeURIComponent(maxId)}` : ""}`);
+    if (await onUsers(data.users || [])) return;
+    if (!data.next_max_id) return;
+    maxId = data.next_max_id;
+  }
+}
+
 /** Several reels at once (archive days, story rings): [{ id, items }]. */
 export async function getReels(reelIds) {
   const data = await graphql(DOC_REEL, { reel_ids_arr: reelIds, is_highlight: false, ...REEL_FLAGS });
