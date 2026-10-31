@@ -1,6 +1,6 @@
 // Self-check for src/chatpage.js: node test/chatpage.test.mjs
 import assert from "node:assert";
-import { chatPage } from "../src/chatpage.js";
+import { chatPage, inboxPage } from "../src/chatpage.js";
 
 const chat = {
   participants: [{ name: "Ana" }, { name: "Me" }],
@@ -27,5 +27,16 @@ assert.ok(!/@import|url\(http/i.test(html));
 const js = html.slice(html.lastIndexOf("<script>"));
 assert.ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(js), "no HTML injection paths");
 for (const id of ['id="q"', 'id="jump"', 'id="next"', 'id="prev"']) assert.ok(html.includes(id));
+
+// Pages in chats/ reach the media through a base path and link back.
+const sub = chatPage(chat, { base: "../", back: "../index.html" });
+assert.ok(sub.includes('data-base="../"') && sub.includes('href="../index.html"'));
+assert.ok(/data-f="photo"/.test(sub) && sub.includes('id="gallery"'), "filters and gallery");
+
+// The inbox page lists each chat, escaped, linking to its page.
+const inbox = inboxPage([chat, { ...chat, title: "Bo" }]);
+assert.ok(inbox.includes('href="chats/001.html"') && inbox.includes('href="chats/002.html"'));
+assert.ok(inbox.includes("Ana &lt;b&gt;&amp;") && !inbox.includes("Ana <b>"));
+assert.ok(!/<(script|link)[^>]+(src|href)=/i.test(inbox));
 
 console.log("chatpage ok");

@@ -28,7 +28,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Jump to a date
 - Voice notes playable in the page
 
-## 3.7: Choose your chats
+## 3.7: Choose your chats ✅ shipped in v3.7.0
 
 - Export several chats, or the whole inbox including message requests
 - Date range for chat exports

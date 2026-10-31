@@ -12,6 +12,22 @@ const els = {
   exportBtn: document.getElementById("exportBtn"),
   optMedia: document.getElementById("optMedia"),
   optEncoding: document.getElementById("optEncoding"),
+  chatFrom: document.getElementById("chatFrom"),
+  chatTo: document.getElementById("chatTo"),
+
+  // Several chats
+  chatSingle: document.getElementById("chatSingle"),
+  chatPicker: document.getElementById("chatPicker"),
+  pickerOpen: document.getElementById("pickerOpen"),
+  pickerBack: document.getElementById("pickerBack"),
+  pickerCount: document.getElementById("pickerCount"),
+  fInbox: document.getElementById("fInbox"),
+  fPending: document.getElementById("fPending"),
+  selectAll: document.getElementById("selectAll"),
+  chatList: document.getElementById("chatList"),
+  loadMore: document.getElementById("loadMore"),
+  everyChat: document.getElementById("everyChat"),
+  exportChatsBtn: document.getElementById("exportChatsBtn"),
   errorCard: document.getElementById("errorCard"),
   errorTitle: document.getElementById("errorTitle"),
   errorBody: document.getElementById("errorBody"),
@@ -89,6 +105,7 @@ const HINTS = {
   validation: "The data Instagram returned didn't match the expected shape. Try refreshing the page and capturing again.",
   download: "Chrome blocked the download. Check your download settings or try again.",
   bridge: "Press F5 on the Instagram tab, then reopen this popup.",
+  range: "Clear the From / To dates, or pick a wider range.",
   unknown: "Try refreshing the Instagram tab, then reopen this popup.",
 };
 
@@ -191,6 +208,7 @@ function classifyError(msg, problems) {
   if (m.includes("no messages")) return "no_messages";
   if (m.includes("validation") || (problems && problems.length)) return "validation";
   if (m.includes("download")) return "download";
+  if (m.includes("date range")) return "range";
   if (m.includes("conversation")) return "no_thread";
   return "unknown";
 }
@@ -594,9 +612,16 @@ function handleProfileMessage(msg) {
 }
 
 /* ===== Chat archive progress ===== */
+// The optional From/To dates, as ms (To covers the whole day).
+function chatRange() {
+  const day = (v, end) => (v ? new Date(`${v}T${end ? "23:59:59.999" : "00:00:00"}`).getTime() : null);
+  return { from: day(els.chatFrom.value, false), to: day(els.chatTo.value, true) };
+}
+
 function handleChatJob(msg) {
   if (msg.type === "EXPORT_PROGRESS") {
-    if (msg.phase === "downloading") setPhase("exporting", "Saving media", `${msg.done}/${msg.total}`);
+    if (msg.phase === "chats") setPhase("exporting", "Loading chats", msg.message || `${msg.done} chats`);
+    else if (msg.phase === "downloading") setPhase("exporting", "Saving media", `${msg.done}/${msg.total}`);
     else if (msg.phase === "zipping") setPhase("exporting", "Packaging", "building ZIP");
     return;
   }
@@ -605,12 +630,103 @@ function handleChatJob(msg) {
     const s = msg.summary || {};
     const saved = (s.media || 0) - (s.failed || 0);
     const media = s.media ? `, ${saved} media file${saved === 1 ? "" : "s"}${s.failed ? ` (${s.failed} failed)` : ""}` : "";
-    setPhase("success", "Exported", `${s.messages} messages${media}`);
+    const chats = s.chats > 1 ? `${s.chats} chats, ` : "";
+    setPhase("success", "Exported", `${chats}${s.messages} messages${media}`);
     renderButtons();
     showToast("✓ Saved " + (msg.filename || "chat"));
   } else if (msg.type === "EXPORT_ERROR") {
     showError("Export failed", msg.error || "Couldn't build the chat export.");
   }
+}
+
+/* ===== Several chats ===== */
+const picker = { chats: new Map(), selected: new Set(), cursors: {}, loading: false };
+const FOLDERS = () => [els.fInbox.checked && "INBOX", els.fPending.checked && "PENDING"].filter(Boolean);
+
+function renderPicker() {
+  els.chatList.textContent = "";
+  for (const c of picker.chats.values()) {
+    if (!FOLDERS().includes(c.folder)) continue;
+    const li = document.createElement("li");
+    const label = document.createElement("label");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = picker.selected.has(c.id);
+    box.onchange = () => {
+      box.checked ? picker.selected.add(c.id) : picker.selected.delete(c.id);
+      renderPickerCount();
+    };
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = c.title + (c.folder === "PENDING" ? " · request" : "");
+    const when = document.createElement("span");
+    when.className = "when";
+    when.textContent = c.last ? new Date(c.last).toLocaleDateString() : "";
+    label.append(box, name, when);
+    li.append(label);
+    els.chatList.append(li);
+  }
+  const more = FOLDERS().some((f) => picker.cursors[f] !== null);
+  els.loadMore.hidden = !more;
+  els.loadMore.disabled = picker.loading;
+  els.loadMore.textContent = picker.loading ? "Loading…" : "Load more";
+  renderPickerCount();
+}
+
+function renderPickerCount() {
+  const visible = [...picker.chats.values()].filter((c) => FOLDERS().includes(c.folder));
+  const chosen = visible.filter((c) => picker.selected.has(c.id)).length;
+  els.selectAll.checked = !!visible.length && chosen === visible.length;
+  els.pickerCount.textContent = els.everyChat.checked ? "every chat" : `${chosen} selected`;
+  const n = els.everyChat.checked ? "every" : chosen;
+  els.exportChatsBtn.textContent = els.everyChat.checked ? "Export every chat" : `Export ${n} chat${n === 1 ? "" : "s"}`;
+  els.exportChatsBtn.disabled = !FOLDERS().length || (!els.everyChat.checked && !chosen);
+}
+
+// Load the next page of each chosen folder (bridge.js runs the query).
+async function loadChats() {
+  if (picker.loading) return;
+  picker.loading = true;
+  renderPicker();
+  for (const folder of FOLDERS()) {
+    if (picker.cursors[folder] === null) continue; // that folder is done
+    const page = await new Promise((resolve) => sendToTab({ action: "LIST_CHATS", folder, cursor: picker.cursors[folder] }, resolve));
+    if (!page || page.error) {
+      showError("Couldn't list chats", page?.error || "The Instagram tab didn't answer. Refresh it and try again.");
+      break;
+    }
+    for (const c of page.chats) picker.chats.set(c.id, c);
+    picker.cursors[folder] = page.cursor;
+  }
+  picker.loading = false;
+  renderPicker();
+}
+
+function openPicker(open) {
+  if (open && !state.isInstagram) {
+    showError("Open instagram.com", "Open instagram.com in this tab to pick chats.");
+    return;
+  }
+  els.chatPicker.hidden = !open;
+  els.chatSingle.hidden = open;
+  els.pickerOpen.hidden = open;
+  if (open && !picker.chats.size) loadChats();
+}
+
+function exportChats() {
+  const folders = FOLDERS();
+  const ids = els.everyChat.checked ? undefined : [...picker.selected].filter((id) => folders.includes(picker.chats.get(id)?.folder));
+  const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked };
+  clearError();
+  openPicker(false);
+  els.exportBtn.disabled = true;
+  setPhase("exporting", "Exporting", "finding chats");
+  els.threadName.textContent = ids ? `${ids.length} chats` : "Every chat";
+  chrome.runtime.sendMessage({ type: "CHATS_EXPORT", ids, folders, ...chatRange(), options }, (resp) => {
+    if (chrome.runtime.lastError || !resp?.ok) {
+      showError("Export failed", resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
+    }
+  });
 }
 
 /* ===== "Check Instagram" ===== */
@@ -843,6 +959,23 @@ document.addEventListener("DOMContentLoaded", () => {
   els.optMedia.addEventListener("change", saveChatOptions);
   els.optEncoding.addEventListener("change", saveChatOptions);
 
+  // Several chats
+  els.pickerOpen.addEventListener("click", () => openPicker(true));
+  els.pickerBack.addEventListener("click", () => openPicker(false));
+  els.loadMore.addEventListener("click", loadChats);
+  els.exportChatsBtn.addEventListener("click", exportChats);
+  els.everyChat.addEventListener("change", renderPickerCount);
+  for (const box of [els.fInbox, els.fPending]) {
+    box.addEventListener("change", () => (picker.chats.size && FOLDERS().some((f) => !(f in picker.cursors)) ? loadChats() : renderPicker()));
+  }
+  els.selectAll.addEventListener("change", () => {
+    for (const c of picker.chats.values()) {
+      if (!FOLDERS().includes(c.folder)) continue;
+      els.selectAll.checked ? picker.selected.add(c.id) : picker.selected.delete(c.id);
+    }
+    renderPicker();
+  });
+
   /* ===== Buttons ===== */
   els.captureBtn.addEventListener("click", () => {
     clearError();
@@ -859,7 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
     els.exportBtn.disabled = true;
     els.exportBtn.textContent = "Validating…";
     setPhase("exporting", "Exporting", "validating");
-    sendToTab({ action: "EXPORT_REQUEST" });
+    sendToTab({ action: "EXPORT_REQUEST", ...chatRange() });
   });
 
   els.autoScrollBtn.addEventListener("click", () => {

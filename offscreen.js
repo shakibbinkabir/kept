@@ -10,7 +10,7 @@
 
 import { createZip } from "./src/zip.js";
 import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
-import { chatPage } from "./src/chatpage.js";
+import { chatPage, inboxPage } from "./src/chatpage.js";
 import {
   resolveUser,
   paginateFeed,
@@ -29,6 +29,7 @@ const MEDIA_CONCURRENCY = 6;
 const textEncoder = new TextEncoder();
 
 let lastBlobUrl = null;
+const chatParts = new Map(); // jobId -> chats received so far
 
 /* ===== messaging ===== */
 
@@ -46,7 +47,15 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "RUN_EXPORT") {
     runExport(msg.job);
   } else if (msg.type === "RUN_CHAT_EXPORT") {
-    runChatExport(msg.job);
+    runChatExport({ ...msg.job, chats: [msg.job.chat] });
+  } else if (msg.type === "CHAT_PART") {
+    // Several chats arrive one by one from bridge.js, then CHAT_PARTS_DONE.
+    if (!chatParts.has(msg.jobId)) chatParts.set(msg.jobId, []);
+    chatParts.get(msg.jobId).push(msg.chat);
+    progress(msg.jobId, "chats", chatParts.get(msg.jobId).length, null, `${chatParts.get(msg.jobId).length} chats loaded`);
+  } else if (msg.type === "CHAT_PARTS_DONE") {
+    runChatExport({ jobId: msg.jobId, chats: chatParts.get(msg.jobId) || [], options: msg.options });
+    chatParts.delete(msg.jobId);
   } else if (msg.type === "RUN_CHECK") {
     runCheck(msg.jobId);
   } else if (msg.type === "REVOKE" && msg.url) {
@@ -546,15 +555,22 @@ async function runExport(job) {
 
 /* ===== chat archive ===== */
 
-// A captured chat (already normalized by bridge.js) becomes a ZIP laid out
-// like Instagram's own data download: message_1.json, a readable chat.txt,
-// and the chat's photos, videos and voice notes, with the JSON pointing at
-// the local copies. Media links expire, so they're fetched right away.
+// Captured chats (already normalized by bridge.js) become one ZIP laid out
+// like Instagram's own data download: per chat a message_1.json, a readable
+// chat.txt and its photos, videos and voice notes, with the JSON pointing at
+// the local copies. Media links expire, so they're fetched right away. One
+// chat: index.html is its offline page. Several: index.html lists them and
+// each gets a page in chats/.
 async function runChatExport(job) {
-  const { jobId, chat, options = {} } = job;
+  const { jobId, chats, options = {} } = job;
   try {
-    const folder = chatFolder(chat);
-    const plan = options.media === false ? [] : planMedia(chat);
+    const plan = [];
+    for (const chat of chats) {
+      const folder = chatFolder(chat);
+      if (options.media !== false) {
+        for (const item of planMedia(chat)) plan.push({ ...item, path: `${folder}/${item.path}` });
+      }
+    }
     let entries = [];
     let failed = 0;
     if (plan.length) {
@@ -563,21 +579,29 @@ async function runChatExport(job) {
       const saved = new Set(got.entries.map((e) => e.path));
       // Failed downloads keep Instagram's (expiring) link.
       for (const item of plan) {
-        if (saved.has(item.path)) for (const ref of item.refs) ref.uri = `${folder}/${item.path}`;
+        if (saved.has(item.path)) for (const ref of item.refs) ref.uri = item.path;
       }
-      entries = got.entries.map((e) => ({ path: `${folder}/${e.path}`, bytes: e.bytes }));
+      entries = got.entries;
     }
 
     progress(jobId, "zipping", null, null, "Packaging ZIP…");
-    entries.unshift(
-      // Open this to read the chat offline; media loads from the folders beside it.
-      { path: "index.html", bytes: textEncoder.encode(chatPage(chat)) },
-      { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
-      { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
-    );
-    const title = sanitize(chat.title || "");
+    const pages = [];
+    chats.forEach((chat, i) => {
+      const folder = chatFolder(chat);
+      pages.push(
+        { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
+        { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
+      );
+      if (chats.length > 1) pages.push({ path: `chats/${pad(i + 1, 3)}.html`, bytes: textEncoder.encode(chatPage(chat, { base: "../", back: "../index.html" })) });
+    });
+    // Open index.html to read offline; media loads from the folders beside it.
+    pages.unshift({ path: "index.html", bytes: textEncoder.encode(chats.length > 1 ? inboxPage(chats) : chatPage(chats[0])) });
+    entries = pages.concat(entries);
+
+    const messages = chats.reduce((n, c) => n + c.messages.length, 0);
+    const title = chats.length > 1 ? `${chats.length}_chats` : sanitize(chats[0].title || "");
     const name = `instagram_${title === "untitled" ? "thread" : title}_${nowStamp()}.zip`;
-    finishBlob(job, createZip(entries), name, { messages: chat.messages.length, media: plan.length, failed });
+    finishBlob(job, createZip(entries), name, { chats: chats.length, messages, media: plan.length, failed });
   } catch (err) {
     send({ type: "EXPORT_ERROR", jobId, error: err?.message || "Couldn't build the chat export." });
   }

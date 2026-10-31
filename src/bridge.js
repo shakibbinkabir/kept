@@ -89,9 +89,12 @@
       throw new Error("Network request failed.");
     }
     dtsg = html.match(/"DTSGInitialData",\[\],\{"token":"([^"]+)"/)?.[1] || null;
+    // The viewer's messaging id doubles as the id of their mailbox (chat list).
+    mailboxId = html.match(/"IG_USER_EIMU":"(\d+)"/)?.[1] || mailboxId;
     if (!dtsg) throw new Error("Not authorized — make sure you're logged in to Instagram in this browser.");
     return dtsg;
   }
+  let mailboxId = null;
 
   function failure(message, status = 0, tryOtherId = false) {
     return Object.assign(new Error(message), { status, tryOtherId });
@@ -330,16 +333,7 @@
       if (!thread) {
         throw new Error("Couldn't load this conversation. Open it fresh, then try again.");
       }
-      store.threadInfo = {
-        thread_id: thread.thread_fbid,
-        thread_title: thread.thread_title || null,
-        users: (thread.users || []).map((u) => ({
-          fbid: u.interop_messaging_user_fbid,
-          username: u.username,
-          full_name: u.full_name,
-        })),
-        viewer_fbid: thread.viewer?.interop_messaging_user_fbid || null,
-      };
+      store.threadInfo = threadInfoFrom(thread);
 
       await fetchPage();
       if (urlId !== store.urlId) return;
@@ -530,14 +524,37 @@
   }
 
   /* ===== export ===== */
-  async function doExport() {
+  function threadInfoFrom(thread) {
+    return {
+      thread_id: thread.thread_fbid,
+      thread_title: thread.thread_title || null,
+      users: (thread.users || []).map((u) => ({
+        fbid: u.interop_messaging_user_fbid,
+        username: u.username,
+        full_name: u.full_name,
+      })),
+      viewer_fbid: thread.viewer?.interop_messaging_user_fbid || null,
+    };
+  }
+
+  // Keep only messages inside [from, to] (ms; either may be null).
+  function withinRange(chat, from, to) {
+    if (from || to) chat.messages = chat.messages.filter((m) => (!from || m.timestamp_ms >= from) && (!to || m.timestamp_ms <= to));
+    return chat;
+  }
+
+  async function doExport(range = {}) {
     if (store.items.size === 0) {
       broadcastError("No messages captured yet. Start capture, then scroll up to load history.");
       return;
     }
     try {
       const { normalize, validate } = await getExportLib();
-      const result = normalize(store.threadInfo, [...store.items.values()]);
+      const result = withinRange(normalize(store.threadInfo, [...store.items.values()]), range.from, range.to);
+      if (!result.messages.length) {
+        broadcastError("No messages in that date range. Change the dates or load more history.");
+        return;
+      }
       const problems = validate(result);
       if (problems.length > 0) {
         broadcastError("Validation failed", problems);
@@ -546,6 +563,88 @@
       }
     } catch (err) {
       broadcastError("Couldn't build the export: " + (err?.message || err));
+    }
+  }
+
+  /* ===== several chats ===== */
+  const DOC_THREADS = { name: "IGDThreadListOffMsysPaginationQuery", id: "28804933902495089" }; // chat list, by folder
+
+  // One page of a mailbox folder ("INBOX" or "PENDING" for message requests).
+  async function listChats(folder, cursor) {
+    await getDtsg(); // also reads the mailbox id
+    if (!mailboxId) throw new Error("Couldn't find your chat list. Refresh instagram.com and try again.");
+    const data = await gql(DOC_THREADS, { count: 20, cursor: cursor || null, folder, newer_than_timestamp_ms: null, id: mailboxId });
+    const conn = data.fetch__SlideMailbox?.threads_by_folder;
+    const chats = (conn?.edges || [])
+      .map(({ node }) => node?.as_ig_direct_thread)
+      .filter((t) => t?.thread_fbid)
+      .map((t) => ({
+        id: String(t.thread_fbid),
+        title: t.thread_title || (t.usersWithoutViewer || t.users || []).map((u) => u.full_name || u.username).filter(Boolean).join(", ") || "Instagram User",
+        group: !!t.is_group,
+        last: Number(t.last_activity_timestamp_ms) || 0,
+        folder,
+      }));
+    const next = conn?.page_info?.has_next_page ? conn.page_info.end_cursor : null;
+    return { chats, cursor: next };
+  }
+
+  // A whole conversation, newest page first, stopping once a page reaches
+  // back past `from`.
+  async function fetchChat(id, from, onCount) {
+    const head = await gql(DOC_THREAD, { thread_fbid: id });
+    const thread = head.get_slide_thread_nullable?.as_ig_direct_thread;
+    if (!thread) throw new Error("Couldn't load one of the conversations.");
+    const items = new Map();
+    let cursor = null;
+    do {
+      const data = await gql(DOC_MESSAGES, { id, after: cursor, [PAGE_VAR]: PAGE });
+      const conn = data.fetch__SlideThread?.as_ig_direct_thread?.slide_messages;
+      let oldest = Infinity;
+      for (const { node } of conn?.edges || []) {
+        if (!node?.message_id) continue;
+        items.set(node.message_id, node);
+        oldest = Math.min(oldest, Number(node.timestamp_ms) || Infinity);
+      }
+      onCount(items.size);
+      cursor = conn?.page_info?.has_next_page ? conn.page_info.end_cursor : null;
+      if (from && oldest < from) break;
+    } while (cursor);
+    return { info: threadInfoFrom(thread), nodes: [...items.values()] };
+  }
+
+  // Export several chats (ids), or every chat in some folders, into one
+  // archive: each finished chat goes straight to the offscreen doc.
+  async function exportChats({ jobId, ids, folders, from, to, options }) {
+    const progress = (done, total, message) =>
+      chrome.runtime.sendMessage({ type: "EXPORT_PROGRESS", jobId, phase: "chats", done, total, message }).catch(() => {});
+    try {
+      let list = ids || [];
+      if (!ids) {
+        for (const folder of folders || ["INBOX"]) {
+          let cursor = null;
+          do {
+            const page = await listChats(folder, cursor);
+            list.push(...page.chats.map((c) => c.id));
+            cursor = page.cursor;
+            progress(0, 0, `Finding chats (${list.length})`);
+          } while (cursor);
+        }
+      }
+      if (!list.length) throw new Error("No chats to export.");
+      const { normalize, validate } = await getExportLib();
+      let sent = 0;
+      for (let i = 0; i < list.length; i++) {
+        const { info, nodes } = await fetchChat(list[i], from, (n) => progress(i, list.length, `Chat ${i + 1} of ${list.length} · ${n} messages`));
+        const chat = withinRange(normalize(info, nodes), from, to);
+        if (!chat.messages.length || validate(chat).length) continue; // nothing in range, or unreadable
+        await chrome.runtime.sendMessage({ target: "offscreen", type: "CHAT_PART", jobId, chat }).catch(() => {});
+        sent++;
+      }
+      if (!sent) throw new Error("None of those chats have messages in that date range.");
+      chrome.runtime.sendMessage({ target: "offscreen", type: "CHAT_PARTS_DONE", jobId, options }).catch(() => {});
+    } catch (err) {
+      chrome.runtime.sendMessage({ type: "EXPORT_ERROR", jobId, error: err?.message || String(err) }).catch(() => {});
     }
   }
 
@@ -605,8 +704,21 @@
     }
 
     if (message.action === "EXPORT_REQUEST") {
-      doExport();
+      doExport({ from: message.from, to: message.to });
       return;
+    }
+
+    // The popup's chat picker: one page of a folder.
+    if (message.action === "LIST_CHATS") {
+      listChats(message.folder, message.cursor).then(sendResponse, (err) => sendResponse({ error: err?.message || String(err) }));
+      return true;
+    }
+
+    // From the service worker: export several chats into one archive.
+    if (message.action === "EXPORT_CHATS") {
+      exportChats(message);
+      sendResponse({ ok: true });
+      return true;
     }
 
     // Profile export (offscreen.js) runs its GraphQL queries here, because

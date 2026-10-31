@@ -20,8 +20,8 @@ input[type=search]{width:220px}button{cursor:pointer;padding:7px 11px}button:hov
 #count{color:var(--dim);font-size:13px;min-width:70px;text-align:right}
 main{max-width:760px;margin:0 auto;padding:12px 16px 60px}
 .day{content-visibility:auto;contain-intrinsic-size:auto 600px}
-.day h2{position:sticky;top:64px;z-index:2;margin:22px auto 10px;width:max-content;font-size:12px;font-weight:600;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 12px}
-.msg{display:flex;flex-direction:column;align-items:flex-start;margin:2px 0;scroll-margin-top:120px}
+.day h2{position:sticky;top:calc(var(--head,64px) + 6px);z-index:2;margin:22px auto 10px;width:max-content;font-size:12px;font-weight:600;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 12px}
+.msg{display:flex;flex-direction:column;align-items:flex-start;margin:2px 0;scroll-margin-top:calc(var(--head,64px) + 60px)}
 .msg.mine{align-items:flex-end}
 .who{font-size:12px;color:var(--dim);margin:8px 12px 2px}
 .bubble{max-width:78%;background:var(--theirs);border-radius:18px;padding:8px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -36,17 +36,30 @@ main{max-width:760px;margin:0 auto;padding:12px 16px 60px}
 .hit .bubble{outline:2px solid var(--accent)}.current .bubble{outline-width:3px}
 mark{background:var(--mark);color:inherit;border-radius:3px}
 footer{text-align:center;color:var(--dim);font-size:12px;padding:20px}
+.back{color:var(--accent);text-decoration:none;font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.chip{border-radius:999px;padding:4px 12px;font-size:13px}.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-width:960px;margin:0 auto;padding:16px}
+#gallery button{padding:0;border:0;border-radius:12px;overflow:hidden;aspect-ratio:1;background:var(--theirs);position:relative}
+#gallery img,#gallery video{width:100%;height:100%;object-fit:cover;display:block}
+#gallery .kind{position:absolute;right:6px;bottom:6px;font-size:12px;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:1px 6px}
+.list{list-style:none;margin:0 auto;padding:12px 16px;max-width:760px}
+.list a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;margin:6px 0;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:inherit;text-decoration:none}
+.list a:hover{border-color:var(--accent)}.list small{color:var(--dim)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 `;
 
 const JS = `
 const chat = JSON.parse(document.getElementById("data").textContent);
+const setHead = () => document.documentElement.style.setProperty("--head", document.querySelector("header").offsetHeight + "px");
+setHead(); addEventListener("resize", setHead);
 const me = chat.participants.length ? chat.participants[chat.participants.length - 1].name : "";
 const main = document.getElementById("chat");
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 const pad = (n) => String(n).padStart(2, "0");
 const dayKey = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-const src = (uri) => /^(https?:|data:)/.test(uri) ? uri : uri.split("/").map(encodeURIComponent).join("/");
+const base = document.body.dataset.base || "";
+const src = (uri) => /^(https?:|data:)/.test(uri) ? uri : base + uri.split("/").map(encodeURIComponent).join("/");
 const msgs = [...chat.messages].reverse();
 const items = [];
 let section = null, lastDay = "", lastSender = "";
@@ -77,9 +90,48 @@ msgs.forEach((m, i) => {
   if (!text && !b.querySelector("img,video,audio,.share")) t.textContent = "(no content)";
   row.append(b, el("div", "meta", at.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })));
   if (m.reactions && m.reactions.length) row.append(el("div", "reacts", m.reactions.map((r) => r.reaction + " " + r.actor).join("  ")));
+  const kinds = [];
+  if ((m.photos || []).length) kinds.push("photo");
+  if ((m.videos || []).length) kinds.push("video");
+  if ((m.audio_files || []).length) kinds.push("audio");
+  if (m.share || /https?:\\/\\//.test(text)) kinds.push("link");
+  if (call) kinds.push("call");
+  row.dataset.k = kinds.join(" ");
   section.append(row);
-  items.push({ row, t, text: text.toLowerCase(), raw: text });
+  items.push({ row, t, text: text.toLowerCase(), raw: text, m });
 });
+
+// Filters: show only messages with photos, videos, voice notes, links or calls.
+const chips = [...document.querySelectorAll(".chip[data-f]")];
+function filter(kind) {
+  for (const c of chips) c.setAttribute("aria-pressed", String(c.dataset.f === kind));
+  for (const it of items) it.row.hidden = kind !== "all" && !it.row.dataset.k.split(" ").includes(kind);
+  for (const s of document.querySelectorAll(".day")) s.hidden = ![...s.querySelectorAll(".msg")].some((r) => !r.hidden);
+}
+for (const c of chips) c.onclick = () => { showGallery(false); filter(c.dataset.f); };
+
+// Gallery: every photo and video in a grid; click one to jump to its message.
+const gallery = document.getElementById("gallery"), galleryBtn = document.getElementById("galleryBtn");
+let built = false;
+function showGallery(on) {
+  galleryBtn.setAttribute("aria-pressed", String(on));
+  gallery.hidden = !on; main.hidden = on;
+  if (!on || built) return;
+  built = true;
+  for (const it of items) {
+    for (const [list, tag, label] of [[it.m.photos, "img", ""], [it.m.videos, "video", "video"]]) {
+      for (const p of list || []) {
+        const btn = el("button"); btn.title = "Show in chat";
+        const media = el(tag); media.src = src(p.uri); if (tag === "img") { media.loading = "lazy"; media.alt = "Photo"; } else media.preload = "metadata";
+        btn.append(media); if (label) btn.append(el("span", "kind", "▶ " + label));
+        btn.onclick = () => { showGallery(false); filter("all"); it.row.scrollIntoView({ block: "center" }); };
+        gallery.append(btn);
+      }
+    }
+  }
+  if (!gallery.children.length) gallery.append(el("p", null, "No photos or videos in this chat."));
+}
+galleryBtn.onclick = () => showGallery(gallery.hidden);
 
 // Search: highlight every match, step through them with Enter / Shift+Enter.
 const q = document.getElementById("q"), count = document.getElementById("count");
@@ -127,8 +179,12 @@ jump.addEventListener("change", () => {
 
 const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-/** The offline page for a chat whose media uris are relative to the archive root. */
-export function chatPage(chat, { exportedAt = new Date() } = {}) {
+/**
+ * The offline page for a chat whose media uris are relative to the archive
+ * root. `base` reaches the root from the page (e.g. "../"); `back` links to
+ * the list of chats in a multi-chat archive.
+ */
+export function chatPage(chat, { exportedAt = new Date(), base = "", back = "" } = {}) {
   const msgs = chat.messages || [];
   const first = msgs.length ? new Date(msgs[msgs.length - 1].timestamp_ms) : null;
   const last = msgs.length ? new Date(msgs[0].timestamp_ms) : null;
@@ -140,15 +196,43 @@ export function chatPage(chat, { exportedAt = new Date() } = {}) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(chat.title || "Instagram chat")} — chat</title>
 <style>${CSS}</style></head>
-<body>
-<header><div><h1>${escapeHtml(chat.title || "Instagram chat")}</h1><p>${escapeHtml(people)} · ${msgs.length} messages${span ? " · " + span : ""}</p></div>
+<body data-base="${escapeHtml(base)}">
+<header><div>${back ? `<a class="back" href="${escapeHtml(back)}">← All chats</a>` : ""}<h1>${escapeHtml(chat.title || "Instagram chat")}</h1><p>${escapeHtml(people)} · ${msgs.length} messages${span ? " · " + span : ""}</p></div>
 <div class="tools"><input id="q" type="search" placeholder="Search messages" aria-label="Search messages"><span id="count" aria-live="polite"></span>
 <button id="prev" title="Previous result (Shift+Enter)" aria-label="Previous result">↑</button><button id="next" title="Next result (Enter)" aria-label="Next result">↓</button>
-<input id="jump" type="date" aria-label="Jump to date" title="Jump to date"></div></header>
+<input id="jump" type="date" aria-label="Jump to date" title="Jump to date"></div>
+<div class="chips" role="toolbar" aria-label="Show"><button class="chip" data-f="all" aria-pressed="true">All</button><button class="chip" data-f="photo" aria-pressed="false">Photos</button><button class="chip" data-f="video" aria-pressed="false">Videos</button><button class="chip" data-f="audio" aria-pressed="false">Voice notes</button><button class="chip" data-f="link" aria-pressed="false">Links</button><button class="chip" data-f="call" aria-pressed="false">Calls</button><button class="chip" id="galleryBtn" aria-pressed="false">Gallery</button></div></header>
 <main id="chat"></main>
+<section id="gallery" hidden aria-label="Photos and videos"></section>
 <footer>Exported with IG Exporter on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline; media comes from the folders next to this file.</footer>
 <script type="application/json" id="data">${data}</script>
 <script>${JS}</script>
+</body></html>
+`;
+}
+
+/** The front page of a multi-chat archive: every chat, with a search box. */
+export function inboxPage(chats, { exportedAt = new Date() } = {}) {
+  const rows = chats.map((chat, i) => {
+    const msgs = chat.messages || [];
+    const span = msgs.length ? `${new Date(msgs[msgs.length - 1].timestamp_ms).toLocaleDateString("en-GB")} – ${new Date(msgs[0].timestamp_ms).toLocaleDateString("en-GB")}` : "";
+    const people = (chat.participants || []).map((p) => p.name).join(", ");
+    return `<li data-q="${escapeHtml((chat.title + " " + people).toLowerCase())}"><a href="chats/${String(i + 1).padStart(3, "0")}.html"><span><strong>${escapeHtml(chat.title || "Instagram chat")}</strong><br><small>${escapeHtml(people)}</small></span><small>${msgs.length} messages<br>${span}</small></a></li>`;
+  });
+  const total = chats.reduce((n, c) => n + (c.messages || []).length, 0);
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Instagram chats — ${chats.length}</title>
+<style>${CSS}</style></head>
+<body>
+<header><div><h1>Instagram chats</h1><p>${chats.length} chats · ${total} messages</p></div>
+<div class="tools"><input id="q" type="search" placeholder="Find a chat" aria-label="Find a chat"></div></header>
+<ul class="list" id="list">${rows.join("")}</ul>
+<footer>Exported with IG Exporter on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline.</footer>
+<script>
+const q = document.getElementById("q"), rows = [...document.querySelectorAll("#list li")];
+q.addEventListener("input", () => { const v = q.value.trim().toLowerCase(); for (const r of rows) r.hidden = !!v && !r.dataset.q.includes(v); });
+</script>
 </body></html>
 `;
 }

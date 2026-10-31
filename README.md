@@ -16,7 +16,7 @@
 
 IG Exporter is a browser extension for Chrome, Brave, Edge and other Chromium browsers that:
 
-1. **Exports an Instagram chat** (DM conversation) to a JSON file in the same format as Instagram's own "Download Your Information" export, in minutes instead of days.
+1. **Exports Instagram chats** (DM conversations): one, several, or your whole inbox, with photos, videos and voice notes, in the same format as Instagram's own "Download Your Information" export, in minutes instead of days.
 2. **Downloads Instagram posts, images, reels, stories, highlights and profile pictures** from any public account, or a private account you follow, as neatly foldered ZIP files.
 
 > **No servers. No password. No tracking.** Everything runs in your browser using the Instagram session you're already logged in with. The only network traffic is to `instagram.com` and Instagram's media servers. See [PRIVACY.md](PRIVACY.md).
@@ -53,6 +53,9 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 
 - **A complete chat archive** — a ZIP laid out like Instagram's own data download: `message_1.json` in the same format, the chat's **photos, videos and voice notes** as real files (the JSON points at them), and a readable **`chat.txt`** transcript. Drop it into any tool that already understands Instagram's export.
 - **Read it offline** — every archive opens with an `index.html` that shows the chat like a messaging app: bubbles, day headings, inline photos, videos and playable voice notes, **search** (Enter / Shift+Enter steps through matches) and **jump to a date**. No internet needed; nothing loads from outside.
+- **Several chats, or the whole inbox** — pick chats from your list (Inbox and Message requests) or tick **Every chat in these folders**; they're fetched for you, no scrolling, and land in one ZIP with an inbox page linking to each chat.
+- **Date range** — export only the messages between two dates, for one chat or many.
+- **Filters and a gallery** — in the offline page, show only photos, videos, voice notes, links or calls, or browse every photo and video in a grid.
 - **Optional Instagram encoding** — Instagram's own export stores emoji and accents as garbled bytes, and some tools expect that. One checkbox reproduces it exactly; by default text is clean UTF-8.
 - **Manifest V3** — no remote code, no `<all_urls>`, scoped to `instagram.com` only.
 - **Zero backend** — no analytics, no telemetry, no network calls beyond what Instagram itself makes.
@@ -72,12 +75,13 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.6.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.6.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.6.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.6.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.6.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.6.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.7.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.7.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.7.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.7.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.7.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.7.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.7.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -152,6 +156,26 @@ instagram_ana_2026-10-31T15-05-35Z.zip
 
 > You control how much gets exported: stop scrolling (or stop auto-scroll) whenever you have enough, and Export packages exactly what's loaded so far.
 
+### Only some dates
+
+In the Chat tab, set **From** and/or **To** before exporting. Only messages in that range are saved (To includes the whole day).
+
+### Several chats, or your whole inbox
+
+1. With instagram.com open, click the **IG Exporter** icon, then **Export several chats or the whole inbox…** (in the Chat tab).
+2. Your chats load newest first. Tick the ones you want (**Load more** for older ones), or pick **Inbox** and/or **Message requests** and tick **Every chat in these folders**.
+3. Click **Export N chats**. Each chat is fetched in full (or just the date range, if set) and packed into one ZIP:
+
+```
+instagram_2_chats_2026-10-31T15-05-35Z.zip
+├── index.html           # open this: every chat in the archive, with search
+├── chats/001.html       # one offline page per chat
+├── chats/002.html
+└── your_instagram_activity/messages/inbox/<chat>/…   # same layout as above, one folder per chat
+```
+
+Exporting a whole inbox takes time: the extension paces its requests so Instagram doesn't block you, and waits it out if Instagram asks it to slow down.
+
 ---
 
 ## FAQ
@@ -160,7 +184,10 @@ instagram_ana_2026-10-31T15-05-35Z.zip
 Open the conversation on instagram.com in Chrome (or another Chromium browser), click IG Exporter, then **Start Capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
 
 **Can I download all my Instagram messages at once?**
-Not yet: today it's one conversation at a time. Exporting several chats or your whole inbox is planned for 3.7 ([roadmap](ROADMAP.md)).
+Yes. Click **Export several chats or the whole inbox…** in the Chat tab, pick **Inbox** (and **Message requests** if you want those), tick **Every chat in these folders**, and click **Export**. See [Several chats, or your whole inbox](#several-chats-or-your-whole-inbox).
+
+**Can I export only messages from certain dates?**
+Yes. Set **From** and **To** in the Chat tab before exporting.
 
 **How do I read an exported chat?**
 Unzip it and open `index.html` in any browser. It works offline: search the whole chat, jump to a date, view photos and play voice notes.
@@ -231,8 +258,10 @@ popup.js (Chat tab) ──▶ src/bridge.js (content script on instagram.com)
                        src/normalizer.js → src/schema.js
                                   │
                                   ▼
-                          DYI-shaped JSON download
+             offscreen.js: media + chat.txt + offline pages → ZIP
 ```
+
+Several chats skip the scrolling: bridge.js lists the chats (`IGDThreadListOffMsysPaginationQuery`), pages through each one itself, and hands every finished chat straight to the offscreen document, which builds one archive.
 
 **Profile media export** (active, session-authenticated):
 

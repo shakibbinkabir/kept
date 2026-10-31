@@ -430,6 +430,21 @@
     }
     .check input { accent-color: var(--accent); margin: 0; }
 
+    /* ===== Several chats ===== */
+    .picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .picker-count { font-size: 11px; color: var(--text-dim); }
+    .picker-folders { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .chat-list { list-style: none; margin: 0 0 8px; padding: 0; max-height: 210px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+    .chat-list:empty::after { content: "Loading chats…"; display: block; padding: 10px; font-size: 11px; color: var(--text-faint); }
+    .chat-list label { display: flex; gap: 8px; align-items: center; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .chat-list label:hover { background: var(--bg-card-hover); }
+    .chat-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-list .when { color: var(--text-faint); font-size: 10px; }
+    .chat-list input { accent-color: var(--accent); margin: 0; }
+    .check.every { margin: 8px 0; }
+    .date-row { margin: 4px 0 0; }
+    .picker-open { margin-top: 2px; text-align: left; font-size: 11px; }
+
     /* ===== "Check Instagram" card ===== */
     .check-card { margin-top: 12px; margin-bottom: 0; }
     .check-head {
@@ -490,6 +505,7 @@
 
   <!-- ===== Chat panel (DM export — unchanged behavior) ===== -->
   <div class="panel" id="chatPanel">
+    <div id="chatSingle">
     <div class="card">
       <div class="status-row">
         <span class="status-dot" id="statusDot" data-state="idle"></span>
@@ -516,9 +532,33 @@
       </button>
       <button id="exportBtn" class="btn-secondary" disabled>Export chat</button>
     </div>
+    </div>
+
+    <!-- Several chats: pick from the inbox and message requests -->
+    <div id="chatPicker" hidden>
+      <div class="picker-head">
+        <button id="pickerBack" class="link-btn">← One chat</button>
+        <span id="pickerCount" class="picker-count">0 selected</span>
+      </div>
+      <div class="picker-folders">
+        <label class="check"><input type="checkbox" id="fInbox" checked /> <span>Inbox</span></label>
+        <label class="check"><input type="checkbox" id="fPending" /> <span>Message requests</span></label>
+        <label class="check"><input type="checkbox" id="selectAll" /> <span>Select all</span></label>
+      </div>
+      <ul id="chatList" class="chat-list" aria-label="Chats"></ul>
+      <button id="loadMore" class="btn-ghost btn-wide">Load more</button>
+      <label class="check every"><input type="checkbox" id="everyChat" /> <span>Every chat in these folders, not just the ones listed</span></label>
+      <button id="exportChatsBtn" class="btn-primary btn-wide" disabled>Export 0 chats</button>
+    </div>
+
     <div class="chat-options">
       <label class="check"><input type="checkbox" id="optMedia" checked /> <span>Include photos, videos and voice notes</span></label>
       <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span>Match Instagram's text encoding</span></label>
+      <div class="field-row date-row">
+        <div><label class="field-label" for="chatFrom">From (optional)</label><input type="date" id="chatFrom" /></div>
+        <div><label class="field-label" for="chatTo">To (optional)</label><input type="date" id="chatTo" /></div>
+      </div>
+      <button id="pickerOpen" class="link-btn picker-open">Export several chats or the whole inbox…</button>
     </div>
   </div>
 

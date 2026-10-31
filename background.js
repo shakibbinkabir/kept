@@ -107,6 +107,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // async sendResponse
   }
 
+  // From popup: several chats (ids, or every chat in some folders) into one
+  // archive. bridge.js fetches each chat and hands it to the offscreen doc.
+  if (msg?.type === "CHATS_EXPORT") {
+    const jobId = `chat_${Date.now()}_${++jobCounter}`;
+    (async () => {
+      try {
+        await ensureOffscreen();
+        const [tab] = await chrome.tabs.query({ url: "https://www.instagram.com/*", discarded: false });
+        if (!tab) throw new Error("Open instagram.com in a tab (logged in), then try again.");
+        await chrome.tabs.sendMessage(tab.id, { action: "EXPORT_CHATS", jobId, ids: msg.ids, folders: msg.folders, from: msg.from, to: msg.to, options: msg.options || {} });
+        setBadge("…");
+        sendResponse({ ok: true, jobId });
+      } catch (err) {
+        sendResponse({ ok: false, error: err?.message || "Could not start the export." });
+      }
+    })();
+    return true; // async sendResponse
+  }
+
   // From popup: "Check Instagram" runs one request per feature in the offscreen doc.
   if (msg?.type === "RUN_CHECK") {
     const jobId = `check_${Date.now()}`;

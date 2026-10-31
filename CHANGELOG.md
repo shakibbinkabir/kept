@@ -2,6 +2,18 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.7.0] — 2026-10-31
+
+"Choose your chats." Tested end to end against live Instagram: the chat list loaded (15, then 30 with Load more), two chats from the last 7 days exported into one archive (921 messages, 47 media files, both pages and the inbox page open offline), the whole Message requests folder was scanned, and a 30-day range cut a 198-message chat down to its 28 recent messages.
+
+### Added
+
+- **Export several chats at once.** Click **Export several chats or the whole inbox…** to see your chat list (Inbox and Message requests), tick the ones you want, and export them into one ZIP. Or tick **Every chat in these folders** to export the whole inbox. You don't need to open or scroll each chat; the extension pages through them for you.
+- **An inbox page for multi-chat archives.** `index.html` lists every chat in the archive with a search box; each chat opens on its own page with a link back.
+- **Date range.** Set **From** and **To** to export only the messages in that period, for one chat or many. Older pages aren't fetched once the range is passed.
+- **Filters in the offline chat page.** Show only photos, videos, voice notes, links or calls.
+- **Media gallery.** A grid of every photo and video in the chat; click one to jump to its message.
+
 ## [3.6.0] — 2026-10-31
 
 "Read your chats offline." Tested end to end against live Instagram: a 198-message chat exported, unzipped and opened from a local folder (all messages, photos and the voice note load; search and jump to date work).
