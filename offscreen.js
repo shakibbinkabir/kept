@@ -193,6 +193,21 @@ function makeSink(job, root = "", username = "") {
   };
 }
 
+// A voice note's waveform for the chat page: 48 peaks, 0 to 1.
+async function waveform(bytes) {
+  const ctx = new OfflineAudioContext(1, 1, 44100);
+  const data = (await ctx.decodeAudioData(bytes.slice().buffer)).getChannelData(0);
+  const n = 48, step = Math.max(1, Math.floor(data.length / n));
+  const peaks = [];
+  for (let i = 0; i < n; i++) {
+    let max = 0;
+    for (let j = i * step; j < Math.min(data.length, (i + 1) * step); j += 8) max = Math.max(max, Math.abs(data[j]));
+    peaks.push(max);
+  }
+  const top = Math.max(...peaks) || 1;
+  return peaks.map((p) => Math.round((p / top) * 100) / 100);
+}
+
 async function saveToFolder(filename, bytes, jobId) {
   const type = MIME[filename.split(".").pop()] || "application/octet-stream";
   const url = URL.createObjectURL(new Blob([bytes], { type }));
@@ -588,6 +603,13 @@ async function runChatExport(job) {
     const title = chats.length > 1 ? `${chats.length}_chats` : sanitize(chats[0].title || "");
     const name = `${title === "untitled" ? "thread" : title}_${nowStamp()}`;
     const sink = makeSink({ ...job, options }, `chats/${name}`);
+    // Voice notes get a waveform for the page's player as they're saved.
+    const waves = {};
+    const add = sink.add;
+    sink.add = async (path, bytes, time) => {
+      if (/\/audio\/[^/]+$/.test(path)) waves[path] = await waveform(bytes).catch(() => null);
+      return add(path, bytes, time);
+    };
     const plan = [];
     for (const chat of chats) {
       const folder = chatFolder(chat);
@@ -613,10 +635,10 @@ async function runChatExport(job) {
         { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
         { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
       );
-      if (chats.length > 1) pages.push({ path: `chats/${pad(i + 1, 3)}.html`, bytes: textEncoder.encode(chatPage(chat, { base: "../", back: "../index.html" })) });
+      if (chats.length > 1) pages.push({ path: `chats/${pad(i + 1, 3)}.html`, bytes: textEncoder.encode(chatPage(chat, { base: "../", back: "../index.html", waves })) });
     });
     // Open index.html to read offline; media loads from the folders beside it.
-    pages.unshift({ path: "index.html", bytes: textEncoder.encode(chats.length > 1 ? inboxPage(chats) : chatPage(chats[0])) });
+    pages.unshift({ path: "index.html", bytes: textEncoder.encode(chats.length > 1 ? inboxPage(chats) : chatPage(chats[0], { waves })) });
     for (const page of pages) await sink.add(page.path, page.bytes);
 
     const messages = chats.reduce((n, c) => n + c.messages.length, 0);

@@ -2,6 +2,20 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.1.0] — 2026-10-31
+
+"The chat page, polished." Checked in a browser with a 100,000-message chat (first messages in under half a second, all of it built in the background in about 9 seconds, scrolling at 60 frames a second, search finding the last message), a sample chat for the viewer, voice player and print layout, and a real export of six chats with their voice notes.
+
+### Added
+
+- **Full-screen viewer** for photos and videos in the offline chat page: click a photo in the chat or anything in the gallery, step through with the arrows or ← →, close with Esc, or jump to the message with **Show in chat**.
+- **Voice notes with a waveform.** Kept works out each voice note's waveform while exporting, and the page plays it from a waveform you can click to jump to any point, with the time counting up.
+- **Print / PDF.** A book layout for the browser's print dialog: a cover page with the names, dates and message count, a heading for each day, page breaks that never split a message, and photos sized for paper. Save it as a PDF from the same dialog.
+
+### Changed
+
+- **Long chats open at once.** The page draws the first messages immediately and builds the rest in the background in small slices, so a chat of 100,000 messages stays responsive. Days already off screen aren't drawn until you scroll to them, and the day headings stay pinned while you read.
+
 ## [4.0.0] — 2026-10-31
 
 "New name, new look." IG Exporter is now **Kept**, with a redesigned popup, a full-page Export Center and a website at kept.thisissbk.com. Tested end to end in the real extension against live Instagram: the popup on a profile, a post, a chat and the inbox; a profile ZIP export and a chat saved as a folder with the done card, Show in folder and Open chat; the history entry each one left; capture with the "back to" date; the error card; and all seven Instagram checks.

@@ -67,7 +67,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - README redesign: hero image, GIF demos, feature tour
 - Website launch at `kept.thisissbk.com`
 
-## 4.1: The chat page, polished
+## 4.1: The chat page, polished ✅ shipped in v4.1.0
 
 - Chat bubbles, sticky date headers, smooth scrolling through 100,000+ messages
 - Full-screen photo and video viewer, and voice notes with a waveform

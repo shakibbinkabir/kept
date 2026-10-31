@@ -33,6 +33,18 @@ const sub = chatPage(chat, { base: "../", back: "../index.html" });
 assert.ok(sub.includes('data-base="../"') && sub.includes('href="../index.html"'));
 assert.ok(/data-f="photo"/.test(sub) && sub.includes('id="gallery"'), "filters and gallery");
 
+// 4.1: full-screen viewer, print/PDF book layout, voice-note waveforms.
+for (const id of ['id="viewer"', 'id="vPrev"', 'id="vNext"', 'id="print"', 'class="cover"']) assert.ok(html.includes(id), id);
+assert.ok(/@media print\{/.test(html) && html.includes("break-inside:avoid"), "print layout");
+const voiced = {
+  ...chat,
+  messages: [{ sender_name: "Ana", timestamp_ms: 1700000200000, audio_files: [{ uri: "audio/1.mp4" }] }, ...chat.messages],
+};
+const withWaves = chatPage(voiced, { waves: { "audio/1.mp4": [0.2, 1], "audio/other.mp4": [1], "audio/</script>.mp4": [1] } });
+const wavesJson = withWaves.slice(withWaves.indexOf('id="waves">') + 11, withWaves.indexOf("</script>", withWaves.indexOf('id="waves">')));
+assert.deepEqual(JSON.parse(wavesJson), { "audio/1.mp4": [0.2, 1] }, "only this chat's waveforms are embedded");
+assert.equal(JSON.parse(chatPage(chat).slice(chatPage(chat).indexOf('id="waves">') + 11).split("</script>")[0]).constructor, Object);
+
 // The inbox page lists each chat, escaped, linking to its page.
 const inbox = inboxPage([chat, { ...chat, title: "Bo" }]);
 assert.ok(inbox.includes('href="chats/001.html"') && inbox.includes('href="chats/002.html"'));

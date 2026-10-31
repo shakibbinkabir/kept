@@ -87,6 +87,9 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Several chats, or the whole inbox** — pick chats from your list (Inbox and Message requests) or tick **Every chat in these folders**; they're fetched for you, no scrolling, and land in one ZIP with an inbox page linking to each chat.
 - **Date range** — export only the messages between two dates, for one chat or many.
 - **Filters and a gallery** — in the offline page, show only photos, videos, voice notes, links or calls, or browse every photo and video in a grid.
+- **Photos full screen, voice notes with a waveform** — click any photo (or anything in the gallery) to view it full screen and step through them with the arrow keys; voice notes play from a waveform you can click to jump around.
+- **Print it as a book, or save it as a PDF** — **Print / PDF** lays the chat out with a cover page, a heading for each day and clean page breaks, using your browser's own print dialog.
+- **Long chats stay fast** — the page shows the first messages at once and builds the rest in the background; tested with 100,000 messages.
 - **Optional Instagram encoding** — Instagram's own export stores emoji and accents as garbled bytes, and some tools expect that. One checkbox reproduces it exactly; by default text is clean UTF-8.
 - **Manifest V3** — no remote code, no `<all_urls>`, scoped to `instagram.com` only.
 - **Zero backend** — no analytics, no telemetry, no network calls beyond what Instagram itself makes.
@@ -106,14 +109,14 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.0.0 |
-| Current stories | ✅ Working | 2026-10-31 · v4.0.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.0.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v4.0.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v4.0.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.0.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.0.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.0.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.1.0 |
+| Current stories | ✅ Working | 2026-10-31 · v4.1.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.1.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v4.1.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v4.1.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.1.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.1.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.1.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
