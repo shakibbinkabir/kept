@@ -10,6 +10,8 @@ const els = {
   autoScrollBtn: document.getElementById("autoScrollBtn"),
   autoScrollLabel: document.getElementById("autoScrollLabel"),
   exportBtn: document.getElementById("exportBtn"),
+  optMedia: document.getElementById("optMedia"),
+  optEncoding: document.getElementById("optEncoding"),
   errorCard: document.getElementById("errorCard"),
   errorTitle: document.getElementById("errorTitle"),
   errorBody: document.getElementById("errorBody"),
@@ -591,6 +593,26 @@ function handleProfileMessage(msg) {
   }
 }
 
+/* ===== Chat archive progress ===== */
+function handleChatJob(msg) {
+  if (msg.type === "EXPORT_PROGRESS") {
+    if (msg.phase === "downloading") setPhase("exporting", "Saving media", `${msg.done}/${msg.total}`);
+    else if (msg.phase === "zipping") setPhase("exporting", "Packaging", "building ZIP");
+    return;
+  }
+  els.exportBtn.textContent = "Export chat";
+  if (msg.type === "EXPORT_DONE") {
+    const s = msg.summary || {};
+    const saved = (s.media || 0) - (s.failed || 0);
+    const media = s.media ? `, ${saved} media file${saved === 1 ? "" : "s"}${s.failed ? ` (${s.failed} failed)` : ""}` : "";
+    setPhase("success", "Exported", `${s.messages} messages${media}`);
+    renderButtons();
+    showToast("✓ Saved " + (msg.filename || "chat"));
+  } else if (msg.type === "EXPORT_ERROR") {
+    showError("Export failed", msg.error || "Couldn't build the chat export.");
+  }
+}
+
 /* ===== "Check Instagram" ===== */
 // One request per feature, run by the offscreen doc against a public account;
 // chats are checked in the open conversation, if there is one.
@@ -792,30 +814,34 @@ document.addEventListener("DOMContentLoaded", () => {
       showError(state.phase === "exporting" ? "Export failed" : "Capture failed", message.error, message.problems);
     }
 
+    // The chat is captured and validated: the offscreen doc downloads its
+    // media and builds the ZIP; progress comes back as EXPORT_* messages.
     if (message.type === "IG_EXPORTER_SUCCESS") {
-      const data = message.result;
-      // Keep letters from any script so non-Latin names stay readable.
-      let safeTitle = (data.title || "thread").replace(/[\uFE00-\uFE0F\u200D]/g, "").replace(/[^\p{L}\p{M}\p{N}_-]+/gu, "_");
-      if (/^_*$/.test(safeTitle)) safeTitle = "thread"; // an emoji-only name leaves nothing readable
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `instagram_${safeTitle}_${timestamp}.json`;
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-
-      // Saved by the service worker, which keeps download managers from
-      // renaming the file.
-      chrome.runtime.sendMessage({ type: "SAVE_FILE", url, filename }, (resp) => {
+      const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked };
+      setPhase("exporting", "Exporting", options.media ? "saving media" : "packaging");
+      chrome.runtime.sendMessage({ type: "CHAT_EXPORT", chat: message.result, options }, (resp) => {
         if (chrome.runtime.lastError || !resp?.ok) {
-          showError("Download failed", resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
-          return;
+          showError("Export failed", resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
         }
-        setPhase("success", "Exported", `${data.messages.length} messages`);
-        els.exportBtn.textContent = "Export JSON";
-        renderButtons();
-        showToast("✓ JSON downloaded");
       });
     }
   });
+
+  // Chat export options, remembered between popups.
+  chrome.storage.local
+    .get("chatOptions")
+    .then(({ chatOptions }) => {
+      if (!chatOptions) return;
+      els.optMedia.checked = chatOptions.media !== false;
+      els.optEncoding.checked = !!chatOptions.instagramEncoding;
+    })
+    .catch(() => {});
+  const saveChatOptions = () =>
+    chrome.storage.local
+      .set({ chatOptions: { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked } })
+      .catch(() => {});
+  els.optMedia.addEventListener("change", saveChatOptions);
+  els.optEncoding.addEventListener("change", saveChatOptions);
 
   /* ===== Buttons ===== */
   els.captureBtn.addEventListener("click", () => {
@@ -910,7 +936,9 @@ document.addEventListener("DOMContentLoaded", () => {
       message?.type === "EXPORT_DONE" ||
       message?.type === "EXPORT_ERROR"
     ) {
-      handleProfileMessage(message);
+      // Chat archives and profile exports share the offscreen pipeline.
+      if (String(message.jobId || "").startsWith("chat_")) handleChatJob(message);
+      else handleProfileMessage(message);
     }
     if (message?.type === "CHECK_PROGRESS" || message?.type === "CHECK_DONE") {
       handleCheckMessage(message);

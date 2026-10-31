@@ -9,6 +9,7 @@
 // hands the finished blob URL + filename to the service worker to download.
 
 import { createZip } from "./src/zip.js";
+import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
 import {
   resolveUser,
   paginateFeed,
@@ -43,6 +44,8 @@ chrome.runtime.onMessage.addListener((msg) => {
 
   if (msg.type === "RUN_EXPORT") {
     runExport(msg.job);
+  } else if (msg.type === "RUN_CHAT_EXPORT") {
+    runChatExport(msg.job);
   } else if (msg.type === "RUN_CHECK") {
     runCheck(msg.jobId);
   } else if (msg.type === "REVOKE" && msg.url) {
@@ -537,6 +540,43 @@ async function runExport(job) {
     });
   } finally {
     setWaitReporter(null);
+  }
+}
+
+/* ===== chat archive ===== */
+
+// A captured chat (already normalized by bridge.js) becomes a ZIP laid out
+// like Instagram's own data download: message_1.json, a readable chat.txt,
+// and the chat's photos, videos and voice notes, with the JSON pointing at
+// the local copies. Media links expire, so they're fetched right away.
+async function runChatExport(job) {
+  const { jobId, chat, options = {} } = job;
+  try {
+    const folder = chatFolder(chat);
+    const plan = options.media === false ? [] : planMedia(chat);
+    let entries = [];
+    let failed = 0;
+    if (plan.length) {
+      const got = await fetchQueueToEntries(jobId, plan, "photos, videos and voice notes");
+      failed = got.failed;
+      const saved = new Set(got.entries.map((e) => e.path));
+      // Failed downloads keep Instagram's (expiring) link.
+      for (const item of plan) {
+        if (saved.has(item.path)) for (const ref of item.refs) ref.uri = `${folder}/${item.path}`;
+      }
+      entries = got.entries.map((e) => ({ path: `${folder}/${e.path}`, bytes: e.bytes }));
+    }
+
+    progress(jobId, "zipping", null, null, "Packaging ZIP…");
+    entries.unshift(
+      { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
+      { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
+    );
+    const title = sanitize(chat.title || "");
+    const name = `instagram_${title === "untitled" ? "thread" : title}_${nowStamp()}.zip`;
+    finishBlob(job, createZip(entries), name, { messages: chat.messages.length, media: plan.length, failed });
+  } catch (err) {
+    send({ type: "EXPORT_ERROR", jobId, error: err?.message || "Couldn't build the chat export." });
   }
 }
 

@@ -15,7 +15,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - README rewritten around what people search for, like "export Instagram DMs" and "save Instagram voice notes"
 - Pick the new name and reserve `<new-name>.thisissbk.com`
 
-## 3.5: Chats with their media
+## 3.5: Chats with their media ✅ shipped in v3.5.0
 
 - Photos, videos and voice notes saved as files in chat exports
 - Plain-text copy of each chat next to the JSON

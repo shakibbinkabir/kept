@@ -2,6 +2,21 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.5.0] — 2026-10-31
+
+"Chats with their media." Tested end to end against live Instagram: a 198-message chat with photos and a voice note, with and without media, with and without Instagram encoding, plus a profile smoke test.
+
+### Added
+
+- **Chat exports are now a complete archive.** **Export chat** downloads a ZIP laid out like Instagram's own data download (`your_instagram_activity/messages/inbox/<chat>/`): `message_1.json` in the same format, every **photo, video and voice note** from the loaded part of the chat as a real file in `photos/`, `videos/` and `audio/`, with the JSON pointing at the local copies. Instagram's media links expire, so before this the exported media links stopped working after a while.
+- **`chat.txt`**: a readable transcript next to the JSON, oldest message first, one heading per day, with photos, voice notes, shares, calls and reactions marked inline.
+- **Include photos, videos and voice notes** (on by default) and **Match Instagram's text encoding** (off by default) options in the Chat tab, remembered between uses. The encoding option reproduces the byte-per-character escapes Instagram's own export uses, for tools that expect them.
+
+### Changed
+
+- Voice notes are served from `cdn.fbsbx.com`, so the extension now also has access to `*.fbsbx.com`.
+- The popup's **Export JSON** button is now **Export chat**, and it shows media download progress.
+
 ## [3.4.0] — 2026-10-31
 
 "Never broken for long." Tested end to end against live Instagram: every profile mode, the open post / reel / highlight detection, and chat capture, auto-scroll and export.

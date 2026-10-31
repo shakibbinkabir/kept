@@ -3,10 +3,10 @@
 // The popup is ephemeral and the real work lives in an offscreen document, so
 // this worker is the stable hub: it spins up the offscreen document, forwards
 // the export job, mirrors progress onto the toolbar badge, and performs every
-// chrome.downloads.download (profile ZIPs and the chat JSON alike).
+// chrome.downloads.download (profile ZIPs and chat archives alike).
 //
-// The chat exporter (bridge.js) otherwise talks straight to the popup; it only
-// comes here to save the finished file.
+// Chat capture (bridge.js) talks straight to the popup; once a chat is
+// captured, the popup sends it here to be archived (media + ZIP) offscreen.
 
 const OFFSCREEN_URL = "offscreen.html";
 
@@ -84,16 +84,19 @@ function clearBadgeSoon(text, ms = 3500) {
 /* ===== messaging ===== */
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  // From popup: kick off an export.
-  if (msg?.type === "PROFILE_EXPORT") {
-    const jobId = `job_${Date.now()}_${++jobCounter}`;
+  // From popup: kick off an export — a profile, or a captured chat to archive.
+  if (msg?.type === "PROFILE_EXPORT" || msg?.type === "CHAT_EXPORT") {
+    const chat = msg.type === "CHAT_EXPORT";
+    const jobId = `${chat ? "chat" : "job"}_${Date.now()}_${++jobCounter}`;
     (async () => {
       try {
         await ensureOffscreen();
         chrome.runtime.sendMessage({
           target: "offscreen",
-          type: "RUN_EXPORT",
-          job: { jobId, mode: msg.mode, username: msg.username, options: msg.options || {} },
+          type: chat ? "RUN_CHAT_EXPORT" : "RUN_EXPORT",
+          job: chat
+            ? { jobId, chat: msg.chat, options: msg.options || {} }
+            : { jobId, mode: msg.mode, username: msg.username, options: msg.options || {} },
         });
         setBadge("…");
         sendResponse({ ok: true, jobId });
@@ -148,15 +151,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       chrome.runtime.sendMessage({ type: "EXPORT_DONE", jobId: msg.jobId, filename: msg.filename, summary: msg.summary || {} }).catch(() => {});
     });
     return;
-  }
-
-  // From popup: save the chat export JSON.
-  if (msg?.type === "SAVE_FILE") {
-    saveFile(msg.url, msg.filename, (downloadId) => {
-      const error = chrome.runtime.lastError?.message || (downloadId == null ? "Download failed." : null);
-      sendResponse(error ? { ok: false, error } : { ok: true });
-    });
-    return true; // async sendResponse
   }
 
   // From offscreen: a failure.

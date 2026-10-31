@@ -51,7 +51,8 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 
 ### Chat export
 
-- **DYI-compatible schema** — drop the output into any tool that already parses Instagram's official export.
+- **A complete chat archive** — a ZIP laid out like Instagram's own data download: `message_1.json` in the same format, the chat's **photos, videos and voice notes** as real files (the JSON points at them), and a readable **`chat.txt`** transcript. Drop it into any tool that already understands Instagram's export.
+- **Optional Instagram encoding** — Instagram's own export stores emoji and accents as garbled bytes, and some tools expect that. One checkbox reproduces it exactly; by default text is clean UTF-8.
 - **Manifest V3** — no remote code, no `<all_urls>`, scoped to `instagram.com` only.
 - **Zero backend** — no analytics, no telemetry, no network calls beyond what Instagram itself makes.
 - **Captures everything** — text, reactions, photos, videos, audio messages, shares, and call events, fetched from Instagram's own API as you scroll (or auto-scroll) the thread.
@@ -70,12 +71,12 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.4.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.4.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.4.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.4.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.4.0 |
-| DM capture, scroll / auto-scroll, JSON export | ✅ Working | 2026-10-31 · v3.4.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.5.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.5.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.5.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.5.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.5.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.5.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -134,8 +135,18 @@ username_posts_2026-06-06.zip
 1. Go to <https://www.instagram.com/> and open a DM thread.
 2. Click the **IG Exporter** icon in your toolbar and click **Start Capture**. The most recent messages load right away.
 3. **Scroll up** inside the thread to pull in older history — each scroll fetches the next page from Instagram and the count climbs. Or click **Auto-scroll** to load the rest of the thread automatically; it stops when it reaches the beginning (or click it again to stop early).
-4. When you've loaded as much as you want, click **Export JSON**.
-5. The exporter validates the structure, then prompts you to save `instagram_<title>_<timestamp>.json`.
+4. When you've loaded as much as you want, click **Export chat**. Leave **Include photos, videos and voice notes** ticked to download them into the archive (they're fetched right away, because Instagram's links expire).
+5. The exporter validates the structure, downloads the media, then prompts you to save `instagram_<title>_<timestamp>.zip`:
+
+```
+instagram_ana_2026-10-31T15-05-35Z.zip
+└── your_instagram_activity/messages/inbox/ana_1784…/
+    ├── message_1.json   # Instagram's export format, media uris point at the files below
+    ├── chat.txt         # readable transcript, oldest first, one heading per day
+    ├── photos/
+    ├── videos/
+    └── audio/           # voice notes
+```
 
 > You control how much gets exported: stop scrolling (or stop auto-scroll) whenever you have enough, and Export packages exactly what's loaded so far.
 
@@ -144,13 +155,13 @@ username_posts_2026-06-06.zip
 ## FAQ
 
 **How do I export one Instagram chat?**
-Open the conversation on instagram.com in Chrome (or another Chromium browser), click IG Exporter, then **Start Capture**, **Auto-scroll**, and **Export JSON**. See [Usage — Chat export](#usage--chat-export).
+Open the conversation on instagram.com in Chrome (or another Chromium browser), click IG Exporter, then **Start Capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
 
 **Can I download all my Instagram messages at once?**
 Not yet: today it's one conversation at a time. Exporting several chats or your whole inbox is planned for 3.7 ([roadmap](ROADMAP.md)).
 
 **Does it save the photos, videos and voice messages from a chat?**
-The JSON lists them as links to Instagram's servers, and those links expire after a while. Saving them as files inside the export is coming in 3.5.
+Yes. The export is a ZIP with every photo, video and voice note from the loaded part of the chat saved as a file, plus a readable `chat.txt`. Untick **Include photos, videos and voice notes** for a quick text-only export.
 
 **Is it safe? Does it need my Instagram password?**
 It never asks for your password. It works with the session you're already logged in with, talks only to Instagram, and is open source. See [PRIVACY.md](PRIVACY.md).
@@ -258,7 +269,7 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 
 **Chat export** — these are intentional non-goals, because the web client doesn't expose the equivalent data:
 
-- **Media URIs are CDN URLs**, not local file paths. Instagram's web client never downloads media to disk; you'd have to fetch each URL separately.
+- **Media is fetched at export time.** Instagram's media links expire, so a file that can no longer be downloaded keeps its original link in `message_1.json` and is counted as failed in the popup.
 - **`thread_path`** is a best-effort slug; the inner DYI folder IDs are private to the mobile/desktop DYI pipeline.
 - **`creation_timestamp`** on media is derived from the message timestamp when Instagram doesn't expose a separate one.
 - **Call events** are collapsed to one message per call (Instagram sends a "started" notice, then an "ended" or "missed" one), with the "started" text as `content`. Instagram's web API no longer exposes a duration, so `call_duration` is the gap between the two notices in seconds: it includes the time the call rang before it was answered, so it can read up to about a minute over the real talk time. Missed calls get `0`. The pairing matches Instagram's English notice text; in another UI language calls export as two plain text rows without a duration.
@@ -269,7 +280,7 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 
 ## Privacy & Security
 
-- **Only Instagram endpoints.** Inspect `manifest.json`: host permissions are limited to `instagram.com` and Instagram's media CDNs (`*.cdninstagram.com`, `*.fbcdn.net`). Profile export calls Instagram's own web API with *your* logged-in session — never a third party.
+- **Only Instagram endpoints.** Inspect `manifest.json`: host permissions are limited to `instagram.com` and Instagram's media CDNs (`*.cdninstagram.com`, `*.fbcdn.net`, and `*.fbsbx.com` for voice notes). Profile export calls Instagram's own web API with *your* logged-in session — never a third party.
 - **No remote code.** All scripts ship in this repo — Manifest V3 forbids loading anything else, and the ZIP writer is hand-rolled rather than a bundled library you can't read.
 - **No analytics.** No pings, no error reporting, no usage stats.
 - **You control the file.** Every export uses `chrome.downloads.download` with `saveAs: true` — Chrome shows the save dialog every time.
@@ -298,6 +309,7 @@ igexporter/
 │   ├── queryvars.js       # content script helper — merges the page's current query variables
 │   ├── pageids.js         # runs in instagram.com's page — reads current query ids
 │   ├── normalizer.js      # chat: raw SlideMessage nodes → DYI shape
+│   ├── chatarchive.js     # chat: media plan, chat.txt transcript, optional Instagram encoding
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
@@ -305,7 +317,7 @@ igexporter/
 └── icons/
 ```
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 
