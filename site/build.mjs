@@ -8,6 +8,9 @@ const ROOT = path.join(SITE, "..");
 const OUT = path.join(SITE, "public");
 const REPO = "https://github.com/shakibbinkabir/kept";
 const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8").replace(/\r\n/g, "\n");
+// The page and its script: what they reference decides which pictures ship and get credited
+// (data-credit names the pictures inside a screenshot).
+const HOME = fs.readFileSync(path.join(SITE, "index.html"), "utf8") + fs.readFileSync(path.join(SITE, "main.js"), "utf8");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /* ===== a small Markdown subset: headings, paragraphs, lists, tables, bold, code, links ===== */
@@ -92,12 +95,13 @@ function status() {
 
 /* ===== picture credits ===== */
 function credits() {
-  const list = JSON.parse(fs.readFileSync(path.join(SITE, "assets/credits.json"), "utf8"));
+  // Only the pictures the page actually shows.
+  const list = JSON.parse(fs.readFileSync(path.join(SITE, "assets/credits.json"), "utf8")).filter((c) => HOME.includes(c.file) || HOME.includes(path.basename(c.file, ".jpg")));
   const parts = list.map((c) => {
     const by = c.creator && !/unidentified|unknown/i.test(c.creator) ? ` by ${esc(c.creator)}` : "";
     return `<a href="${esc(c.page)}">“${esc(c.title)}”</a>${by}, <a href="${esc(c.licenseUrl)}">${esc(c.license)}</a>`;
   });
-  return `Pictures: ${parts.join("; ")}, via Wikimedia Commons. Shown as examples of how people kept things before chats; the photo in the sample chat is a painting, not a real message.`;
+  return `Pictures in the sample chat: ${parts.join("; ")}, via Wikimedia Commons. They are museum pieces, not real messages.`;
 }
 
 /* ===== build ===== */
@@ -107,7 +111,7 @@ fs.mkdirSync(path.join(OUT, "fonts"), { recursive: true });
 const version = JSON.parse(read("manifest.json")).version;
 const s = status();
 const fill = (html, vars) => html.replace(/\{\{(\w+)\}\}/g, (m, k) => (k in vars ? vars[k] : m));
-const vars = { REPO, VERSION: version, CHECKED: s.checked, STATUS_ROWS: s.rows, CHECK_ROWS: s.checks, CREDITS: credits() };
+const vars = { REPO, VERSION: version, CHECKED: s.checked, STATUS_ROWS: s.rows, CHECK_ROWS: s.checks, FEATURES: s.checks.split("<li").length - 1, CREDITS: credits() };
 
 fs.writeFileSync(path.join(OUT, "index.html"), fill(fs.readFileSync(path.join(SITE, "index.html"), "utf8"), vars));
 const page = fs.readFileSync(path.join(SITE, "page.html"), "utf8");
@@ -116,7 +120,7 @@ for (const [file, md, title] of [["changelog.html", "CHANGELOG.md", "Changelog"]
   fs.writeFileSync(path.join(OUT, file), fill(page, { ...vars, TITLE: title, CONTENT: body }));
 }
 for (const f of ["style.css", "main.js", "ring.js"]) fs.copyFileSync(path.join(SITE, f), path.join(OUT, f));
-for (const f of fs.readdirSync(path.join(SITE, "assets"))) if (/\.(jpg|png|webp)$/.test(f)) fs.copyFileSync(path.join(SITE, "assets", f), path.join(OUT, "assets", f));
+for (const f of fs.readdirSync(path.join(SITE, "assets"))) if (/\.(jpg|png|webp)$/.test(f) && HOME.includes(`assets/${f}`)) fs.copyFileSync(path.join(SITE, "assets", f), path.join(OUT, "assets", f));
 for (const f of ["manrope-latin.woff2", "manrope-latin-ext.woff2", "OFL.txt"]) fs.copyFileSync(path.join(ROOT, "fonts", f), path.join(OUT, "fonts", f));
 fs.copyFileSync(path.join(ROOT, "brand/tile.svg"), path.join(OUT, "favicon.svg"));
 fs.copyFileSync(path.join(ROOT, "brand/mark-on-dark.svg"), path.join(OUT, "mark-on-dark.svg"));

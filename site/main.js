@@ -1,6 +1,6 @@
-// Page behaviour: entrances, the stage pictures, the sample chat, the pinned
-// popup, the status list and the wordmark's scroll scale. The page reads fine
-// without any of it.
+// Page behaviour: entrances, the nav's edge, hero parallax, counting numbers,
+// the sample chat and the popup that follows the three steps. The page reads
+// fine without any of it.
 document.documentElement.classList.add("js");
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -10,23 +10,64 @@ const seen = new IntersectionObserver((entries) => {
     if (!e.isIntersecting) continue;
     const el = e.target;
     const sibs = [...el.parentElement.querySelectorAll(":scope > .reveal")];
-    el.style.transitionDelay = `${Math.max(0, sibs.indexOf(el)) * 75}ms`;
+    el.style.transitionDelay = `${Math.min(6, Math.max(0, sibs.indexOf(el))) * 70}ms`;
     el.classList.add("in");
     seen.unobserve(el);
   }
 }, { rootMargin: "0px 0px -8% 0px" });
 document.querySelectorAll(".reveal").forEach((el) => seen.observe(el));
 
-/* The stage: the ring, then the keepsakes, as the intro is read. */
-const pics = document.querySelectorAll(".stage-pic");
-const showPic = (name) => pics.forEach((p) => p.classList.toggle("on", p.dataset.pic === name));
-const middle = { rootMargin: "-45% 0px -45% 0px" };
-const picWatch = new IntersectionObserver((entries) => {
-  for (const e of entries) if (e.isIntersecting) showPic(e.target.dataset.pic);
-}, middle);
-document.querySelectorAll(".intro [data-pic]").forEach((p) => picWatch.observe(p));
-new IntersectionObserver(([e]) => e.isIntersecting && showPic("ring"), middle).observe(document.querySelector(".hero"));
-new IntersectionObserver(([e]) => e.isIntersecting && showPic("ring"), { rootMargin: "-30% 0px -30% 0px" }).observe(document.querySelector(".features"));
+/* The nav gets its edge once the page moves; the hero layers drift at their own depth. */
+const nav = document.querySelector(".nav");
+const layers = still ? [] : [...document.querySelectorAll("[data-depth]")];
+let ticking = false;
+function onScroll() {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    nav.classList.toggle("scrolled", scrollY > 8);
+    for (const el of layers) el.style.transform = `translate3d(0, ${(scrollY * Number(el.dataset.depth)).toFixed(1)}px, 0)`;
+    ticking = false;
+  });
+}
+addEventListener("scroll", onScroll, { passive: true });
+onScroll();
+
+/* The big screenshot rises from a tilt to flat as it comes up the screen. */
+const tilts = still ? [] : [...document.querySelectorAll(".tilt")];
+function tilt() {
+  for (const el of tilts) {
+    const r = el.getBoundingClientRect();
+    const k = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight * 0.75)));
+    const e = 1 - Math.pow(1 - k, 3);
+    el.style.transform = `perspective(1600px) rotateX(${((1 - e) * 24).toFixed(2)}deg) scale(${(0.88 + 0.12 * e).toFixed(4)}) translateY(${((1 - e) * 60).toFixed(1)}px)`;
+    el.style.opacity = (0.35 + 0.65 * e).toFixed(3);
+  }
+}
+if (tilts.length) {
+  let queued = false;
+  addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(() => { tilt(); queued = false; }); } }, { passive: true });
+  addEventListener("resize", tilt);
+  tilt();
+}
+
+/* Numbers count up when they come into view. */
+const counted = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (!e.isIntersecting) continue;
+    counted.unobserve(e.target);
+    const b = e.target, target = Number(b.dataset.count);
+    if (still || !target) continue;
+    const t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / 1100);
+      b.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+}, { threshold: 0.6 });
+document.querySelectorAll("[data-count]").forEach((b) => counted.observe(b));
 
 /* The sample chat: what you type on the left is kept on the right. */
 const input = document.getElementById("demo-input");
@@ -90,59 +131,23 @@ function countTo(target) {
   };
   requestAnimationFrame(step);
 }
-const stepWatch = new IntersectionObserver((entries) => {
-  for (const e of entries) {
-    if (!e.isIntersecting) continue;
-    document.querySelectorAll(".step").forEach((s) => s.classList.toggle("active", s === e.target));
-    popup.dataset.state = e.target.dataset.step;
-    countTo(totals[e.target.dataset.step]);
-  }
-}, middle);
-const phone = matchMedia("(max-width: 860px)");
-if (popup && phone.matches) {
+function setStep(n) {
+  popup.dataset.state = String(n);
+  document.querySelectorAll(".step").forEach((s) => s.classList.toggle("active", s.dataset.step === String(n)));
+  countTo(totals[n]);
+}
+if (popup && matchMedia("(max-width: 720px)").matches) {
   // On a phone the steps can't drive a pinned popup, so it plays them itself while in view.
   let timer = null, i = 0;
   new IntersectionObserver(([e]) => {
     clearInterval(timer);
     if (!e.isIntersecting || still) return;
-    timer = setInterval(() => {
-      i = (i % 3) + 1;
-      popup.dataset.state = String(i);
-      countTo(totals[i]);
-    }, 2200);
+    timer = setInterval(() => setStep((i = (i % 3) + 1)), 2200);
   }, { threshold: 0.6 }).observe(popup);
-} else {
+} else if (popup) {
+  const stepWatch = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) setStep(e.target.dataset.step);
+  }, { rootMargin: "-45% 0px -45% 0px" });
   document.querySelectorAll(".step").forEach((s) => stepWatch.observe(s));
-}
-
-/* Status: the row in the middle (or under the pointer) opens and lights its check. */
-const rows = [...document.querySelectorAll("#rows li")];
-const checks = [...document.querySelectorAll("#check-list li")];
-function activate(i) {
-  rows.forEach((r, j) => r.classList.toggle("on", j === i));
-  checks.forEach((c, j) => c.classList.toggle("on", j === i));
-}
-const rowWatch = new IntersectionObserver((entries) => {
-  for (const e of entries) if (e.isIntersecting) activate(rows.indexOf(e.target));
-}, { rootMargin: "-40% 0px -50% 0px" });
-rows.forEach((r, i) => {
-  rowWatch.observe(r);
-  r.addEventListener("pointerenter", () => activate(i));
-  r.addEventListener("focusin", () => activate(i));
-});
-if (rows.length) activate(0);
-
-/* The name grows heavier as you leave the first screen. */
-const word = document.getElementById("wordmark");
-if (word && !still) {
-  let ticking = false;
-  addEventListener("scroll", () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const k = Math.min(1, scrollY / innerHeight);
-      word.style.transform = `scale(${1 - k * 0.07})`;
-      ticking = false;
-    });
-  }, { passive: true });
+  setStep(1);
 }

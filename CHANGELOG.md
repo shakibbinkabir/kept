@@ -2,6 +2,16 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.9.3] — 2026-11-01
+
+"A website you can take in at a glance." Checked at desktop, tablet and phone widths: every headline fits in two lines, nothing runs off the side, and the pictures, the sample chat and the three steps all work.
+
+### Changed
+
+- **kept.thisissbk.com, rebuilt with far fewer words.** One headline with the 3D ring; a row of numbers (no servers, a minute to set up, what it saves, four languages); **See it at work**, with real screens from Kept: a saved chat with Instagram's cards, which tilts into place as you scroll, the popup with its date picker and the Export Center; nine features, each an icon and one line; the three steps; the sample chat to type in; privacy as three short lists; what's working today; four install steps; questions that open when you tap them.
+- **Credit.** A "Made by Shakib Bin Kabir" section with links to thisissbk.com, GitHub and Lintel, and a fuller footer: every page, the licence, and a line saying the site sets no cookies and loads nothing from anywhere else.
+- The changelog and privacy pages share the new navigation and footer.
+
 ## [4.9.2] — 2026-11-01
 
 "Kept's own controls." Checked on every page in light, dark and Arabic: the date picker set the same values the old fields did (exports and jumps read them unchanged), worked from the keyboard, and axe, the accessibility checker, found nothing with it open.

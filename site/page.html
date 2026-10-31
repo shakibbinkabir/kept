@@ -5,19 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{TITLE}} · Kept</title>
   <meta name="description" content="{{TITLE}} for Kept, the browser extension that keeps your Instagram chats and posts on your computer." />
-  <meta name="theme-color" content="#10181d" />
+  <meta name="author" content="Shakib Bin Kabir" />
+  <meta name="theme-color" content="#0d1418" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <a class="home" href="./"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M201.9 131.4A74 74 0 1 1 137.5 54.6" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" /><circle cx="184.7" cy="80.4" r="24" fill="#3282b8" /></svg>Kept</a>
+  <nav class="nav scrolled" aria-label="Main">
+    <a class="brand" href="./" aria-label="Kept, home">
+      <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M201.9 131.4A74 74 0 1 1 137.5 54.6" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" /><circle cx="184.7" cy="80.4" r="24" fill="#3282b8" /></svg>
+      Kept
+    </a>
+    <div class="nav-links">
+      <a href="./#features">Features</a>
+      <a href="./#how">How it works</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="./#faq">FAQ</a>
+      <a href="changelog.html">Changelog</a>
+    </div>
+    <a class="pill" href="./#install">Download</a>
+  </nav>
   <main class="page">
 {{CONTENT}}
   </main>
   <footer class="footer">
-    <p>Kept keeps your Instagram on your computer.</p>
-    <p class="links"><a href="./">Home</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a><a href="{{REPO}}">GitHub</a></p>
-    <p>2026 · Not affiliated with Instagram or Meta</p>
+    <p class="links"><a href="./">Home</a><a href="./#features">Features</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a><a href="{{REPO}}">GitHub</a><a href="{{REPO}}/releases">Releases</a><a href="{{REPO}}/issues">Report a problem</a></p>
+    <p>Kept is free to use, change and share under the <a href="{{REPO}}/blob/main/LICENSE">MIT licence</a>. It is an independent project, not affiliated with Instagram or Meta.</p>
+    <p>Made by <a href="https://github.com/shakibbinkabir">Shakib Bin Kabir</a>. This site sets no cookies and loads nothing from anywhere else.</p>
   </footer>
 </body>
 </html>
