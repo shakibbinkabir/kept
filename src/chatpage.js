@@ -49,7 +49,7 @@ mark{background:var(--mark);color:inherit;border-radius:3px}
 footer{text-align:center;color:var(--dim);font-size:12px;padding:20px}
 .back{color:var(--accent);text-decoration:none;font-size:13px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;width:100%}
-.chip{border-radius:999px;padding:4px 12px;font-size:13px}.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip{border-radius:999px;padding:4px 12px;font-size:13px}.chip[aria-pressed=true]{background:var(--mine);border-color:var(--mine);color:var(--mine-text)}
 #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-width:960px;margin:0 auto;padding:16px}
 #gallery button{padding:0;border:0;border-radius:12px;overflow:hidden;aspect-ratio:1;background:var(--theirs);position:relative;cursor:zoom-in}
 #gallery img,#gallery video{width:100%;height:100%;object-fit:cover;display:block}

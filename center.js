@@ -94,7 +94,7 @@ async function renderHistory() {
     const li = document.createElement("li");
     const kind = document.createElement("span");
     kind.className = "kind";
-    kind.innerHTML = `<svg class="icon" aria-hidden="true"><use href="icons/ui.svg#${h.kind === "chat" ? "chat" : "grid"}"/></svg>`;
+    kind.append(icon(h.kind === "chat" ? "chat" : "grid"));
     const text = document.createElement("div");
     const name = document.createElement("p");
     name.className = "name";
@@ -108,7 +108,7 @@ async function renderHistory() {
     acts.className = "acts";
     const show = document.createElement("button");
     show.className = "btn-ghost";
-    show.textContent = "Show in folder";
+    show.textContent = tr("showInFolder", "Show in folder");
     show.disabled = true;
     acts.append(show);
     fileExists(h.show).then((ok) => {
@@ -119,7 +119,7 @@ async function renderHistory() {
     if (h.open != null) {
       const open = document.createElement("button");
       open.className = "btn-ghost";
-      open.textContent = "Open chat";
+      open.textContent = tr("openChat", "Open chat");
       open.addEventListener("click", () => chrome.downloads.open(h.open));
       acts.append(open);
     }
@@ -129,7 +129,7 @@ async function renderHistory() {
 }
 $("clearHistory").addEventListener("click", async () => {
   await store.set({ history: [] });
-  toast("History cleared");
+  toast(tr("historyCleared", "History cleared"));
 });
 
 /* ===== Settings ===== */
@@ -241,3 +241,15 @@ $("runCheck").addEventListener("click", () => {
 
 loadSettings();
 renderHistory();
+
+// An icon from icons/ui.svg, built without innerHTML.
+function icon(name) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS(NS, "use");
+  use.setAttribute("href", `icons/ui.svg#${name}`);
+  svg.append(use);
+  return svg;
+}

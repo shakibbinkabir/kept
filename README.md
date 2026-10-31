@@ -158,6 +158,10 @@ This extension is distributed as an unpacked Chrome Extension. It is **not** on 
 
 Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
 
+**Firefox (140 or later).** Download `kept-firefox-<version>.zip` from the [latest release](https://github.com/shakibbinkabir/kept/releases/latest), open `about:debugging`, choose **This Firefox → Load Temporary Add-on**, and pick the ZIP. Firefox removes temporary add-ons when it closes. The first time you open Kept, click **Allow access to Instagram**. The Firefox build is new; please report anything that doesn't work.
+
+**Languages.** Kept follows your browser's language: English, বাংলা, العربية (right to left) and Español.
+
 ---
 
 ## Usage — Profile media export
@@ -401,6 +405,8 @@ Layout:
 ```
 kept/
 ├── manifest.json          # MV3 manifest
+├── _locales/              # interface translations: en, bn, ar, es (messages.json each)
+├── firefox/               # the Firefox build: node firefox/build.mjs → dist/
 ├── popup.html / popup.js  # toolbar popup (Chats + Profiles)
 ├── center.html / center.js # Export Center: now, history, settings, Instagram check
 ├── pick.html / pick.js    # choose posts or highlights before exporting
@@ -420,6 +426,7 @@ kept/
 │   ├── mp4mux.js          # joins Instagram's separate video and audio into one MP4
 │   ├── evidence.js        # evidence mode: file hashes, fingerprint, export record
 │   ├── inpage.js          # the save button on photos and videos on instagram.com
+│   ├── i18n.js            # translations: data-i18n attributes, t() and tr(), right-to-left
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
@@ -434,7 +441,11 @@ kept/
 
 The website is plain HTML, CSS and JS. `node site/build.mjs` fills in the feature status from this README and turns CHANGELOG.md and PRIVACY.md into pages, writing the result to `site/public/`; open `site/public/index.html` to preview it.
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/profilepage.test.mjs`, `node test/audience.test.mjs`, `node test/mp4mux.test.mjs`, `node test/evidence.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/profilepage.test.mjs`, `node test/audience.test.mjs`, `node test/mp4mux.test.mjs`, `node test/evidence.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`, `node test/i18n.test.mjs`.
+
+**Translations.** Words in the pages are marked `data-i18n="key"` (or `data-i18n-title`, `-placeholder`, `-aria`); words made in code use `tr("key", "English", ...values)`. Each language is `_locales/<code>/messages.json`; copy `en`, translate the `message` values, and `node test/i18n.test.mjs` checks that no key is missing.
+
+**Firefox.** `node firefox/build.mjs` writes `dist/firefox/` and `dist/kept-firefox-<version>.zip`, changing only the manifest: a background page that loads `firefox/bus.js`, `background.js` and `offscreen.js` together, and a gecko id. Check it with `npx web-ext lint -s dist/firefox`.
 
 ### Contributing
 
@@ -443,7 +454,8 @@ Issues and PRs welcome. Good first contributions:
 - More content types in `normalizer.js` (stickers, polls, story replies)
 - Tighter validation in `schema.js`
 - Better thread-title fallbacks for group chats
-- A Firefox port (the codebase is already MV3-compatible)
+- Trying the Firefox build in Firefox and reporting what breaks
+- Translations into more languages (one file in `_locales/`)
 
 Please keep the project dependency-free. The whole point is that a privacy-sensitive user can read every line before installing.
 

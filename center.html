@@ -12,97 +12,98 @@
   <header class="top">
     <svg class="logo" viewBox="0 0 256 256" aria-hidden="true"><use href="icons/ui.svg#mark" /></svg>
     <span class="brand">Kept</span>
-    <span class="page-name">Export Center</span>
+    <span class="page-name" data-i18n="centerPage">Export Center</span>
     <span class="version" id="version"></span>
   </header>
 
   <div class="layout">
-    <nav class="side" aria-label="Sections">
-      <a href="#now"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#download" /></svg>Now</a>
-      <a href="#history"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#clock" /></svg>History</a>
-      <a href="#settings"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#sliders" /></svg>Settings</a>
-      <a href="#instagram"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#refresh" /></svg>Instagram</a>
+    <nav class="side" aria-label="Sections" data-i18n-aria="sections">
+      <a href="#now"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#download" /></svg><span data-i18n="navNow" data-i18n="navNow">Now</span></a>
+      <a href="#history"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#clock" /></svg><span data-i18n="navHistory" data-i18n="navHistory">History</span></a>
+      <a href="#settings"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#sliders" /></svg><span data-i18n="navSettings" data-i18n="navSettings">Settings</span></a>
+      <a href="#instagram"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#refresh" /></svg><span data-i18n="navInstagram" data-i18n="navInstagram">Instagram</span></a>
     </nav>
 
     <main>
       <section id="now" aria-labelledby="nowTitle">
-        <h1 id="nowTitle">Now</h1>
+        <h1 id="nowTitle" data-i18n="navNow">Now</h1>
         <div class="card now" aria-live="polite">
           <div class="ring" id="nowRing" aria-hidden="true">
             <svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27" /><circle class="ring-fill" cx="32" cy="32" r="27" pathLength="100" /></svg>
           </div>
           <div>
-            <p class="now-label" id="nowLabel">Nothing is exporting</p>
-            <p class="now-sub" id="nowSub">Start an export from the Kept button in your toolbar; its progress shows here too.</p>
+            <p class="now-label" id="nowLabel" data-i18n="nothingExporting">Nothing is exporting</p>
+            <p class="now-sub" id="nowSub" data-i18n="nothingExportingSub">Start an export from the Kept button in your toolbar; its progress shows here too.</p>
           </div>
         </div>
       </section>
 
       <section id="history" aria-labelledby="historyTitle">
         <div class="section-head">
-          <h1 id="historyTitle">History</h1>
-          <button id="clearHistory" class="btn-ghost" hidden>Clear history</button>
+          <h1 id="historyTitle" data-i18n="navHistory">History</h1>
+          <button id="clearHistory" class="btn-ghost" hidden data-i18n="clearHistory">Clear history</button>
         </div>
         <ul class="history" id="historyList"></ul>
         <div class="empty" id="historyEmpty" hidden>
           <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#folder" /></svg>
-          <p><b>No exports yet.</b> Everything you save with Kept is listed here, with a shortcut to its folder.</p>
+          <p><b data-i18n="noExports">No exports yet.</b> <span data-i18n="noExportsText">Everything you save with Kept is listed here, with a shortcut to its folder.</span></p>
         </div>
       </section>
 
       <section id="settings" aria-labelledby="settingsTitle">
-        <h1 id="settingsTitle">Settings</h1>
+        <h1 id="settingsTitle" data-i18n="navSettings">Settings</h1>
         <div class="settings">
           <div class="card setting">
-            <p class="setting-name" id="themeLabel">Appearance</p>
+            <p class="setting-name" id="themeLabel" data-i18n="appearance">Appearance</p>
             <div class="segmented" role="radiogroup" aria-labelledby="themeLabel">
-              <label><input type="radio" name="theme" value="system" checked /> <span>System</span></label>
-              <label><input type="radio" name="theme" value="light" /> <span>Light</span></label>
-              <label><input type="radio" name="theme" value="dark" /> <span>Dark</span></label>
+              <label><input type="radio" name="theme" value="system" checked /> <span data-i18n="themeSystem">System</span></label>
+              <label><input type="radio" name="theme" value="light" /> <span data-i18n="themeLight">Light</span></label>
+              <label><input type="radio" name="theme" value="dark" /> <span data-i18n="themeDark">Dark</span></label>
             </div>
           </div>
           <div class="card setting">
-            <p class="setting-name">Saving</p>
-            <label class="check"><input type="checkbox" id="sFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
-            <label class="check"><input type="checkbox" id="sOnlyNew" /> <span>Only download what I haven't downloaded yet</span></label>
-            <label class="check"><input type="checkbox" id="sBestVideo" checked /> <span>Best-quality video (joins Instagram's separate picture and sound, up to 1080p)</span></label>
-            <label class="check"><input type="checkbox" id="sJpg" /> <span>Save images as JPG</span></label>
-            <label class="check"><input type="checkbox" id="sInpage" checked /> <span>Show a save button on photos and videos on instagram.com</span></label>
-            <label class="check"><input type="checkbox" id="sComments" /> <span>Include comments with posts (up to 150 per post, with the first replies)</span></label>
-            <label class="check"><input type="checkbox" id="sEvidence" /> <span>Evidence mode: a SHA-256 for every file, one fingerprint, who exported it, when, the timezone and a log</span></label>
-            <label class="field-label" for="sPattern">File names</label>
+            <p class="setting-name" data-i18n="saving">Saving</p>
+            <label class="check"><input type="checkbox" id="sFolder" /> <span data-i18n="optFolder">Save as files in a folder, not a ZIP (no size limit)</span></label>
+            <label class="check"><input type="checkbox" id="sOnlyNew" /> <span data-i18n="setOnlyNew">Only download what I haven't downloaded yet</span></label>
+            <label class="check"><input type="checkbox" id="sBestVideo" checked /> <span data-i18n="setBestVideo">Best-quality video (joins Instagram's separate picture and sound, up to 1080p)</span></label>
+            <label class="check"><input type="checkbox" id="sJpg" /> <span data-i18n="optJpg">Save images as JPG</span></label>
+            <label class="check"><input type="checkbox" id="sInpage" checked /> <span data-i18n="setInpage">Show a save button on photos and videos on instagram.com</span></label>
+            <label class="check"><input type="checkbox" id="sComments" /> <span data-i18n="setComments">Include comments with posts (up to 150 per post, with the first replies)</span></label>
+            <label class="check"><input type="checkbox" id="sEvidence" /> <span data-i18n="setEvidence">Evidence mode: a SHA-256 for every file, one fingerprint, who exported it, when, the timezone and a log</span></label>
+            <label class="field-label" for="sPattern" data-i18n="fileNames">File names</label>
             <input type="text" id="sPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
-            <p class="hint">Tokens: {username} {date} {time} {code} {index}</p>
+            <p class="hint" data-i18n="tokens">Tokens: {username} {date} {time} {code} {index}</p>
             <p class="preview" id="patternPreview" aria-live="polite"></p>
           </div>
           <div class="card setting">
-            <p class="setting-name">Chats</p>
-            <label class="check"><input type="checkbox" id="sMedia" checked /> <span>Include photos, videos and voice notes</span></label>
-            <label class="check"><input type="checkbox" id="sEncoding" /> <span>Match Instagram's text encoding (for tools built for its data download)</span></label>
+            <p class="setting-name" data-i18n="chats">Chats</p>
+            <label class="check"><input type="checkbox" id="sMedia" checked /> <span data-i18n="optMedia">Include photos, videos and voice notes</span></label>
+            <label class="check"><input type="checkbox" id="sEncoding" /> <span data-i18n="setEncoding">Match Instagram's text encoding (for tools built for its data download)</span></label>
           </div>
           <div class="card setting">
-            <p class="setting-name">Remembered downloads</p>
-            <p class="hint" id="seenInfo">Kept remembers which posts each export saved, so "only new" can skip them.</p>
-            <button id="forgetSeen" class="btn-ghost">Forget what I've downloaded, and my follower snapshot</button>
+            <p class="setting-name" data-i18n="remembered">Remembered downloads</p>
+            <p class="hint" id="seenInfo" data-i18n="seenInfo">Kept remembers which posts each export saved, so "only new" can skip them.</p>
+            <button id="forgetSeen" class="btn-ghost" data-i18n="forgetSeen">Forget what I've downloaded, and my follower snapshot</button>
           </div>
         </div>
       </section>
 
       <section id="instagram" aria-labelledby="igTitle">
         <div class="section-head">
-          <h1 id="igTitle">Instagram</h1>
-          <button id="runCheck" class="btn-primary">Check Instagram</button>
+          <h1 id="igTitle" data-i18n="navInstagram">Instagram</h1>
+          <button id="runCheck" class="btn-primary" data-i18n="checkInstagram">Check Instagram</button>
         </div>
-        <p class="lead">Instagram changes its private API without notice. This tests every feature against a public account in about ten seconds. Keep an instagram.com tab open.</p>
+        <p class="lead" data-i18n="checkLead">Instagram changes its private API without notice. This tests every feature against a public account in about ten seconds. Keep an instagram.com tab open.</p>
         <ul class="checks" id="checkList"></ul>
         <p class="hint" id="checkSummary"></p>
       </section>
     </main>
   </div>
 
-  <footer class="foot">Kept runs only in your browser. Not affiliated with Instagram or Meta. <a href="https://github.com/shakibbinkabir/kept" target="_blank" rel="noopener">Source</a> · <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a></footer>
+  <footer class="foot"><span data-i18n="footerNote">Runs only in your browser. Not affiliated with Instagram or Meta.</span> <a href="https://github.com/shakibbinkabir/kept" target="_blank" rel="noopener" data-i18n="source">Source</a> · <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener" data-i18n="privacy">Privacy</a></footer>
 
   <div class="toast" id="toast" role="status"></div>
+  <script src="src/i18n.js"></script>
   <script type="module" src="center.js"></script>
 </body>
 </html>

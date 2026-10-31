@@ -1,0 +1,666 @@
+{
+  "extName": {
+    "message": "Kept: Instagram chat & post backup"
+  },
+  "extDescription": {
+    "message": "Keep Instagram chats with their photos and voice notes, and posts, reels, stories and highlights, on your own computer."
+  },
+  "centerTitle": {
+    "message": "Open the Export Center: history, settings and Instagram status"
+  },
+  "contextLooking": {
+    "message": "Looking at this tab…"
+  },
+  "tabsLabel": {
+    "message": "What to export"
+  },
+  "tabChats": {
+    "message": "Chats"
+  },
+  "tabProfiles": {
+    "message": "Profiles"
+  },
+  "statusWaiting": {
+    "message": "Waiting"
+  },
+  "threadNone": {
+    "message": "No chat open"
+  },
+  "messages": {
+    "message": "messages"
+  },
+  "startCapture": {
+    "message": "Start capture"
+  },
+  "stopCapture": {
+    "message": "Stop capture"
+  },
+  "autoScroll": {
+    "message": "Auto-scroll"
+  },
+  "stopScroll": {
+    "message": "Stop scroll"
+  },
+  "autoScrollTitle": {
+    "message": "Scroll the chat back to its first message"
+  },
+  "exportChat": {
+    "message": "Export chat"
+  },
+  "severalChats": {
+    "message": "Several chats, or the whole inbox"
+  },
+  "oneChat": {
+    "message": "← One chat"
+  },
+  "inbox": {
+    "message": "Inbox"
+  },
+  "requests": {
+    "message": "Message requests"
+  },
+  "selectAll": {
+    "message": "Select all"
+  },
+  "loadMore": {
+    "message": "Load more"
+  },
+  "everyChat": {
+    "message": "Every chat in these folders, not just the ones listed"
+  },
+  "options": {
+    "message": "Options"
+  },
+  "optMedia": {
+    "message": "Include photos, videos and voice notes"
+  },
+  "optEncoding": {
+    "message": "Match Instagram's text encoding"
+  },
+  "optChatFolder": {
+    "message": "Save as a folder, not a ZIP (for big exports)"
+  },
+  "optChatEvidence": {
+    "message": "Evidence mode: fingerprints, usernames and an export log"
+  },
+  "fromOptional": {
+    "message": "From (optional)"
+  },
+  "toOptional": {
+    "message": "To (optional)"
+  },
+  "account": {
+    "message": "Account"
+  },
+  "whatToExport": {
+    "message": "What to export"
+  },
+  "modePosts": {
+    "message": "All posts (images + videos)"
+  },
+  "modeImages": {
+    "message": "All images only"
+  },
+  "modeReels": {
+    "message": "All reels only"
+  },
+  "modeTagged": {
+    "message": "Posts they're tagged in"
+  },
+  "modeStories": {
+    "message": "Current stories"
+  },
+  "modeHighlights": {
+    "message": "Story highlights"
+  },
+  "modeProfilePic": {
+    "message": "Profile picture"
+  },
+  "modePost": {
+    "message": "This post / reel"
+  },
+  "modeSaved": {
+    "message": "My saved posts and collections"
+  },
+  "modeArchive": {
+    "message": "My archived stories"
+  },
+  "modeMyAudience": {
+    "message": "My followers and following (CSV)"
+  },
+  "modeAudience": {
+    "message": "Their followers and following (up to 1,000)"
+  },
+  "whichSaved": {
+    "message": "Which saved posts"
+  },
+  "savedAll": {
+    "message": "All saved posts"
+  },
+  "savedEvery": {
+    "message": "Every collection, each in its own folder"
+  },
+  "export": {
+    "message": "Export"
+  },
+  "chooseWhich": {
+    "message": "Choose which ones to export…"
+  },
+  "range": {
+    "message": "Range"
+  },
+  "rangeAll": {
+    "message": "Everything"
+  },
+  "rangeRecent": {
+    "message": "Most recent…"
+  },
+  "rangeOldest": {
+    "message": "Oldest…"
+  },
+  "rangeDates": {
+    "message": "Date range"
+  },
+  "howMany": {
+    "message": "How many"
+  },
+  "from": {
+    "message": "From"
+  },
+  "to": {
+    "message": "To"
+  },
+  "optFolder": {
+    "message": "Save as files in a folder, not a ZIP (no size limit)"
+  },
+  "optOnlyNew": {
+    "message": "Only what I haven't downloaded yet (also resumes a stopped export)"
+  },
+  "optBestVideo": {
+    "message": "Best-quality video (up to 1080p)"
+  },
+  "optJpg": {
+    "message": "Save images as JPG"
+  },
+  "optComments": {
+    "message": "Include comments (up to 150 per post)"
+  },
+  "optEvidence": {
+    "message": "Evidence mode: fingerprints and an export log"
+  },
+  "fileNames": {
+    "message": "File names"
+  },
+  "saved": {
+    "message": "Saved"
+  },
+  "chatSaved": {
+    "message": "Chat saved"
+  },
+  "showInFolder": {
+    "message": "Show in folder"
+  },
+  "openChat": {
+    "message": "Open chat"
+  },
+  "done": {
+    "message": "Done"
+  },
+  "somethingWrong": {
+    "message": "Something went wrong"
+  },
+  "exportFailed": {
+    "message": "Export failed"
+  },
+  "retry": {
+    "message": "Retry"
+  },
+  "resume": {
+    "message": "Resume"
+  },
+  "copyDetails": {
+    "message": "Copy details"
+  },
+  "report": {
+    "message": "Report"
+  },
+  "reportTitle": {
+    "message": "Opens a GitHub issue you can review before posting"
+  },
+  "igCheck": {
+    "message": "Instagram check"
+  },
+  "reportProblem": {
+    "message": "Report a problem"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "checkInstagram": {
+    "message": "Check Instagram"
+  },
+  "checkTitle": {
+    "message": "Test every feature against Instagram right now"
+  },
+  "privacy": {
+    "message": "Privacy"
+  },
+  "footerNote": {
+    "message": "Runs only in your browser. Not affiliated with Instagram or Meta."
+  },
+  "welcomeTitle": {
+    "message": "Welcome to Kept"
+  },
+  "welcome1": {
+    "message": "Save chats with their photos and voice notes, and read them offline."
+  },
+  "welcome2": {
+    "message": "Save posts, reels, stories and highlights from any account you can see."
+  },
+  "welcome3": {
+    "message": "Everything stays on your computer. No account, no password, no servers."
+  },
+  "welcomeNote": {
+    "message": "Kept was called IG Exporter until 4.0. Your settings carried over."
+  },
+  "getStarted": {
+    "message": "Get started"
+  },
+  "accessText": {
+    "message": "Kept needs your permission to read instagram.com and Instagram's photo and video servers."
+  },
+  "accessBtn": {
+    "message": "Allow access to Instagram"
+  },
+  "ctxOpenIG": {
+    "message": "Open instagram.com to start"
+  },
+  "ctxChatOpen": {
+    "message": "A chat is open"
+  },
+  "ctxChatWith": {
+    "message": "Chat with $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxInbox": {
+    "message": "Your inbox: open a chat, or export several"
+  },
+  "ctxPostBy": {
+    "message": "A post by @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxPost": {
+    "message": "A post or reel"
+  },
+  "ctxHighlight": {
+    "message": "A story highlight"
+  },
+  "ctxStories": {
+    "message": "@$WHO$'s stories",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxProfile": {
+    "message": "@$WHO$'s profile",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxHome": {
+    "message": "Open a chat or a profile to export it"
+  },
+  "ctxSaved": {
+    "message": "Your saved posts"
+  },
+  "ctxArchive": {
+    "message": "Your story archive"
+  },
+  "ctxTagged": {
+    "message": "Posts @$WHO$ is tagged in",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPostsOf": {
+    "message": "Export @$WHO$'s posts",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPosts": {
+    "message": "Export posts"
+  },
+  "actImagesOf": {
+    "message": "Export @$WHO$'s images",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actImages": {
+    "message": "Export images"
+  },
+  "actReelsOf": {
+    "message": "Export @$WHO$'s reels",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actReels": {
+    "message": "Export reels"
+  },
+  "actStoriesOf": {
+    "message": "Save @$WHO$'s stories",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actStories": {
+    "message": "Save stories"
+  },
+  "actHighlightsOf": {
+    "message": "Export @$WHO$'s highlights",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actHighlights": {
+    "message": "Export highlights"
+  },
+  "actThisHighlight": {
+    "message": "Export this highlight"
+  },
+  "actPicOf": {
+    "message": "Save @$WHO$'s profile picture",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPic": {
+    "message": "Save profile picture"
+  },
+  "actPost": {
+    "message": "Export this post"
+  },
+  "actTaggedOf": {
+    "message": "Export posts @$WHO$ is tagged in",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actTagged": {
+    "message": "Export tagged posts"
+  },
+  "actArchive": {
+    "message": "Export your archived stories"
+  },
+  "actMyAudience": {
+    "message": "Export your followers and following"
+  },
+  "actAudienceOf": {
+    "message": "Export @$WHO$'s followers and following",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actAudience": {
+    "message": "Export followers and following"
+  },
+  "actSavedAll": {
+    "message": "Export your saved posts"
+  },
+  "actSavedEvery": {
+    "message": "Export every collection"
+  },
+  "actSavedOne": {
+    "message": "Export “$WHO$”",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exporting": {
+    "message": "Exporting…"
+  },
+  "centerPage": {
+    "message": "Export Center"
+  },
+  "navNow": {
+    "message": "Now"
+  },
+  "navHistory": {
+    "message": "History"
+  },
+  "navSettings": {
+    "message": "Settings"
+  },
+  "navInstagram": {
+    "message": "Instagram"
+  },
+  "nothingExporting": {
+    "message": "Nothing is exporting"
+  },
+  "nothingExportingSub": {
+    "message": "Start an export from the Kept button in your toolbar; its progress shows here too."
+  },
+  "clearHistory": {
+    "message": "Clear history"
+  },
+  "noExports": {
+    "message": "No exports yet."
+  },
+  "noExportsText": {
+    "message": "Everything you save with Kept is listed here, with a shortcut to its folder."
+  },
+  "appearance": {
+    "message": "Appearance"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "saving": {
+    "message": "Saving"
+  },
+  "chats": {
+    "message": "Chats"
+  },
+  "remembered": {
+    "message": "Remembered downloads"
+  },
+  "checkLead": {
+    "message": "Instagram changes its private API without notice. This tests every feature against a public account in about ten seconds. Keep an instagram.com tab open."
+  },
+  "chooseTitle": {
+    "message": "Choose what to export"
+  },
+  "listPosts": {
+    "message": "Posts"
+  },
+  "listImages": {
+    "message": "Images"
+  },
+  "listReels": {
+    "message": "Reels"
+  },
+  "listHighlights": {
+    "message": "Highlights"
+  },
+  "stopLoading": {
+    "message": "Stop loading"
+  },
+  "selectNone": {
+    "message": "Select none"
+  },
+  "pickTip": {
+    "message": "Tick what you want. Shift-click selects everything between two ticks."
+  },
+  "nothingSelected": {
+    "message": "Nothing selected"
+  },
+  "nSelected": {
+    "message": "$WHO$ selected",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "everyChatLower": {
+    "message": "every chat"
+  },
+  "exportNChats": {
+    "message": "Export $WHO$ chats",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exportOneChat": {
+    "message": "Export 1 chat"
+  },
+  "exportEveryChat": {
+    "message": "Export every chat"
+  },
+  "sections": {
+    "message": "Sections"
+  },
+  "setOnlyNew": {
+    "message": "Only download what I haven't downloaded yet"
+  },
+  "setBestVideo": {
+    "message": "Best-quality video (joins Instagram's separate picture and sound, up to 1080p)"
+  },
+  "setInpage": {
+    "message": "Show a save button on photos and videos on instagram.com"
+  },
+  "setComments": {
+    "message": "Include comments with posts (up to 150 per post, with the first replies)"
+  },
+  "setEvidence": {
+    "message": "Evidence mode: a SHA-256 for every file, one fingerprint, who exported it, when, the timezone and a log"
+  },
+  "setEncoding": {
+    "message": "Match Instagram's text encoding (for tools built for its data download)"
+  },
+  "tokens": {
+    "message": "Tokens: {username} {date} {time} {code} {index}"
+  },
+  "seenInfo": {
+    "message": "Kept remembers which posts each export saved, so \"only new\" can skip them."
+  },
+  "forgetSeen": {
+    "message": "Forget what I've downloaded, and my follower snapshot"
+  },
+  "source": {
+    "message": "Source"
+  },
+  "historyCleared": {
+    "message": "History cleared"
+  },
+  "loading": {
+    "message": "Loading…"
+  },
+  "whatToList": {
+    "message": "What to list"
+  },
+  "chooseFrom": {
+    "message": "Choose from @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "slowDown": {
+    "message": "Instagram asked Kept to slow down. Carrying on in $WHO$ s…",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "starting": {
+    "message": "Starting…"
+  },
+  "exportAgain": {
+    "message": "Export again"
+  },
+  "backTo": {
+    "message": "Back to $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "waitingMessages": {
+    "message": "Waiting for messages…"
+  },
+  "notCapturing": {
+    "message": "Not capturing"
+  },
+  "capturing": {
+    "message": "Capturing"
+  },
+  "soFar": {
+    "message": "$WHO$ so far",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "scrollUp": {
+    "message": "scroll up to load"
+  },
+  "ready": {
+    "message": "Ready"
+  },
+  "autoScrolling": {
+    "message": "Auto-scrolling"
+  },
+  "loadingHistory": {
+    "message": "loading history"
+  },
+  "exportingShort": {
+    "message": "Exporting"
+  }
+}

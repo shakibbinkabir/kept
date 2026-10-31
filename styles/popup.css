@@ -18,7 +18,7 @@ button { font: inherit; color: inherit; }
 /* ===== Header ===== */
 .header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
 .logo { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; }
-.title { font-size: var(--text-lg); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
+.title { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-bold); letter-spacing: var(--tracking-tight); }
 .version { flex: 1; font-size: var(--text-xs); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .icon-btn {
   display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
@@ -27,6 +27,10 @@ button { font: inherit; color: inherit; }
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn:active { transform: scale(0.92); }
+
+/* ===== Site access (Firefox asks first) ===== */
+.access { display: grid; gap: var(--space-2); margin: 0 0 var(--space-3); padding: var(--space-3); background: var(--accent-soft); border-radius: var(--radius); font-size: var(--text-sm); }
+.access p { margin: 0; }
 
 /* ===== What's open in this tab ===== */
 .context {
@@ -44,11 +48,12 @@ button { font: inherit; color: inherit; }
   background: var(--surface); border-radius: var(--radius); padding: 4px; margin-bottom: var(--space-3);
 }
 .tabs::before {
-  content: ""; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 6px);
+  content: ""; position: absolute; top: 4px; bottom: 4px; inset-inline-start: 4px; width: calc(50% - 6px);
   background: var(--accent); border-radius: calc(var(--radius) - 4px);
   transition: transform var(--dur-slow) var(--ease-spring);
 }
 .tabs[data-active="profile"]::before { transform: translateX(calc(100% + 4px)); }
+[dir="rtl"] .tabs[data-active="profile"]::before { transform: translateX(calc(-100% - 4px)); }
 .tab {
   position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   background: transparent; border: 0; padding: 8px; border-radius: calc(var(--radius) - 4px);
@@ -130,9 +135,11 @@ select { cursor: pointer; appearance: none; background-image: none; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .username-wrap { position: relative; }
 .username-wrap .at { position: absolute; left: 12px; top: 31px; color: var(--text-faint); pointer-events: none; }
+/* Usernames are Latin, so the field reads left to right in every language. */
+.username-wrap input, #optPattern { direction: ltr; }
 .username-wrap input { padding-left: 26px; }
 .profile-hint { font-size: var(--text-sm); color: var(--text-dim); min-height: 18px; margin-bottom: var(--space-2); }
-.field-hint { font-size: var(--text-xs); color: var(--text-faint); margin-top: 4px; }
+.field-hint { unicode-bidi: plaintext; font-size: var(--text-xs); color: var(--text-faint); margin-top: 4px; }
 .field-hint.preview { color: var(--text-dim); overflow-wrap: anywhere; }
 .check { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--text-sm); color: var(--text-dim); cursor: pointer; line-height: 1.35; }
 .check input { accent-color: var(--sky); margin: 1px 0 0; width: 14px; height: 14px; flex-shrink: 0; }
@@ -146,6 +153,7 @@ select { cursor: pointer; appearance: none; background-image: none; }
 .more summary::-webkit-details-marker { display: none; }
 .more summary::before { content: ""; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur) var(--ease); }
 .more[open] summary::before { transform: rotate(45deg); }
+[dir="rtl"] .more:not([open]) summary::before { transform: rotate(135deg); }
 .more summary:hover { color: var(--text); }
 .more-body { display: grid; gap: var(--space-2); padding: var(--space-3); margin-top: var(--space-2); background: var(--surface); border-radius: var(--radius); animation: rise var(--dur) var(--ease-out); }
 .more-body .field { margin-bottom: 0; }

@@ -2,6 +2,20 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.9.0] — 2026-11-01
+
+"Ready for everyone." Tested in Brave with the interface in English, Bangla, Arabic and Spanish: every screen took its words from the browser's language, Arabic turned the whole layout right to left with usernames still reading correctly, and an export from the translated popup saved and checked out as before. axe, the standard accessibility checker, found nothing on the popup, the Export Center, the picker or the archive pages, in light and dark. The Firefox build passes Mozilla's add-on checker with no errors; it has not yet been run in Firefox itself.
+
+### Added
+
+- **Firefox.** `node firefox/build.mjs` builds the same extension for Firefox 140 or later, and each release now includes `kept-firefox-<version>.zip`. Firefox has no offscreen documents, so the export engine runs in the background page there; the first time, Kept asks for permission to read instagram.com, which Firefox doesn't grant on install.
+- **Your language.** The popup, the Export Center and the picker follow the browser's language: English, বাংলা (Bangla), العربية (Arabic) and Español, with English for anything not yet translated. Arabic turns the layout right to left; usernames, file names and date fields keep reading left to right. Adding a language is one file in `_locales/`.
+
+### Changed
+
+- **Accessibility.** The popup has a page title, a main region and a heading; faint text in light mode is darker, reaching a 4.5:1 contrast ratio; the picker's tip sits inside the page's main region; the selected filter in chat archives uses the deep blue, so its label is easy to read.
+- Icons in the Export Center and the picker are built without `innerHTML`.
+
 ## [4.8.0] — 2026-10-31
 
 "Evidence and comments." Tested end to end against live Instagram: a post export with comments saved 150 of a post's 2,938 comments with their replies; with evidence mode on, every file's SHA-256 checked out against the archive, the fingerprint matched, and a chat export recorded the people in it with their usernames, the thread, the date range, the exporting account, the timezone and a log.

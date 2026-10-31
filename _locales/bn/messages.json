@@ -1,0 +1,666 @@
+{
+  "extName": {
+    "message": "Kept: ইনস্টাগ্রাম চ্যাট ও পোস্ট ব্যাকআপ"
+  },
+  "extDescription": {
+    "message": "ইনস্টাগ্রাম চ্যাট, ছবি ও ভয়েস নোটসহ, আর পোস্ট, রিল, স্টোরি ও হাইলাইট নিজের কম্পিউটারে রাখুন।"
+  },
+  "centerTitle": {
+    "message": "এক্সপোর্ট সেন্টার খুলুন: ইতিহাস, সেটিংস ও ইনস্টাগ্রামের অবস্থা"
+  },
+  "contextLooking": {
+    "message": "এই ট্যাব দেখা হচ্ছে…"
+  },
+  "tabsLabel": {
+    "message": "কী এক্সপোর্ট করবেন"
+  },
+  "tabChats": {
+    "message": "চ্যাট"
+  },
+  "tabProfiles": {
+    "message": "প্রোফাইল"
+  },
+  "statusWaiting": {
+    "message": "অপেক্ষা"
+  },
+  "threadNone": {
+    "message": "কোনো চ্যাট খোলা নেই"
+  },
+  "messages": {
+    "message": "বার্তা"
+  },
+  "startCapture": {
+    "message": "ক্যাপচার শুরু"
+  },
+  "stopCapture": {
+    "message": "ক্যাপচার থামান"
+  },
+  "autoScroll": {
+    "message": "স্বয়ংক্রিয় স্ক্রল"
+  },
+  "stopScroll": {
+    "message": "স্ক্রল থামান"
+  },
+  "autoScrollTitle": {
+    "message": "চ্যাটের প্রথম বার্তা পর্যন্ত স্ক্রল করুন"
+  },
+  "exportChat": {
+    "message": "চ্যাট এক্সপোর্ট"
+  },
+  "severalChats": {
+    "message": "কয়েকটি চ্যাট, বা পুরো ইনবক্স"
+  },
+  "oneChat": {
+    "message": "← একটি চ্যাট"
+  },
+  "inbox": {
+    "message": "ইনবক্স"
+  },
+  "requests": {
+    "message": "মেসেজ রিকোয়েস্ট"
+  },
+  "selectAll": {
+    "message": "সব নির্বাচন"
+  },
+  "loadMore": {
+    "message": "আরও লোড করুন"
+  },
+  "everyChat": {
+    "message": "এই ফোল্ডারের সব চ্যাট, শুধু তালিকারগুলো নয়"
+  },
+  "options": {
+    "message": "অপশন"
+  },
+  "optMedia": {
+    "message": "ছবি, ভিডিও ও ভয়েস নোট রাখুন"
+  },
+  "optEncoding": {
+    "message": "ইনস্টাগ্রামের টেক্সট এনকোডিং মেলান"
+  },
+  "optChatFolder": {
+    "message": "ZIP নয়, ফোল্ডার হিসেবে সেভ করুন (বড় এক্সপোর্টের জন্য)"
+  },
+  "optChatEvidence": {
+    "message": "প্রমাণ মোড: ফিঙ্গারপ্রিন্ট, ইউজারনেম ও এক্সপোর্ট লগ"
+  },
+  "fromOptional": {
+    "message": "থেকে (ঐচ্ছিক)"
+  },
+  "toOptional": {
+    "message": "পর্যন্ত (ঐচ্ছিক)"
+  },
+  "account": {
+    "message": "অ্যাকাউন্ট"
+  },
+  "whatToExport": {
+    "message": "কী এক্সপোর্ট করবেন"
+  },
+  "modePosts": {
+    "message": "সব পোস্ট (ছবি + ভিডিও)"
+  },
+  "modeImages": {
+    "message": "শুধু সব ছবি"
+  },
+  "modeReels": {
+    "message": "শুধু সব রিল"
+  },
+  "modeTagged": {
+    "message": "যেসব পোস্টে তাদের ট্যাগ করা"
+  },
+  "modeStories": {
+    "message": "চলমান স্টোরি"
+  },
+  "modeHighlights": {
+    "message": "স্টোরি হাইলাইট"
+  },
+  "modeProfilePic": {
+    "message": "প্রোফাইল ছবি"
+  },
+  "modePost": {
+    "message": "এই পোস্ট / রিল"
+  },
+  "modeSaved": {
+    "message": "আমার সেভ করা পোস্ট ও কালেকশন"
+  },
+  "modeArchive": {
+    "message": "আমার আর্কাইভ করা স্টোরি"
+  },
+  "modeMyAudience": {
+    "message": "আমার ফলোয়ার ও ফলোয়িং (CSV)"
+  },
+  "modeAudience": {
+    "message": "তাদের ফলোয়ার ও ফলোয়িং (সর্বোচ্চ ১,০০০)"
+  },
+  "whichSaved": {
+    "message": "কোন সেভ করা পোস্ট"
+  },
+  "savedAll": {
+    "message": "সব সেভ করা পোস্ট"
+  },
+  "savedEvery": {
+    "message": "প্রতিটি কালেকশন আলাদা ফোল্ডারে"
+  },
+  "export": {
+    "message": "এক্সপোর্ট"
+  },
+  "chooseWhich": {
+    "message": "কোনগুলো এক্সপোর্ট করবেন বেছে নিন…"
+  },
+  "range": {
+    "message": "পরিসর"
+  },
+  "rangeAll": {
+    "message": "সবকিছু"
+  },
+  "rangeRecent": {
+    "message": "সাম্প্রতিক…"
+  },
+  "rangeOldest": {
+    "message": "সবচেয়ে পুরনো…"
+  },
+  "rangeDates": {
+    "message": "তারিখের পরিসর"
+  },
+  "howMany": {
+    "message": "কতগুলো"
+  },
+  "from": {
+    "message": "থেকে"
+  },
+  "to": {
+    "message": "পর্যন্ত"
+  },
+  "optFolder": {
+    "message": "ZIP নয়, ফোল্ডারে ফাইল হিসেবে (কোনো সাইজ সীমা নেই)"
+  },
+  "optOnlyNew": {
+    "message": "শুধু যা এখনও ডাউনলোড করিনি (থেমে যাওয়া এক্সপোর্টও চালু করে)"
+  },
+  "optBestVideo": {
+    "message": "সেরা মানের ভিডিও (১০৮০p পর্যন্ত)"
+  },
+  "optJpg": {
+    "message": "ছবি JPG হিসেবে সেভ করুন"
+  },
+  "optComments": {
+    "message": "কমেন্ট রাখুন (প্রতি পোস্টে ১৫০ পর্যন্ত)"
+  },
+  "optEvidence": {
+    "message": "প্রমাণ মোড: ফিঙ্গারপ্রিন্ট ও এক্সপোর্ট লগ"
+  },
+  "fileNames": {
+    "message": "ফাইলের নাম"
+  },
+  "saved": {
+    "message": "সেভ হয়েছে"
+  },
+  "chatSaved": {
+    "message": "চ্যাট সেভ হয়েছে"
+  },
+  "showInFolder": {
+    "message": "ফোল্ডারে দেখুন"
+  },
+  "openChat": {
+    "message": "চ্যাট খুলুন"
+  },
+  "done": {
+    "message": "ঠিক আছে"
+  },
+  "somethingWrong": {
+    "message": "কিছু ভুল হয়েছে"
+  },
+  "exportFailed": {
+    "message": "এক্সপোর্ট ব্যর্থ"
+  },
+  "retry": {
+    "message": "আবার চেষ্টা"
+  },
+  "resume": {
+    "message": "আবার চালু"
+  },
+  "copyDetails": {
+    "message": "বিস্তারিত কপি"
+  },
+  "report": {
+    "message": "রিপোর্ট"
+  },
+  "reportTitle": {
+    "message": "একটি GitHub ইস্যু খোলে, পোস্টের আগে দেখে নিতে পারবেন"
+  },
+  "igCheck": {
+    "message": "ইনস্টাগ্রাম চেক"
+  },
+  "reportProblem": {
+    "message": "সমস্যা জানান"
+  },
+  "close": {
+    "message": "বন্ধ"
+  },
+  "checkInstagram": {
+    "message": "ইনস্টাগ্রাম চেক"
+  },
+  "checkTitle": {
+    "message": "এখনই প্রতিটি ফিচার ইনস্টাগ্রামে পরীক্ষা করুন"
+  },
+  "privacy": {
+    "message": "গোপনীয়তা"
+  },
+  "footerNote": {
+    "message": "শুধু আপনার ব্রাউজারে চলে। ইনস্টাগ্রাম বা মেটার সঙ্গে সম্পর্কিত নয়।"
+  },
+  "welcomeTitle": {
+    "message": "Kept-এ স্বাগতম"
+  },
+  "welcome1": {
+    "message": "ছবি ও ভয়েস নোটসহ চ্যাট সেভ করুন, অফলাইনে পড়ুন।"
+  },
+  "welcome2": {
+    "message": "যেকোনো দৃশ্যমান অ্যাকাউন্টের পোস্ট, রিল, স্টোরি ও হাইলাইট সেভ করুন।"
+  },
+  "welcome3": {
+    "message": "সবকিছু আপনার কম্পিউটারেই থাকে। কোনো অ্যাকাউন্ট, পাসওয়ার্ড বা সার্ভার নেই।"
+  },
+  "welcomeNote": {
+    "message": "৪.০ পর্যন্ত Kept-এর নাম ছিল IG Exporter। আপনার সেটিংস রয়ে গেছে।"
+  },
+  "getStarted": {
+    "message": "শুরু করুন"
+  },
+  "accessText": {
+    "message": "instagram.com এবং ইনস্টাগ্রামের ছবি ও ভিডিও সার্ভার পড়তে Kept-এর আপনার অনুমতি দরকার।"
+  },
+  "accessBtn": {
+    "message": "ইনস্টাগ্রামে অ্যাক্সেস দিন"
+  },
+  "ctxOpenIG": {
+    "message": "শুরু করতে instagram.com খুলুন"
+  },
+  "ctxChatOpen": {
+    "message": "একটি চ্যাট খোলা আছে"
+  },
+  "ctxChatWith": {
+    "message": "$WHO$-এর সঙ্গে চ্যাট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxInbox": {
+    "message": "আপনার ইনবক্স: একটি চ্যাট খুলুন বা কয়েকটি এক্সপোর্ট করুন"
+  },
+  "ctxPostBy": {
+    "message": "@$WHO$-এর একটি পোস্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxPost": {
+    "message": "একটি পোস্ট বা রিল"
+  },
+  "ctxHighlight": {
+    "message": "একটি স্টোরি হাইলাইট"
+  },
+  "ctxStories": {
+    "message": "@$WHO$-এর স্টোরি",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxProfile": {
+    "message": "@$WHO$-এর প্রোফাইল",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxHome": {
+    "message": "এক্সপোর্ট করতে একটি চ্যাট বা প্রোফাইল খুলুন"
+  },
+  "ctxSaved": {
+    "message": "আপনার সেভ করা পোস্ট"
+  },
+  "ctxArchive": {
+    "message": "আপনার স্টোরি আর্কাইভ"
+  },
+  "ctxTagged": {
+    "message": "যেসব পোস্টে @$WHO$ ট্যাগ করা",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPostsOf": {
+    "message": "@$WHO$-এর পোস্ট এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPosts": {
+    "message": "পোস্ট এক্সপোর্ট"
+  },
+  "actImagesOf": {
+    "message": "@$WHO$-এর ছবি এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actImages": {
+    "message": "ছবি এক্সপোর্ট"
+  },
+  "actReelsOf": {
+    "message": "@$WHO$-এর রিল এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actReels": {
+    "message": "রিল এক্সপোর্ট"
+  },
+  "actStoriesOf": {
+    "message": "@$WHO$-এর স্টোরি সেভ",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actStories": {
+    "message": "স্টোরি সেভ"
+  },
+  "actHighlightsOf": {
+    "message": "@$WHO$-এর হাইলাইট এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actHighlights": {
+    "message": "হাইলাইট এক্সপোর্ট"
+  },
+  "actThisHighlight": {
+    "message": "এই হাইলাইট এক্সপোর্ট"
+  },
+  "actPicOf": {
+    "message": "@$WHO$-এর প্রোফাইল ছবি সেভ",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPic": {
+    "message": "প্রোফাইল ছবি সেভ"
+  },
+  "actPost": {
+    "message": "এই পোস্ট এক্সপোর্ট"
+  },
+  "actTaggedOf": {
+    "message": "যেসব পোস্টে @$WHO$ ট্যাগ করা, এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actTagged": {
+    "message": "ট্যাগ করা পোস্ট এক্সপোর্ট"
+  },
+  "actArchive": {
+    "message": "আপনার আর্কাইভ করা স্টোরি এক্সপোর্ট"
+  },
+  "actMyAudience": {
+    "message": "আপনার ফলোয়ার ও ফলোয়িং এক্সপোর্ট"
+  },
+  "actAudienceOf": {
+    "message": "@$WHO$-এর ফলোয়ার ও ফলোয়িং এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actAudience": {
+    "message": "ফলোয়ার ও ফলোয়িং এক্সপোর্ট"
+  },
+  "actSavedAll": {
+    "message": "আপনার সেভ করা পোস্ট এক্সপোর্ট"
+  },
+  "actSavedEvery": {
+    "message": "প্রতিটি কালেকশন এক্সপোর্ট"
+  },
+  "actSavedOne": {
+    "message": "“$WHO$” এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exporting": {
+    "message": "এক্সপোর্ট হচ্ছে…"
+  },
+  "centerPage": {
+    "message": "এক্সপোর্ট সেন্টার"
+  },
+  "navNow": {
+    "message": "এখন"
+  },
+  "navHistory": {
+    "message": "ইতিহাস"
+  },
+  "navSettings": {
+    "message": "সেটিংস"
+  },
+  "navInstagram": {
+    "message": "ইনস্টাগ্রাম"
+  },
+  "nothingExporting": {
+    "message": "কিছু এক্সপোর্ট হচ্ছে না"
+  },
+  "nothingExportingSub": {
+    "message": "টুলবারের Kept বোতাম থেকে এক্সপোর্ট শুরু করুন; অগ্রগতি এখানেও দেখাবে।"
+  },
+  "clearHistory": {
+    "message": "ইতিহাস মুছুন"
+  },
+  "noExports": {
+    "message": "এখনও কোনো এক্সপোর্ট নেই।"
+  },
+  "noExportsText": {
+    "message": "Kept দিয়ে যা সেভ করেন সব এখানে থাকে, ফোল্ডারের শর্টকাটসহ।"
+  },
+  "appearance": {
+    "message": "চেহারা"
+  },
+  "themeSystem": {
+    "message": "সিস্টেম"
+  },
+  "themeLight": {
+    "message": "লাইট"
+  },
+  "themeDark": {
+    "message": "ডার্ক"
+  },
+  "saving": {
+    "message": "সেভ করা"
+  },
+  "chats": {
+    "message": "চ্যাট"
+  },
+  "remembered": {
+    "message": "মনে রাখা ডাউনলোড"
+  },
+  "checkLead": {
+    "message": "ইনস্টাগ্রাম না জানিয়ে তার API বদলায়। এটি প্রায় দশ সেকেন্ডে একটি পাবলিক অ্যাকাউন্টে সব ফিচার পরীক্ষা করে। একটি instagram.com ট্যাব খোলা রাখুন।"
+  },
+  "chooseTitle": {
+    "message": "কী এক্সপোর্ট করবেন বেছে নিন"
+  },
+  "listPosts": {
+    "message": "পোস্ট"
+  },
+  "listImages": {
+    "message": "ছবি"
+  },
+  "listReels": {
+    "message": "রিল"
+  },
+  "listHighlights": {
+    "message": "হাইলাইট"
+  },
+  "stopLoading": {
+    "message": "লোড থামান"
+  },
+  "selectNone": {
+    "message": "কিছুই নয়"
+  },
+  "pickTip": {
+    "message": "যা চান টিক দিন। Shift-ক্লিক দুই টিকের মাঝের সব নির্বাচন করে।"
+  },
+  "nothingSelected": {
+    "message": "কিছুই নির্বাচিত নয়"
+  },
+  "nSelected": {
+    "message": "$WHO$টি নির্বাচিত",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "everyChatLower": {
+    "message": "সব চ্যাট"
+  },
+  "exportNChats": {
+    "message": "$WHO$টি চ্যাট এক্সপোর্ট",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exportOneChat": {
+    "message": "১টি চ্যাট এক্সপোর্ট"
+  },
+  "exportEveryChat": {
+    "message": "সব চ্যাট এক্সপোর্ট"
+  },
+  "sections": {
+    "message": "অংশ"
+  },
+  "setOnlyNew": {
+    "message": "শুধু যা এখনও ডাউনলোড করিনি"
+  },
+  "setBestVideo": {
+    "message": "সেরা মানের ভিডিও (ইনস্টাগ্রামের আলাদা ছবি ও শব্দ জোড়া লাগায়, ১০৮০p পর্যন্ত)"
+  },
+  "setInpage": {
+    "message": "instagram.com-এ ছবি ও ভিডিওর উপর সেভ বোতাম দেখান"
+  },
+  "setComments": {
+    "message": "পোস্টের সঙ্গে কমেন্ট রাখুন (প্রতি পোস্টে ১৫০ পর্যন্ত, প্রথম উত্তরসহ)"
+  },
+  "setEvidence": {
+    "message": "প্রমাণ মোড: প্রতিটি ফাইলের SHA-256, একটি ফিঙ্গারপ্রিন্ট, কে কখন এক্সপোর্ট করেছে, টাইমজোন ও লগ"
+  },
+  "setEncoding": {
+    "message": "ইনস্টাগ্রামের টেক্সট এনকোডিং মেলান (এর ডেটা ডাউনলোডের টুলের জন্য)"
+  },
+  "tokens": {
+    "message": "টোকেন: {username} {date} {time} {code} {index}"
+  },
+  "seenInfo": {
+    "message": "Kept মনে রাখে কোন এক্সপোর্টে কোন পোস্ট সেভ হয়েছে, যাতে \"শুধু নতুন\" সেগুলো বাদ দিতে পারে।"
+  },
+  "forgetSeen": {
+    "message": "যা ডাউনলোড করেছি এবং ফলোয়ার স্ন্যাপশট ভুলে যান"
+  },
+  "source": {
+    "message": "সোর্স"
+  },
+  "historyCleared": {
+    "message": "ইতিহাস মুছে গেছে"
+  },
+  "loading": {
+    "message": "লোড হচ্ছে…"
+  },
+  "whatToList": {
+    "message": "কী দেখাবেন"
+  },
+  "chooseFrom": {
+    "message": "@$WHO$ থেকে বেছে নিন",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "slowDown": {
+    "message": "ইনস্টাগ্রাম Kept-কে ধীরে চলতে বলেছে। $WHO$ সেকেন্ডে আবার চলবে…",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "starting": {
+    "message": "শুরু হচ্ছে…"
+  },
+  "exportAgain": {
+    "message": "আবার এক্সপোর্ট"
+  },
+  "backTo": {
+    "message": "$WHO$ পর্যন্ত",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "waitingMessages": {
+    "message": "বার্তার অপেক্ষা…"
+  },
+  "notCapturing": {
+    "message": "ক্যাপচার হচ্ছে না"
+  },
+  "capturing": {
+    "message": "ক্যাপচার হচ্ছে"
+  },
+  "soFar": {
+    "message": "এ পর্যন্ত $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "scrollUp": {
+    "message": "লোড করতে উপরে স্ক্রল করুন"
+  },
+  "ready": {
+    "message": "প্রস্তুত"
+  },
+  "autoScrolling": {
+    "message": "স্বয়ংক্রিয় স্ক্রল"
+  },
+  "loadingHistory": {
+    "message": "পুরনো বার্তা লোড হচ্ছে"
+  },
+  "exportingShort": {
+    "message": "এক্সপোর্ট হচ্ছে"
+  }
+}

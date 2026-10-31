@@ -25,7 +25,8 @@ function saveFile(url, filename, callback, saveAs = true) {
   chrome.downloads.download({ url, filename, saveAs }, callback);
 }
 
-chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
+// (Firefox has no onDeterminingFilename; it keeps the name it's given.)
+chrome.downloads.onDeterminingFilename?.addListener((item, suggest) => {
   const filename = wantedNames.get(item.url);
   if (!filename) return; // not ours — Chrome proceeds with its own choice
   wantedNames.delete(item.url);
@@ -35,6 +36,7 @@ chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
 /* ===== offscreen lifecycle ===== */
 
 async function ensureOffscreen() {
+  if (!chrome.offscreen) return; // Firefox: the engine runs in the background page itself
   if (chrome.offscreen.hasDocument) {
     const exists = await chrome.offscreen.hasDocument();
     if (exists) return;

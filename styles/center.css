@@ -13,7 +13,7 @@ p { margin: 0; }
 .logo { width: 28px; height: 28px; color: var(--accent); }
 .brand { font-weight: var(--weight-bold); font-size: 18px; letter-spacing: var(--tracking-tight); }
 .page-name { color: var(--text-dim); font-size: 18px; }
-.version { margin-left: auto; color: var(--text-faint); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.version { margin-inline-start: auto; color: var(--text-faint); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 
 .layout { display: grid; grid-template-columns: 200px minmax(0, 760px); gap: var(--space-6); padding: 0 var(--space-6) var(--space-7); }
 .side { position: sticky; top: var(--space-5); align-self: start; display: grid; gap: 2px; }
@@ -61,6 +61,7 @@ section h1 { margin-bottom: var(--space-4); }
 .field-label { color: var(--text-dim); font-size: var(--text-md); margin-top: var(--space-2); }
 input[type="text"] { width: min(100%, 420px); background: var(--bg); color: var(--text); border: 0; border-radius: var(--radius-sm); padding: 10px 12px; font: inherit; box-shadow: inset 0 0 0 1px var(--border); outline: none; }
 input[type="text"]:focus { box-shadow: inset 0 0 0 2px var(--focus); }
+#sPattern { direction: ltr; }
 .segmented { display: inline-flex; gap: 4px; padding: 4px; background: var(--bg); border-radius: var(--radius-full); }
 .segmented label { cursor: pointer; }
 .segmented input { position: absolute; opacity: 0; pointer-events: none; }

@@ -58,7 +58,7 @@ function tile(it, index) {
   img.dataset.src = it.thumb || "";
   const check = document.createElement("span");
   check.className = "box";
-  check.innerHTML = '<svg class="icon" aria-hidden="true"><use href="icons/ui.svg#check"/></svg>';
+  check.append(icon("check"));
   const info = document.createElement("span");
   info.className = "info";
   const when = document.createElement("span");
@@ -121,7 +121,7 @@ function render() {
   $("status").textContent = state.loading ? `Loading… ${plural(total, noun())} so far` : `${plural(total, noun())}${state.stopped ? " (stopped early)" : ""}`;
   $("stopBtn").hidden = !state.loading;
   if (!state.exportJob) {
-    $("barText").textContent = n ? `${plural(n, noun())} selected` : "Nothing selected";
+    $("barText").textContent = n ? t("nSelected", n) || `${plural(n, noun())} selected` : tr("nothingSelected", "Nothing selected");
     $("exportBtn").textContent = n ? `Export ${plural(n, noun())}` : "Export";
     $("exportBtn").disabled = !n;
   }
@@ -158,7 +158,7 @@ function fail(text) {
 chrome.runtime.onMessage.addListener((m) => {
   if (m?.jobId && m.jobId === state.jobId) {
     if (m.type === "PICK_ITEMS") {
-      if (m.username) $("title").textContent = `Choose from @${m.username}`;
+      if (m.username) $("title").textContent = tr("chooseFrom", "Choose from @$1", m.username);
       addItems(m.items);
     } else if (m.type === "PICK_DONE") {
       state.loading = false;
@@ -168,7 +168,7 @@ chrome.runtime.onMessage.addListener((m) => {
     } else if (m.type === "PICK_ERROR") {
       fail(m.error);
     } else if (m.type === "PICK_WAIT" && m.until > Date.now()) {
-      $("status").textContent = `Instagram asked Kept to slow down. Carrying on in ${Math.ceil((m.until - Date.now()) / 1000)} s…`;
+      $("status").textContent = tr("slowDown", "Instagram asked Kept to slow down. Carrying on in $1 s…", Math.ceil((m.until - Date.now()) / 1000));
     }
   }
   if (state.exportJob && m?.jobId === state.exportJob) onExport(m);
@@ -200,7 +200,7 @@ $("exportBtn").addEventListener("click", async () => {
   else options.only = picked;
   $("exportBtn").disabled = true;
   $("showBtn").hidden = true;
-  $("barText").textContent = "Starting…";
+  $("barText").textContent = tr("starting", "Starting…");
   chrome.runtime.sendMessage({ type: "PROFILE_EXPORT", mode, username, options }, (resp) => {
     if (chrome.runtime.lastError || !resp?.ok) {
       $("barText").textContent = resp?.error || "Couldn't start the export.";
@@ -218,7 +218,7 @@ function onExport(m) {
     const job = state.exportJob;
     state.exportJob = null;
     $("exportBtn").disabled = false;
-    $("exportBtn").textContent = "Export again";
+    $("exportBtn").textContent = tr("exportAgain", "Export again");
     chrome.runtime.sendMessage({ type: "JOB_FILES", jobId: job }, (files) => {
       if (chrome.runtime.lastError || files?.show == null) return;
       $("showBtn").hidden = false;
@@ -232,3 +232,15 @@ function onExport(m) {
 }
 
 start();
+
+// An icon from icons/ui.svg, built without innerHTML.
+function icon(name) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS(NS, "use");
+  use.setAttribute("href", `icons/ui.svg#${name}`);
+  svg.append(use);
+  return svg;
+}

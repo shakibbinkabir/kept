@@ -115,7 +115,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Evidence mode: export fingerprint, usernames, timezone, export log
 - Comments export
 
-## 4.9: Ready for everyone
+## 4.9: Ready for everyone ✅ shipped in v4.9.0
 
 - Firefox build
 - UI translations, with layouts that also work right to left

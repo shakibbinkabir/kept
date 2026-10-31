@@ -2,30 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Kept</title>
   <link rel="stylesheet" href="styles/tokens.css" />
   <link rel="stylesheet" href="styles/popup.css" />
 </head>
 <body>
   <header class="header">
     <svg class="logo" viewBox="0 0 256 256" aria-hidden="true"><use href="icons/ui.svg#mark" /></svg>
-    <span class="title">Kept</span>
+    <h1 class="title">Kept</h1>
     <span class="version"></span>
-    <button id="centerBtn" class="icon-btn" title="Open the Export Center: history, settings and Instagram status" aria-label="Open the Export Center">
+    <button id="centerBtn" class="icon-btn" title="Open the Export Center: history, settings and Instagram status" data-i18n-title="centerTitle" aria-label="Open the Export Center" data-i18n-aria="centerPage">
       <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#sliders" /></svg>
     </button>
   </header>
 
+  <div class="access" id="accessCard" hidden>
+    <p data-i18n="accessText">Kept needs your permission to read instagram.com and Instagram's photo and video servers.</p>
+    <button id="accessBtn" class="btn-primary btn-wide" data-i18n="accessBtn">Allow access to Instagram</button>
+  </div>
+
   <p class="context" id="context" aria-live="polite">
     <svg class="icon" aria-hidden="true"><use id="contextIcon" href="icons/ui.svg#search" /></svg>
-    <span id="contextText">Looking at this tab…</span>
+    <span id="contextText" data-i18n="contextLooking">Looking at this tab…</span>
   </p>
 
-  <div class="tabs" role="tablist" aria-label="What to export" data-active="chat">
+  <main>
+  <div class="tabs" role="tablist" aria-label="What to export" data-i18n-aria="tabsLabel" data-active="chat">
     <button class="tab active" id="tabChat" data-panel="chatPanel" role="tab" aria-selected="true" aria-controls="chatPanel">
-      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Chats
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg><span data-i18n="tabChats">Chats</span>
     </button>
     <button class="tab" id="tabProfile" data-panel="profilePanel" role="tab" aria-selected="false" aria-controls="profilePanel">
-      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#profile" /></svg>Profiles
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#profile" /></svg><span data-i18n="tabProfiles">Profiles</span>
     </button>
   </div>
 
@@ -39,53 +46,53 @@
         </div>
         <div class="status-text">
           <span class="status-label" id="statusText">Waiting<span class="sub" id="statusSub"></span></span>
-          <span class="thread-name" id="threadName">No chat open</span>
-          <span class="count-row"><span class="count" id="msgCount">0</span> <span class="count-label">messages</span></span>
+          <span class="thread-name" id="threadName" data-i18n="threadNone">No chat open</span>
+          <span class="count-row"><span class="count" id="msgCount">0</span> <span class="count-label" data-i18n="messages">messages</span></span>
           <span class="reached" id="reached"></span>
         </div>
       </div>
 
       <button id="captureBtn" class="btn-primary btn-wide btn-main" disabled>
-        <span id="captureLabel">Start capture</span>
+        <span id="captureLabel" data-i18n="startCapture">Start capture</span>
       </button>
       <div class="actions">
-        <button id="autoScrollBtn" class="btn-secondary" disabled title="Scroll the chat back to its first message">
-          <span id="autoScrollLabel">Auto-scroll</span>
+        <button id="autoScrollBtn" class="btn-secondary" disabled title="Scroll the chat back to its first message" data-i18n-title="autoScrollTitle">
+          <span id="autoScrollLabel" data-i18n="autoScroll">Auto-scroll</span>
         </button>
-        <button id="exportBtn" class="btn-secondary" disabled>Export chat</button>
+        <button id="exportBtn" class="btn-secondary" disabled data-i18n="exportChat">Export chat</button>
       </div>
       <button id="pickerOpen" class="link-btn picker-open">
-        <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#inbox" /></svg>Several chats, or the whole inbox
+        <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#inbox" /></svg><span data-i18n="severalChats">Several chats, or the whole inbox</span>
       </button>
     </div>
 
     <!-- Several chats: pick from the inbox and message requests -->
     <div id="chatPicker" hidden>
       <div class="picker-head">
-        <button id="pickerBack" class="link-btn">← One chat</button>
+        <button id="pickerBack" class="link-btn" data-i18n="oneChat">← One chat</button>
         <span id="pickerCount" class="picker-count">0 selected</span>
       </div>
       <div class="picker-folders">
-        <label class="check"><input type="checkbox" id="fInbox" checked /> <span>Inbox</span></label>
-        <label class="check"><input type="checkbox" id="fPending" /> <span>Message requests</span></label>
-        <label class="check"><input type="checkbox" id="selectAll" /> <span>Select all</span></label>
+        <label class="check"><input type="checkbox" id="fInbox" checked /> <span data-i18n="inbox">Inbox</span></label>
+        <label class="check"><input type="checkbox" id="fPending" /> <span data-i18n="requests">Message requests</span></label>
+        <label class="check"><input type="checkbox" id="selectAll" /> <span data-i18n="selectAll">Select all</span></label>
       </div>
       <ul id="chatList" class="chat-list" aria-label="Chats"></ul>
-      <button id="loadMore" class="btn-ghost btn-wide">Load more</button>
-      <label class="check every"><input type="checkbox" id="everyChat" /> <span>Every chat in these folders, not just the ones listed</span></label>
+      <button id="loadMore" class="btn-ghost btn-wide" data-i18n="loadMore">Load more</button>
+      <label class="check every"><input type="checkbox" id="everyChat" /> <span data-i18n="everyChat">Every chat in these folders, not just the ones listed</span></label>
       <button id="exportChatsBtn" class="btn-primary btn-wide btn-main" disabled>Export 0 chats</button>
     </div>
 
     <details class="more">
-      <summary>Options</summary>
+      <summary data-i18n="options">Options</summary>
       <div class="more-body">
-        <label class="check"><input type="checkbox" id="optMedia" checked /> <span>Include photos, videos and voice notes</span></label>
-        <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span>Match Instagram's text encoding</span></label>
-        <label class="check" title="Files go straight into Downloads/Instagram/chats/, with no 4 GB limit"><input type="checkbox" id="optChatFolder" /> <span>Save as a folder, not a ZIP (for big exports)</span></label>
-        <label class="check" title="Adds a SHA-256 for every file, one fingerprint for the export, the people in the chat with their usernames, who exported it, when, the timezone and a log"><input type="checkbox" id="optChatEvidence" /> <span>Evidence mode: fingerprints, usernames and an export log</span></label>
+        <label class="check"><input type="checkbox" id="optMedia" checked /> <span data-i18n="optMedia">Include photos, videos and voice notes</span></label>
+        <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span data-i18n="optEncoding">Match Instagram's text encoding</span></label>
+        <label class="check" title="Files go straight into Downloads/Instagram/chats/, with no 4 GB limit"><input type="checkbox" id="optChatFolder" /> <span data-i18n="optChatFolder">Save as a folder, not a ZIP (for big exports)</span></label>
+        <label class="check" title="Adds a SHA-256 for every file, one fingerprint for the export, the people in the chat with their usernames, who exported it, when, the timezone and a log"><input type="checkbox" id="optChatEvidence" /> <span data-i18n="optChatEvidence">Evidence mode: fingerprints, usernames and an export log</span></label>
         <div class="field-row">
-          <div><label class="field-label" for="chatFrom">From (optional)</label><input type="date" id="chatFrom" /></div>
-          <div><label class="field-label" for="chatTo">To (optional)</label><input type="date" id="chatTo" /></div>
+          <div><label class="field-label" for="chatFrom" data-i18n="fromOptional">From (optional)</label><input type="date" id="chatFrom" /></div>
+          <div><label class="field-label" for="chatTo" data-i18n="toOptional">To (optional)</label><input type="date" id="chatTo" /></div>
         </div>
       </div>
     </details>
@@ -94,41 +101,41 @@
   <!-- ===== Profiles ===== -->
   <section class="panel" id="profilePanel" role="tabpanel" aria-labelledby="tabProfile" hidden>
     <div class="field username-wrap" id="usernameField">
-      <label class="field-label" for="usernameInput">Account</label>
+      <label class="field-label" for="usernameInput" data-i18n="account">Account</label>
       <span class="at">@</span>
       <input type="text" id="usernameInput" placeholder="username" autocomplete="off" spellcheck="false" />
     </div>
 
     <div class="field">
-      <label class="field-label" for="modeSelect">What to export</label>
+      <label class="field-label" for="modeSelect" data-i18n="whatToExport">What to export</label>
       <select id="modeSelect">
-        <option value="posts">All posts (images + videos)</option>
-        <option value="images">All images only</option>
-        <option value="reels">All reels only</option>
-        <option value="tagged">Posts they're tagged in</option>
-        <option value="stories">Current stories</option>
-        <option value="highlights">Story highlights</option>
-        <option value="profilePic">Profile picture</option>
-        <option value="post">This post / reel</option>
-        <option value="saved">My saved posts and collections</option>
-        <option value="archive">My archived stories</option>
-        <option value="myaudience">My followers and following (CSV)</option>
-        <option value="audience">Their followers and following (up to 1,000)</option>
+        <option value="posts" data-i18n="modePosts">All posts (images + videos)</option>
+        <option value="images" data-i18n="modeImages">All images only</option>
+        <option value="reels" data-i18n="modeReels">All reels only</option>
+        <option value="tagged" data-i18n="modeTagged">Posts they're tagged in</option>
+        <option value="stories" data-i18n="modeStories">Current stories</option>
+        <option value="highlights" data-i18n="modeHighlights">Story highlights</option>
+        <option value="profilePic" data-i18n="modeProfilePic">Profile picture</option>
+        <option value="post" data-i18n="modePost">This post / reel</option>
+        <option value="saved" data-i18n="modeSaved">My saved posts and collections</option>
+        <option value="archive" data-i18n="modeArchive">My archived stories</option>
+        <option value="myaudience" data-i18n="modeMyAudience">My followers and following (CSV)</option>
+        <option value="audience" data-i18n="modeAudience">Their followers and following (up to 1,000)</option>
       </select>
     </div>
 
     <div class="field" id="collectionField" hidden>
-      <label class="field-label" for="collectionSelect">Which saved posts</label>
+      <label class="field-label" for="collectionSelect" data-i18n="whichSaved">Which saved posts</label>
       <select id="collectionSelect">
-        <option value="all">All saved posts</option>
-        <option value="every">Every collection, each in its own folder</option>
+        <option value="all" data-i18n="savedAll">All saved posts</option>
+        <option value="every" data-i18n="savedEvery">Every collection, each in its own folder</option>
       </select>
     </div>
 
-    <button id="profileExportBtn" class="btn-primary btn-wide btn-main">Export</button>
+    <button id="profileExportBtn" class="btn-primary btn-wide btn-main" data-i18n="export">Export</button>
     <div class="profile-hint" id="profileHint"></div>
     <button id="pickBtn" class="link-btn picker-open">
-      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#grid" /></svg>Choose which ones to export…
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#grid" /></svg><span data-i18n="chooseWhich">Choose which ones to export…</span>
     </button>
 
     <div class="card status-card" id="profileStatus" hidden aria-live="polite">
@@ -143,34 +150,34 @@
     </div>
 
     <details class="more">
-      <summary>Options</summary>
+      <summary data-i18n="options">Options</summary>
       <div class="more-body">
         <div class="field" id="filterField">
-          <label class="field-label" for="filterSelect">Range</label>
+          <label class="field-label" for="filterSelect" data-i18n="range">Range</label>
           <select id="filterSelect">
-            <option value="all">Everything</option>
-            <option value="recent">Most recent…</option>
-            <option value="oldest">Oldest…</option>
-            <option value="range">Date range</option>
+            <option value="all" data-i18n="rangeAll">Everything</option>
+            <option value="recent" data-i18n="rangeRecent">Most recent…</option>
+            <option value="oldest" data-i18n="rangeOldest">Oldest…</option>
+            <option value="range" data-i18n="rangeDates">Date range</option>
           </select>
         </div>
         <div class="field" id="countField" hidden>
-          <label class="field-label" id="countFieldLabel" for="countInput">How many</label>
+          <label class="field-label" id="countFieldLabel" for="countInput" data-i18n="howMany">How many</label>
           <input type="number" id="countInput" min="1" step="1" value="12" />
         </div>
         <div class="field-row" id="dateField" hidden>
-          <div><label class="field-label" for="fromInput">From</label><input type="date" id="fromInput" /></div>
-          <div><label class="field-label" for="toInput">To</label><input type="date" id="toInput" /></div>
+          <div><label class="field-label" for="fromInput" data-i18n="from">From</label><input type="date" id="fromInput" /></div>
+          <div><label class="field-label" for="toInput" data-i18n="to">To</label><input type="date" id="toInput" /></div>
         </div>
         <div class="save-opts" id="saveOpts">
-          <label class="check" title="Files go straight into Downloads/Instagram/&lt;account&gt;/&lt;type&gt;/, with no 4 GB limit"><input type="checkbox" id="optFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
-          <label class="check"><input type="checkbox" id="optOnlyNew" /> <span>Only what I haven't downloaded yet (also resumes a stopped export)</span></label>
-          <label class="check" title="Instagram keeps its sharpest video as separate picture and sound; Kept joins them"><input type="checkbox" id="optBestVideo" checked /> <span>Best-quality video (up to 1080p)</span></label>
-          <label class="check"><input type="checkbox" id="optJpg" /> <span>Save images as JPG</span></label>
-          <label class="check"><input type="checkbox" id="optComments" /> <span>Include comments (up to 150 per post)</span></label>
-          <label class="check" title="Adds a SHA-256 for every file, one fingerprint for the export, who exported it, when, the timezone and a log"><input type="checkbox" id="optEvidence" /> <span>Evidence mode: fingerprints and an export log</span></label>
+          <label class="check" title="Files go straight into Downloads/Instagram/&lt;account&gt;/&lt;type&gt;/, with no 4 GB limit"><input type="checkbox" id="optFolder" /> <span data-i18n="optFolder">Save as files in a folder, not a ZIP (no size limit)</span></label>
+          <label class="check"><input type="checkbox" id="optOnlyNew" /> <span data-i18n="optOnlyNew">Only what I haven't downloaded yet (also resumes a stopped export)</span></label>
+          <label class="check" title="Instagram keeps its sharpest video as separate picture and sound; Kept joins them"><input type="checkbox" id="optBestVideo" checked /> <span data-i18n="optBestVideo">Best-quality video (up to 1080p)</span></label>
+          <label class="check"><input type="checkbox" id="optJpg" /> <span data-i18n="optJpg">Save images as JPG</span></label>
+          <label class="check"><input type="checkbox" id="optComments" /> <span data-i18n="optComments">Include comments (up to 150 per post)</span></label>
+          <label class="check" title="Adds a SHA-256 for every file, one fingerprint for the export, who exported it, when, the timezone and a log"><input type="checkbox" id="optEvidence" /> <span data-i18n="optEvidence">Evidence mode: fingerprints and an export log</span></label>
           <div class="field">
-            <label class="field-label" for="optPattern">File names</label>
+            <label class="field-label" for="optPattern" data-i18n="fileNames">File names</label>
             <input type="text" id="optPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
             <div class="field-hint">{username} {date} {time} {code} {index}</div>
             <div class="field-hint preview" id="patternPreview" aria-live="polite"></div>
@@ -179,18 +186,19 @@
       </div>
     </details>
   </section>
+  </main>
 
   <!-- ===== Done ===== -->
   <div id="doneCard" class="done-card" hidden role="status">
     <div class="done-head">
       <span class="done-icon"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#check" /></svg></span>
-      <span class="done-title" id="doneTitle">Saved</span>
+      <span class="done-title" id="doneTitle" data-i18n="saved">Saved</span>
     </div>
     <p class="done-body" id="doneBody"></p>
     <div class="card-actions">
-      <button id="showFileBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#folder" /></svg>Show in folder</button>
-      <button id="openChatBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Open chat</button>
-      <button id="doneCloseBtn" class="btn-ghost">Done</button>
+      <button id="showFileBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#folder" /></svg><span data-i18n="showInFolder">Show in folder</span></button>
+      <button id="openChatBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg><span data-i18n="openChat">Open chat</span></button>
+      <button id="doneCloseBtn" class="btn-ghost" data-i18n="done">Done</button>
     </div>
   </div>
 
@@ -198,39 +206,39 @@
   <div id="errorCard" class="error-card" hidden role="alert">
     <div class="error-header">
       <span class="error-icon"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#alert" /></svg></span>
-      <span class="error-title" id="errorTitle">Something went wrong</span>
+      <span class="error-title" id="errorTitle" data-i18n="somethingWrong">Something went wrong</span>
     </div>
     <div class="error-body" id="errorBody"></div>
     <div class="error-hint" id="errorHint"></div>
     <div class="card-actions">
-      <button id="retryBtn" class="btn-ghost">Retry</button>
-      <button id="copyErrBtn" class="btn-ghost">Copy details</button>
-      <button id="errReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report</button>
+      <button id="retryBtn" class="btn-ghost" data-i18n="retry">Retry</button>
+      <button id="copyErrBtn" class="btn-ghost" data-i18n="copyDetails">Copy details</button>
+      <button id="errReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting" data-i18n-title="reportTitle" data-i18n="report">Report</button>
     </div>
   </div>
 
   <!-- ===== "Check Instagram" results ===== -->
   <div id="checkCard" class="card check-card" hidden>
     <div class="check-head">
-      <span class="status-label">Instagram check</span>
+      <span class="status-label" data-i18n="igCheck">Instagram check</span>
       <span class="sub" id="checkSummary"></span>
     </div>
     <ul class="check-list" id="checkList"></ul>
     <div class="card-actions">
-      <button id="checkReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report a problem</button>
-      <button id="checkCloseBtn" class="btn-ghost">Close</button>
+      <button id="checkReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting" data-i18n-title="reportTitle" data-i18n="reportProblem">Report a problem</button>
+      <button id="checkCloseBtn" class="btn-ghost" data-i18n="close">Close</button>
     </div>
   </div>
 
   <footer class="footer">
     <div class="footer-links">
-      <button id="checkBtn" class="link-btn" title="Test every feature against Instagram right now">Check Instagram</button>
+      <button id="checkBtn" class="link-btn" title="Test every feature against Instagram right now" data-i18n-title="checkTitle" data-i18n="checkInstagram">Check Instagram</button>
       <span aria-hidden="true">·</span>
-      <button id="reportBtn" class="link-btn" title="Opens a GitHub issue you can review before posting">Report a problem</button>
+      <button id="reportBtn" class="link-btn" title="Opens a GitHub issue you can review before posting" data-i18n-title="reportTitle" data-i18n="reportProblem">Report a problem</button>
       <span aria-hidden="true">·</span>
-      <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+      <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener" data-i18n="privacy">Privacy</a>
     </div>
-    <div class="footer-note">Runs only in your browser. Not affiliated with Instagram or Meta.</div>
+    <div class="footer-note" data-i18n="footerNote">Runs only in your browser. Not affiliated with Instagram or Meta.</div>
   </footer>
 
   <!-- ===== First run ===== -->
@@ -239,18 +247,19 @@
       <path d="M201.9 131.4A74 74 0 1 1 137.5 54.6" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" />
       <circle class="welcome-gem" cx="184.7" cy="80.4" r="24" />
     </svg>
-    <h1 id="welcomeTitle">Welcome to Kept</h1>
+    <h1 id="welcomeTitle" data-i18n="welcomeTitle">Welcome to Kept</h1>
     <ul class="welcome-list">
-      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Save chats with their photos and voice notes, and read them offline.</li>
-      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#grid" /></svg>Save posts, reels, stories and highlights from any account you can see.</li>
-      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#lock" /></svg>Everything stays on your computer. No account, no password, no servers.</li>
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg><span data-i18n="welcome1">Save chats with their photos and voice notes, and read them offline.</span></li>
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#grid" /></svg><span data-i18n="welcome2">Save posts, reels, stories and highlights from any account you can see.</span></li>
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#lock" /></svg><span data-i18n="welcome3">Everything stays on your computer. No account, no password, no servers.</span></li>
     </ul>
-    <p class="welcome-note">Kept was called IG Exporter until 4.0. Your settings carried over.</p>
-    <button id="welcomeBtn" class="btn-primary btn-wide btn-main">Get started</button>
+    <p class="welcome-note" data-i18n="welcomeNote">Kept was called IG Exporter until 4.0. Your settings carried over.</p>
+    <button id="welcomeBtn" class="btn-primary btn-wide btn-main" data-i18n="getStarted">Get started</button>
   </div>
 
   <div class="toast" id="toast" role="status"></div>
 
+  <script src="src/i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

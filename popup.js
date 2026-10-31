@@ -147,7 +147,7 @@ function setPhase(phase, label, sub) {
     : phase === "error" ? "error"
     : "idle";
 
-  els.statusText.firstChild.textContent = label || "Waiting";
+  els.statusText.firstChild.textContent = label || tr("statusWaiting", "Waiting");
   els.statusSub.textContent = sub ? ` · ${sub}` : "";
 
   if (phase === "capturing" || phase === "scrolling" || phase === "exporting") {
@@ -160,11 +160,11 @@ function setPhase(phase, label, sub) {
 function renderButtons() {
   // Capture toggle
   if (state.capturing) {
-    els.captureLabel.textContent = "Stop capture";
+    els.captureLabel.textContent = tr("stopCapture", "Stop capture");
     els.captureBtn.classList.remove("btn-primary");
     els.captureBtn.classList.add("btn-danger");
   } else {
-    els.captureLabel.textContent = "Start capture";
+    els.captureLabel.textContent = tr("startCapture", "Start capture");
     els.captureBtn.classList.add("btn-primary");
     els.captureBtn.classList.remove("btn-danger");
   }
@@ -172,7 +172,7 @@ function renderButtons() {
 
   // Auto-scroll requires capture to be on
   els.autoScrollBtn.disabled = !state.capturing;
-  els.autoScrollLabel.textContent = state.autoScrolling ? "Stop scroll" : "Auto-scroll";
+  els.autoScrollLabel.textContent = state.autoScrolling ? tr("stopScroll", "Stop scroll") : tr("autoScroll", "Auto-scroll");
   els.autoScrollBtn.classList.toggle("active", state.autoScrolling);
 
   // Export available whenever we have data (even after stopping)
@@ -215,7 +215,7 @@ function updateCount(newCount) {
 }
 
 function showReached(oldest) {
-  els.reached.textContent = oldest ? `Back to ${new Date(oldest).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "";
+  els.reached.textContent = oldest ? tr("backTo", "Back to $1", new Date(oldest).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })) : "";
 }
 
 function updateThread(title) {
@@ -223,14 +223,14 @@ function updateThread(title) {
     if (title !== state.threadTitle) {
       state.threadTitle = title;
       els.threadName.textContent = title;
-      if (state.context === "chat") setContext("chat", `Chat with ${title}`);
+      if (state.context === "chat") setContext("chat", tr("ctxChatWith", "Chat with $1", title));
     }
     return;
   }
   if (state.count > 0) {
     els.threadName.textContent = "Active thread";
   } else {
-    els.threadName.textContent = state.capturing ? "Waiting for messages…" : "Not capturing";
+    els.threadName.textContent = state.capturing ? tr("waitingMessages", "Waiting for messages…") : tr("notCapturing", "Not capturing");
   }
 }
 
@@ -250,7 +250,7 @@ function classifyError(msg, problems) {
 function showError(title, body, problems) {
   state.errorContext = "chat";
   state.lastError = { title, body, problems };
-  els.retryBtn.textContent = "Retry";
+  els.retryBtn.textContent = tr("retry", "Retry");
   setPhase("error", "Error", "");
   els.errorTitle.textContent = title || "Something went wrong";
   els.errorBody.textContent = body + (problems?.length ? `\n• ${problems.slice(0, 3).join("\n• ")}` : "");
@@ -277,7 +277,7 @@ function showToast(msg, ms = 1600) {
 function applyCaptureState(on) {
   state.capturing = on;
   if (on) {
-    setPhase("capturing", "Capturing", state.count > 0 ? `${state.count} so far` : "scroll up to load");
+    setPhase("capturing", tr("capturing", "Capturing"), state.count > 0 ? tr("soFar", "$1 so far", state.count) : tr("scrollUp", "scroll up to load"));
   } else {
     if (state.count > 0) {
       setPhase("idle", "Stopped", `${state.count} captured`);
@@ -424,55 +424,55 @@ function detectContext(url) {
   try { path = new URL(url).pathname; } catch {}
   if (!state.isInstagram) {
     state.context = "none";
-    setContext("search", "Open instagram.com to start");
+    setContext("search", tr("ctxOpenIG", "Open instagram.com to start"));
     return;
   }
   if (path.startsWith("/direct/t/")) {
     state.context = "chat";
-    setContext("chat", "A chat is open");
+    setContext("chat", tr("ctxChatOpen", "A chat is open"));
     switchTab("chatPanel");
   } else if (path.startsWith("/direct")) {
     state.context = "inbox";
-    setContext("inbox", "Your inbox: open a chat, or export several");
+    setContext("inbox", tr("ctxInbox", "Your inbox: open a chat, or export several"));
     switchTab("chatPanel");
   } else if (path.startsWith("/archive/stories")) {
     state.context = "archive";
-    setContext("story", "Your story archive");
+    setContext("story", tr("ctxArchive", "Your story archive"));
     els.modeSelect.value = "archive";
     switchTab("profilePanel");
     refreshProfileFields();
   } else if (/^\/[^/]+\/tagged\/?$/.test(path) && username) {
     state.context = "tagged";
-    setContext("profile", `Posts @${username} is tagged in`);
+    setContext("profile", tr("ctxTagged", "Posts @$1 is tagged in", username));
     els.modeSelect.value = "tagged";
     switchTab("profilePanel");
     refreshProfileFields();
   } else if (/^\/[^/]+\/saved(\/|$)/.test(path)) {
     state.context = "saved";
-    setContext("download", "Your saved posts");
+    setContext("download", tr("ctxSaved", "Your saved posts"));
     els.modeSelect.value = "saved";
     state.wantCollection = (path.match(/^\/[^/]+\/saved\/[^/]+\/(\d+)\/?$/) || [])[1] || "all";
     switchTab("profilePanel");
     refreshProfileFields();
   } else if (shortcode) {
     state.context = "post";
-    setContext("image", username ? `A post by @${username}` : "A post or reel");
+    setContext("image", username ? tr("ctxPostBy", "A post by @$1", username) : tr("ctxPost", "A post or reel"));
     switchTab("profilePanel");
   } else if (highlightId) {
     state.context = "highlight";
-    setContext("highlight", "A story highlight");
+    setContext("highlight", tr("ctxHighlight", "A story highlight"));
     switchTab("profilePanel");
   } else if (story) {
     state.context = "story";
-    setContext("story", `@${username}'s stories`);
+    setContext("story", tr("ctxStories", "@$1's stories", username));
     switchTab("profilePanel");
   } else if (username) {
     state.context = "profile";
-    setContext("profile", `@${username}'s profile`);
+    setContext("profile", tr("ctxProfile", "@$1's profile", username));
     switchTab("profilePanel");
   } else {
     state.context = "home";
-    setContext("search", "Open a chat or a profile to export it");
+    setContext("search", tr("ctxHome", "Open a chat or a profile to export it"));
   }
 }
 
@@ -481,22 +481,27 @@ function updateMainAction() {
   if (state.profile.running) return;
   const mode = els.modeSelect.value;
   const who = els.usernameInput.value.trim().replace(/^@/, "");
-  const whose = who ? `@${who}'s ` : "";
-  const label = {
-    posts: `Export ${whose}posts`,
-    images: `Export ${whose}images`,
-    reels: `Export ${whose}reels`,
-    stories: `Save ${whose}stories`,
-    highlights: state.profile.detectedHighlightId ? "Export this highlight" : `Export ${whose}highlights`,
-    profilePic: `Save ${whose}profile picture`,
-    post: "Export this post",
-    tagged: who ? `Export posts @${who} is tagged in` : "Export tagged posts",
-    myaudience: "Export your followers and following",
-    audience: who ? `Export @${who}'s followers and following` : "Export followers and following",
-    archive: "Export your archived stories",
-    saved: els.collectionSelect.value === "all" ? "Export your saved posts" : els.collectionSelect.value === "every" ? "Export every collection" : `Export “${els.collectionSelect.selectedOptions[0]?.textContent || "collection"}”`,
+  // [key with an account, its English, key without one, its English]
+  const named = {
+    posts: ["actPostsOf", "Export @$1's posts", "actPosts", "Export posts"],
+    images: ["actImagesOf", "Export @$1's images", "actImages", "Export images"],
+    reels: ["actReelsOf", "Export @$1's reels", "actReels", "Export reels"],
+    stories: ["actStoriesOf", "Save @$1's stories", "actStories", "Save stories"],
+    highlights: ["actHighlightsOf", "Export @$1's highlights", "actHighlights", "Export highlights"],
+    profilePic: ["actPicOf", "Save @$1's profile picture", "actPic", "Save profile picture"],
+    tagged: ["actTaggedOf", "Export posts @$1 is tagged in", "actTagged", "Export tagged posts"],
+    audience: ["actAudienceOf", "Export @$1's followers and following", "actAudience", "Export followers and following"],
   }[mode];
-  els.profileExportBtn.textContent = label || "Export";
+  const collection = els.collectionSelect.value;
+  const label = mode === "highlights" && state.profile.detectedHighlightId ? tr("actThisHighlight", "Export this highlight")
+    : named ? (who ? tr(named[0], named[1], who) : tr(named[2], named[3]))
+    : {
+        post: tr("actPost", "Export this post"),
+        myaudience: tr("actMyAudience", "Export your followers and following"),
+        archive: tr("actArchive", "Export your archived stories"),
+        saved: collection === "all" ? tr("actSavedAll", "Export your saved posts") : collection === "every" ? tr("actSavedEvery", "Export every collection") : tr("actSavedOne", "Export “$1”", els.collectionSelect.selectedOptions[0]?.textContent || "collection"),
+      }[mode];
+  els.profileExportBtn.textContent = label || tr("export", "Export");
 }
 
 function updateProfileHint() {
@@ -557,7 +562,7 @@ function setProfilePhase(phase, label, sub) {
     : phase === "success" ? "success"
     : phase === "error" ? "error"
     : "idle";
-  els.pStatusText.firstChild.textContent = label || "Ready";
+  els.pStatusText.firstChild.textContent = label || tr("ready", "Ready");
   els.pStatusSub.textContent = sub ? ` · ${sub}` : "";
 }
 
@@ -588,12 +593,12 @@ function profileHintFor(body) {
 function showProfileError(title, body) {
   state.errorContext = "profile";
   state.lastError = { title, body, problems: null };
-  els.errorTitle.textContent = title || "Export failed";
+  els.errorTitle.textContent = title || tr("exportFailed", "Export failed");
   els.errorBody.textContent = body || "";
   els.errorHint.textContent = profileHintFor(body);
   els.errorCard.hidden = false;
   // A folder export keeps what it saved, so it can pick up where it stopped.
-  els.retryBtn.textContent = state.profile.lastJob?.options?.folder && !/nothing new/i.test(body) ? "Resume" : "Retry";
+  els.retryBtn.textContent = state.profile.lastJob?.options?.folder && !/nothing new/i.test(body) ? tr("resume", "Resume") : tr("retry", "Retry");
   setProfilePhase("error", "Error", "");
   els.pProgress.classList.remove("active");
   els.profileExportBtn.disabled = false;
@@ -702,7 +707,7 @@ function startProfileExport(job) {
   state.profile.running = true;
   state.profile.jobId = null;
   els.profileExportBtn.disabled = true;
-  els.profileExportBtn.textContent = "Exporting…";
+  els.profileExportBtn.textContent = tr("exporting", "Exporting…");
   setProfilePhase("running", "Starting", "");
   setProfileProgress({ indeterminate: true });
   els.pCount.textContent = "0";
@@ -770,18 +775,18 @@ function handleProfileMessage(msg) {
   if (msg.type === "EXPORT_DONE") {
     state.profile.running = false;
     clearError();
-    setProfilePhase("success", "Done", msg.filename || "");
+    setProfilePhase("success", tr("done", "Done"), msg.filename || "");
     setProfileProgress({ indeterminate: false, pct: 100 });
     els.pCount.textContent = "✓";
     els.pCountLabel.textContent = summaryLabel(msg.summary);
     els.profileExportBtn.disabled = false;
     updateMainAction();
-    showDone("Saved", `${summaryLabel(msg.summary)}\n${msg.filename || ""}`, msg.jobId);
+    showDone(tr("saved", "Saved"), `${summaryLabel(msg.summary)}\n${msg.filename || ""}`, msg.jobId);
     return;
   }
 
   if (msg.type === "EXPORT_ERROR") {
-    showProfileError("Export failed", msg.error || "Something went wrong.");
+    showProfileError(tr("exportFailed", "Export failed"), msg.error || "Something went wrong.");
   }
 }
 
@@ -841,9 +846,9 @@ function handleChatJob(msg) {
     const chats = s.chats > 1 ? `${s.chats} chats, ` : "";
     setPhase("success", "Exported", `${chats}${s.messages} messages${media}`);
     renderButtons();
-    showDone("Chat saved", `${chats}${s.messages} messages${media}${s.fingerprint ? `\nFingerprint ${s.fingerprint}` : ""}\n${msg.filename || ""}`, msg.jobId);
+    showDone(tr("chatSaved", "Chat saved"), `${chats}${s.messages} messages${media}${s.fingerprint ? `\nFingerprint ${s.fingerprint}` : ""}\n${msg.filename || ""}`, msg.jobId);
   } else if (msg.type === "EXPORT_ERROR") {
-    showError("Export failed", msg.error || "Couldn't build the chat export.");
+    showError(tr("exportFailed", "Export failed"), msg.error || "Couldn't build the chat export.");
   }
 }
 
@@ -893,9 +898,9 @@ function renderPickerCount() {
   const visible = [...picker.chats.values()].filter((c) => FOLDERS().includes(c.folder));
   const chosen = visible.filter((c) => picker.selected.has(c.id)).length;
   els.selectAll.checked = !!visible.length && chosen === visible.length;
-  els.pickerCount.textContent = els.everyChat.checked ? "every chat" : `${chosen} selected`;
+  els.pickerCount.textContent = els.everyChat.checked ? tr("everyChatLower", "every chat") : tr("nSelected", "$1 selected", chosen);
   const n = els.everyChat.checked ? "every" : chosen;
-  els.exportChatsBtn.textContent = els.everyChat.checked ? "Export every chat" : `Export ${n} chat${n === 1 ? "" : "s"}`;
+  els.exportChatsBtn.textContent = els.everyChat.checked ? tr("exportEveryChat", "Export every chat") : n === 1 ? tr("exportOneChat", "Export 1 chat") : tr("exportNChats", "Export $1 chats", n);
   els.exportChatsBtn.disabled = !FOLDERS().length || (!els.everyChat.checked && !chosen);
 }
 
@@ -936,11 +941,11 @@ function exportChats() {
   clearError();
   openPicker(false);
   els.exportBtn.disabled = true;
-  setPhase("exporting", "Exporting", "finding chats");
+  setPhase("exporting", tr("exportingShort", "Exporting"), "finding chats");
   els.threadName.textContent = ids ? `${ids.length} chats` : "Every chat";
   chrome.runtime.sendMessage({ type: "CHATS_EXPORT", ids, folders, ...chatRange(), options }, (resp) => {
     if (chrome.runtime.lastError || !resp?.ok) {
-      showError("Export failed", resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
+      showError(tr("exportFailed", "Export failed"), resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
     }
   });
 }
@@ -1068,6 +1073,17 @@ function checkDetails() {
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".version").textContent = `v${chrome.runtime.getManifest().version}`;
 
+  // Firefox treats site access as optional: ask for it if it's missing.
+  const origins = chrome.runtime.getManifest().host_permissions || [];
+  chrome.permissions?.contains({ origins }).then((ok) => {
+    if (ok) return;
+    const card = document.getElementById("accessCard");
+    card.hidden = false;
+    document.getElementById("accessBtn").addEventListener("click", () =>
+      chrome.permissions.request({ origins }).then((granted) => granted && location.reload())
+    );
+  }).catch(() => {});
+
   // Theme from the Export Center (system by default), and the first-run welcome.
   chrome.storage.local.get(["theme", "welcomed"]).then(({ theme, welcomed }) => {
     if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
@@ -1130,7 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateCount(message.messageCount);
       showReached(message.oldest);
       if (state.capturing && state.phase !== "scrolling") {
-        setPhase("capturing", "Capturing", `${message.messageCount}`);
+        setPhase("capturing", tr("capturing", "Capturing"), `${message.messageCount}`);
         clearError();
       }
     }
@@ -1142,7 +1158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (message.type === "IG_EXPORTER_AUTOSCROLL_STATE") {
       state.autoScrolling = message.scrolling;
       if (message.scrolling) {
-        setPhase("scrolling", "Auto-scrolling", "loading history");
+        setPhase("scrolling", tr("autoScrolling", "Auto-scrolling"), tr("loadingHistory", "loading history"));
       } else if (state.phase === "scrolling") {
         applyCaptureState(state.capturing);
       }
@@ -1156,24 +1172,24 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       } else {
         stopCountdown("chat");
-        if (state.autoScrolling) setPhase("scrolling", "Auto-scrolling", "loading history");
+        if (state.autoScrolling) setPhase("scrolling", tr("autoScrolling", "Auto-scrolling"), tr("loadingHistory", "loading history"));
         else applyCaptureState(state.capturing);
       }
     }
 
     if (message.type === "IG_EXPORTER_ERROR") {
       stopCountdown("chat");
-      showError(state.phase === "exporting" ? "Export failed" : "Capture failed", message.error, message.problems);
+      showError(state.phase === "exporting" ? tr("exportFailed", "Export failed") : "Capture failed", message.error, message.problems);
     }
 
     // The chat is captured and validated: the offscreen doc downloads its
     // media and builds the ZIP; progress comes back as EXPORT_* messages.
     if (message.type === "IG_EXPORTER_SUCCESS") {
       const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked, evidence: els.optChatEvidence.checked };
-      setPhase("exporting", "Exporting", options.media ? "saving media" : "packaging");
+      setPhase("exporting", tr("exportingShort", "Exporting"), options.media ? "saving media" : "packaging");
       chrome.runtime.sendMessage({ type: "CHAT_EXPORT", chat: message.result, options }, (resp) => {
         if (chrome.runtime.lastError || !resp?.ok) {
-          showError("Export failed", resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
+          showError(tr("exportFailed", "Export failed"), resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.");
         }
       });
     }
@@ -1271,7 +1287,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideDone();
     els.exportBtn.disabled = true;
     els.exportBtn.textContent = "Validating…";
-    setPhase("exporting", "Exporting", "validating");
+    setPhase("exporting", tr("exportingShort", "Exporting"), "validating");
     sendToTab({ action: "EXPORT_REQUEST", ...chatRange() });
   });
 

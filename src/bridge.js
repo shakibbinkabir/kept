@@ -26,6 +26,8 @@
 (function () {
   const srcURL = chrome.runtime.getURL("src/");
   const APP_ID = "936619743392459"; // Instagram Web app id (see src/igapi.js)
+  // Firefox runs content-script fetches as the extension; content.fetch runs them as the page, like Chrome does.
+  const fetch = globalThis.content?.fetch ? globalThis.content.fetch.bind(globalThis.content) : globalThis.fetch.bind(globalThis);
   const PAGE = 20; // messages per fetch — the server caps a page at 20
   const DOC_THREAD = { name: "IGDInboxHeaderOffMsysQuery", id: "28914252884904227" }; // title + participants
   const DOC_MESSAGES = { name: "IGDMessageListOffMsysQuery", id: "28574971342201921" }; // paged history

@@ -1,0 +1,666 @@
+{
+  "extName": {
+    "message": "Kept: نسخ احتياطي لمحادثات ومنشورات إنستغرام"
+  },
+  "extDescription": {
+    "message": "احتفظ بمحادثات إنستغرام مع صورها ورسائلها الصوتية، والمنشورات والريلز والقصص والمميزة، على جهازك."
+  },
+  "centerTitle": {
+    "message": "افتح مركز التصدير: السجل والإعدادات وحالة إنستغرام"
+  },
+  "contextLooking": {
+    "message": "جارٍ فحص هذا التبويب…"
+  },
+  "tabsLabel": {
+    "message": "ما الذي تريد تصديره"
+  },
+  "tabChats": {
+    "message": "المحادثات"
+  },
+  "tabProfiles": {
+    "message": "الحسابات"
+  },
+  "statusWaiting": {
+    "message": "في الانتظار"
+  },
+  "threadNone": {
+    "message": "لا توجد محادثة مفتوحة"
+  },
+  "messages": {
+    "message": "رسالة"
+  },
+  "startCapture": {
+    "message": "ابدأ الالتقاط"
+  },
+  "stopCapture": {
+    "message": "أوقف الالتقاط"
+  },
+  "autoScroll": {
+    "message": "تمرير تلقائي"
+  },
+  "stopScroll": {
+    "message": "أوقف التمرير"
+  },
+  "autoScrollTitle": {
+    "message": "مرّر المحادثة حتى أول رسالة"
+  },
+  "exportChat": {
+    "message": "صدّر المحادثة"
+  },
+  "severalChats": {
+    "message": "عدة محادثات أو صندوق الوارد كله"
+  },
+  "oneChat": {
+    "message": "→ محادثة واحدة"
+  },
+  "inbox": {
+    "message": "الوارد"
+  },
+  "requests": {
+    "message": "طلبات المراسلة"
+  },
+  "selectAll": {
+    "message": "تحديد الكل"
+  },
+  "loadMore": {
+    "message": "تحميل المزيد"
+  },
+  "everyChat": {
+    "message": "كل المحادثات في هذه المجلدات، لا المعروضة فقط"
+  },
+  "options": {
+    "message": "خيارات"
+  },
+  "optMedia": {
+    "message": "تضمين الصور والفيديو والرسائل الصوتية"
+  },
+  "optEncoding": {
+    "message": "طابق ترميز نصوص إنستغرام"
+  },
+  "optChatFolder": {
+    "message": "احفظ كمجلد لا كملف ZIP (للتصديرات الكبيرة)"
+  },
+  "optChatEvidence": {
+    "message": "وضع الإثبات: بصمات وأسماء مستخدمين وسجل تصدير"
+  },
+  "fromOptional": {
+    "message": "من (اختياري)"
+  },
+  "toOptional": {
+    "message": "إلى (اختياري)"
+  },
+  "account": {
+    "message": "الحساب"
+  },
+  "whatToExport": {
+    "message": "ما الذي تريد تصديره"
+  },
+  "modePosts": {
+    "message": "كل المنشورات (صور وفيديو)"
+  },
+  "modeImages": {
+    "message": "الصور فقط"
+  },
+  "modeReels": {
+    "message": "الريلز فقط"
+  },
+  "modeTagged": {
+    "message": "منشورات أُشير إليهم فيها"
+  },
+  "modeStories": {
+    "message": "القصص الحالية"
+  },
+  "modeHighlights": {
+    "message": "القصص المميزة"
+  },
+  "modeProfilePic": {
+    "message": "صورة الملف الشخصي"
+  },
+  "modePost": {
+    "message": "هذا المنشور / الريل"
+  },
+  "modeSaved": {
+    "message": "منشوراتي ومجموعاتي المحفوظة"
+  },
+  "modeArchive": {
+    "message": "قصصي المؤرشفة"
+  },
+  "modeMyAudience": {
+    "message": "متابعيّ ومن أتابعهم (CSV)"
+  },
+  "modeAudience": {
+    "message": "متابعوهم ومن يتابعونهم (حتى 1000)"
+  },
+  "whichSaved": {
+    "message": "أي المنشورات المحفوظة"
+  },
+  "savedAll": {
+    "message": "كل المنشورات المحفوظة"
+  },
+  "savedEvery": {
+    "message": "كل مجموعة في مجلدها الخاص"
+  },
+  "export": {
+    "message": "تصدير"
+  },
+  "chooseWhich": {
+    "message": "اختر ما تريد تصديره…"
+  },
+  "range": {
+    "message": "النطاق"
+  },
+  "rangeAll": {
+    "message": "الكل"
+  },
+  "rangeRecent": {
+    "message": "الأحدث…"
+  },
+  "rangeOldest": {
+    "message": "الأقدم…"
+  },
+  "rangeDates": {
+    "message": "نطاق تاريخ"
+  },
+  "howMany": {
+    "message": "كم عددًا"
+  },
+  "from": {
+    "message": "من"
+  },
+  "to": {
+    "message": "إلى"
+  },
+  "optFolder": {
+    "message": "احفظ كملفات في مجلد لا كملف ZIP (بلا حد للحجم)"
+  },
+  "optOnlyNew": {
+    "message": "فقط ما لم أنزّله بعد (ويستأنف تصديرًا متوقفًا)"
+  },
+  "optBestVideo": {
+    "message": "أفضل جودة فيديو (حتى 1080p)"
+  },
+  "optJpg": {
+    "message": "احفظ الصور بصيغة JPG"
+  },
+  "optComments": {
+    "message": "تضمين التعليقات (حتى 150 لكل منشور)"
+  },
+  "optEvidence": {
+    "message": "وضع الإثبات: بصمات وسجل تصدير"
+  },
+  "fileNames": {
+    "message": "أسماء الملفات"
+  },
+  "saved": {
+    "message": "تم الحفظ"
+  },
+  "chatSaved": {
+    "message": "تم حفظ المحادثة"
+  },
+  "showInFolder": {
+    "message": "اعرض في المجلد"
+  },
+  "openChat": {
+    "message": "افتح المحادثة"
+  },
+  "done": {
+    "message": "تم"
+  },
+  "somethingWrong": {
+    "message": "حدث خطأ ما"
+  },
+  "exportFailed": {
+    "message": "فشل التصدير"
+  },
+  "retry": {
+    "message": "إعادة المحاولة"
+  },
+  "resume": {
+    "message": "استئناف"
+  },
+  "copyDetails": {
+    "message": "انسخ التفاصيل"
+  },
+  "report": {
+    "message": "إبلاغ"
+  },
+  "reportTitle": {
+    "message": "يفتح بلاغًا على GitHub يمكنك مراجعته قبل نشره"
+  },
+  "igCheck": {
+    "message": "فحص إنستغرام"
+  },
+  "reportProblem": {
+    "message": "أبلغ عن مشكلة"
+  },
+  "close": {
+    "message": "إغلاق"
+  },
+  "checkInstagram": {
+    "message": "افحص إنستغرام"
+  },
+  "checkTitle": {
+    "message": "اختبر كل ميزة على إنستغرام الآن"
+  },
+  "privacy": {
+    "message": "الخصوصية"
+  },
+  "footerNote": {
+    "message": "يعمل في متصفحك فقط. لا علاقة له بإنستغرام أو ميتا."
+  },
+  "welcomeTitle": {
+    "message": "مرحبًا بك في Kept"
+  },
+  "welcome1": {
+    "message": "احفظ المحادثات مع صورها ورسائلها الصوتية واقرأها دون اتصال."
+  },
+  "welcome2": {
+    "message": "احفظ منشورات وريلز وقصص ومميزات أي حساب يمكنك رؤيته."
+  },
+  "welcome3": {
+    "message": "كل شيء يبقى على جهازك. لا حساب ولا كلمة مرور ولا خوادم."
+  },
+  "welcomeNote": {
+    "message": "كان اسم Kept حتى الإصدار 4.0 هو IG Exporter. انتقلت إعداداتك."
+  },
+  "getStarted": {
+    "message": "ابدأ"
+  },
+  "accessText": {
+    "message": "يحتاج Kept إذنك لقراءة instagram.com وخوادم الصور والفيديو في إنستغرام."
+  },
+  "accessBtn": {
+    "message": "اسمح بالوصول إلى إنستغرام"
+  },
+  "ctxOpenIG": {
+    "message": "افتح instagram.com للبدء"
+  },
+  "ctxChatOpen": {
+    "message": "هناك محادثة مفتوحة"
+  },
+  "ctxChatWith": {
+    "message": "محادثة مع $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxInbox": {
+    "message": "صندوق الوارد: افتح محادثة أو صدّر عدة محادثات"
+  },
+  "ctxPostBy": {
+    "message": "منشور من @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxPost": {
+    "message": "منشور أو ريل"
+  },
+  "ctxHighlight": {
+    "message": "قصة مميزة"
+  },
+  "ctxStories": {
+    "message": "قصص @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxProfile": {
+    "message": "ملف @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "ctxHome": {
+    "message": "افتح محادثة أو حسابًا لتصديره"
+  },
+  "ctxSaved": {
+    "message": "منشوراتك المحفوظة"
+  },
+  "ctxArchive": {
+    "message": "أرشيف قصصك"
+  },
+  "ctxTagged": {
+    "message": "منشورات أُشير فيها إلى @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPostsOf": {
+    "message": "صدّر منشورات @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPosts": {
+    "message": "صدّر المنشورات"
+  },
+  "actImagesOf": {
+    "message": "صدّر صور @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actImages": {
+    "message": "صدّر الصور"
+  },
+  "actReelsOf": {
+    "message": "صدّر ريلز @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actReels": {
+    "message": "صدّر الريلز"
+  },
+  "actStoriesOf": {
+    "message": "احفظ قصص @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actStories": {
+    "message": "احفظ القصص"
+  },
+  "actHighlightsOf": {
+    "message": "صدّر مميزات @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actHighlights": {
+    "message": "صدّر المميزات"
+  },
+  "actThisHighlight": {
+    "message": "صدّر هذه المميزة"
+  },
+  "actPicOf": {
+    "message": "احفظ صورة ملف @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actPic": {
+    "message": "احفظ صورة الملف"
+  },
+  "actPost": {
+    "message": "صدّر هذا المنشور"
+  },
+  "actTaggedOf": {
+    "message": "صدّر منشورات أُشير فيها إلى @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actTagged": {
+    "message": "صدّر المنشورات المشار فيها"
+  },
+  "actArchive": {
+    "message": "صدّر قصصك المؤرشفة"
+  },
+  "actMyAudience": {
+    "message": "صدّر متابعيك ومن تتابعهم"
+  },
+  "actAudienceOf": {
+    "message": "صدّر متابعي @$WHO$ ومن يتابعهم",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "actAudience": {
+    "message": "صدّر المتابعين ومن يتابعونهم"
+  },
+  "actSavedAll": {
+    "message": "صدّر منشوراتك المحفوظة"
+  },
+  "actSavedEvery": {
+    "message": "صدّر كل المجموعات"
+  },
+  "actSavedOne": {
+    "message": "صدّر «$WHO$»",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exporting": {
+    "message": "جارٍ التصدير…"
+  },
+  "centerPage": {
+    "message": "مركز التصدير"
+  },
+  "navNow": {
+    "message": "الآن"
+  },
+  "navHistory": {
+    "message": "السجل"
+  },
+  "navSettings": {
+    "message": "الإعدادات"
+  },
+  "navInstagram": {
+    "message": "إنستغرام"
+  },
+  "nothingExporting": {
+    "message": "لا يوجد تصدير جارٍ"
+  },
+  "nothingExportingSub": {
+    "message": "ابدأ تصديرًا من زر Kept في شريط الأدوات؛ سيظهر تقدّمه هنا أيضًا."
+  },
+  "clearHistory": {
+    "message": "امسح السجل"
+  },
+  "noExports": {
+    "message": "لا توجد تصديرات بعد."
+  },
+  "noExportsText": {
+    "message": "كل ما تحفظه بـ Kept يظهر هنا مع اختصار إلى مجلده."
+  },
+  "appearance": {
+    "message": "المظهر"
+  },
+  "themeSystem": {
+    "message": "النظام"
+  },
+  "themeLight": {
+    "message": "فاتح"
+  },
+  "themeDark": {
+    "message": "داكن"
+  },
+  "saving": {
+    "message": "الحفظ"
+  },
+  "chats": {
+    "message": "المحادثات"
+  },
+  "remembered": {
+    "message": "التنزيلات المحفوظة"
+  },
+  "checkLead": {
+    "message": "يغيّر إنستغرام واجهته الخاصة دون إشعار. هذا يختبر كل ميزة على حساب عام في نحو عشر ثوانٍ. أبقِ تبويب instagram.com مفتوحًا."
+  },
+  "chooseTitle": {
+    "message": "اختر ما تريد تصديره"
+  },
+  "listPosts": {
+    "message": "المنشورات"
+  },
+  "listImages": {
+    "message": "الصور"
+  },
+  "listReels": {
+    "message": "الريلز"
+  },
+  "listHighlights": {
+    "message": "المميزة"
+  },
+  "stopLoading": {
+    "message": "أوقف التحميل"
+  },
+  "selectNone": {
+    "message": "إلغاء التحديد"
+  },
+  "pickTip": {
+    "message": "حدّد ما تريد. النقر مع Shift يحدد كل ما بين علامتين."
+  },
+  "nothingSelected": {
+    "message": "لم يُحدد شيء"
+  },
+  "nSelected": {
+    "message": "تم تحديد $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "everyChatLower": {
+    "message": "كل المحادثات"
+  },
+  "exportNChats": {
+    "message": "صدّر $WHO$ محادثات",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "exportOneChat": {
+    "message": "صدّر محادثة واحدة"
+  },
+  "exportEveryChat": {
+    "message": "صدّر كل المحادثات"
+  },
+  "sections": {
+    "message": "الأقسام"
+  },
+  "setOnlyNew": {
+    "message": "نزّل فقط ما لم أنزّله بعد"
+  },
+  "setBestVideo": {
+    "message": "أفضل جودة فيديو (يدمج الصورة والصوت المنفصلين في إنستغرام، حتى 1080p)"
+  },
+  "setInpage": {
+    "message": "أظهر زر حفظ على الصور والفيديو في instagram.com"
+  },
+  "setComments": {
+    "message": "تضمين التعليقات مع المنشورات (حتى 150 لكل منشور، مع أول الردود)"
+  },
+  "setEvidence": {
+    "message": "وضع الإثبات: SHA-256 لكل ملف، وبصمة واحدة، ومن صدّر ومتى، والمنطقة الزمنية وسجل"
+  },
+  "setEncoding": {
+    "message": "طابق ترميز نصوص إنستغرام (لأدوات تنزيل بياناته)"
+  },
+  "tokens": {
+    "message": "الرموز: {username} {date} {time} {code} {index}"
+  },
+  "seenInfo": {
+    "message": "يتذكر Kept المنشورات التي حفظها كل تصدير، ليتخطاها خيار «الجديد فقط»."
+  },
+  "forgetSeen": {
+    "message": "انسَ ما نزّلته ولقطة متابعيّ"
+  },
+  "source": {
+    "message": "المصدر"
+  },
+  "historyCleared": {
+    "message": "تم مسح السجل"
+  },
+  "loading": {
+    "message": "جارٍ التحميل…"
+  },
+  "whatToList": {
+    "message": "ما الذي تريد عرضه"
+  },
+  "chooseFrom": {
+    "message": "اختر من @$WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "slowDown": {
+    "message": "طلب إنستغرام من Kept التمهل. سيستمر بعد $WHO$ ث…",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "starting": {
+    "message": "جارٍ البدء…"
+  },
+  "exportAgain": {
+    "message": "صدّر مجددًا"
+  },
+  "backTo": {
+    "message": "حتى $WHO$",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "waitingMessages": {
+    "message": "في انتظار الرسائل…"
+  },
+  "notCapturing": {
+    "message": "لا يتم الالتقاط"
+  },
+  "capturing": {
+    "message": "جارٍ الالتقاط"
+  },
+  "soFar": {
+    "message": "$WHO$ حتى الآن",
+    "placeholders": {
+      "who": {
+        "content": "$1"
+      }
+    }
+  },
+  "scrollUp": {
+    "message": "مرّر للأعلى للتحميل"
+  },
+  "ready": {
+    "message": "جاهز"
+  },
+  "autoScrolling": {
+    "message": "تمرير تلقائي"
+  },
+  "loadingHistory": {
+    "message": "تحميل السجل"
+  },
+  "exportingShort": {
+    "message": "جارٍ التصدير"
+  }
+}
