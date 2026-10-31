@@ -2,6 +2,19 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.8.0] — 2026-10-31
+
+"Evidence and comments." Tested end to end against live Instagram: a post export with comments saved 150 of a post's 2,938 comments with their replies; with evidence mode on, every file's SHA-256 checked out against the archive, the fingerprint matched, and a chat export recorded the people in it with their usernames, the thread, the date range, the exporting account, the timezone and a log.
+
+### Added
+
+- **Evidence mode.** Tick **Evidence mode** (Options, or the Export Center) and every export gets an `evidence/` folder: `files.sha256` with every file's SHA-256 (checkable with `shasum -a 256 -c`), one **fingerprint** for the whole export (the SHA-256 of that list, also shown when the export finishes), `export.json` with what was exported (for chats: the thread, the people in it with their usernames, the first and last message), the account that exported it, when, the computer's timezone and browser, and `log.txt`, the export step by step. `README.txt` explains how to check it. Folder exports get a dated `evidence_<time>` folder.
+- **Comments.** Tick **Include comments** to save each post's comments (up to 150 per post) with the replies Instagram shows under them, as `comments.json` and a readable `comments.txt` beside the post (for reels, `<reel>.comments.json`). Each says how many comments the post has in total.
+
+### Changed
+
+- Chat archives keep the people's usernames and ids for evidence mode; `message_1.json` stays exactly in Instagram's format.
+
 ## [4.7.0] — 2026-10-31
 
 "On Instagram itself." Tested end to end against live Instagram: the save button appeared in the top-left corner of a photo and saved it in one click, and on a six-photo carousel it saved just the photo on screen; a reel came out at 1080×1920 with sound (41 seconds long, seeking works) instead of 720p; images saved as JPG were real JPEGs.

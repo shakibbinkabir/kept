@@ -66,6 +66,7 @@ const ABOUT = [
   [/^Tagged posts/, "Tagged posts and your archive", "Posts an account is tagged in, your own archived stories by month, and highlight covers."],
   [/^Followers and following/, "Followers and following", "Your followers and following as CSV, with who doesn't follow back and who followed or unfollowed since last time."],
   [/^Save button/, "Save button and best quality", "A save button on photos and videos on instagram.com, videos up to 1080p with sound, and images as JPG."],
+  [/^Evidence mode/, "Evidence mode and comments", "A SHA-256 for every file, one fingerprint, usernames, timezone and an export log; and each post's comments."],
   [/^Choose posts/, "Choosing what to export", "A grid of an account's posts or highlights: tick the ones you want, export only those, and browse them offline in a gallery."],
 ];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

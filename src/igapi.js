@@ -466,6 +466,63 @@ export async function paginateFriends(userId, kind, onUsers) {
   }
 }
 
+/**
+ * A post's comments as Instagram pages them, each with the replies shown
+ * under it (and up to `replies` more each, if set). Stops after `limit`.
+ * @returns {Promise<{ comments: Array, total: number }>}
+ */
+export async function getComments(mediaId, { limit = 300, replies = 0 } = {}) {
+  const shape = (c) => ({ id: String(c.pk), username: c.user?.username || "", name: c.user?.full_name || "", text: c.text || "", created_at: c.created_at || 0, likes: c.comment_like_count || 0 });
+  const comments = [];
+  let minId = "";
+  for (;;) {
+    const data = await fetchJson(`/api/v1/media/${mediaId}/comments/?can_support_threading=true&permalink_enabled=false${minId ? `&min_id=${encodeURIComponent(minId)}` : ""}`);
+    for (const c of data.comments || []) {
+      const item = shape(c);
+      // The first replies come with each comment; fetching every reply would
+      // cost a request per comment, so `replies` (if set) only fetches them
+      // for comments with more than are shown.
+      if (c.child_comment_count > 0) {
+        item.reply_count = c.child_comment_count;
+        item.replies = (c.preview_child_comments || []).map(shape);
+        if (replies && c.child_comment_count > item.replies.length) item.replies = await getReplies(mediaId, c.pk, replies, shape).catch(() => item.replies);
+      }
+      comments.push(item);
+      if (comments.length >= limit) return { comments, total: data.comment_count ?? comments.length };
+    }
+    if (!data.has_more_headload_comments || !data.next_min_id) return { comments, total: data.comment_count ?? comments.length };
+    minId = data.next_min_id;
+  }
+}
+
+async function getReplies(mediaId, pk, limit, shape) {
+  const out = [];
+  let maxId = "";
+  for (;;) {
+    const data = await fetchJson(`/api/v1/media/${mediaId}/comments/${pk}/child_comments/${maxId ? `?max_id=${encodeURIComponent(maxId)}` : ""}`);
+    out.push(...(data.child_comments || []).map(shape));
+    if (out.length >= limit || !data.has_more_tail_child_comments || !data.next_max_child_cursor) return out.slice(0, limit);
+    maxId = data.next_max_child_cursor;
+  }
+}
+
+/**
+ * The logged-in account's username, or null. Best effort: one try, no
+ * waiting out a slow-down. Only the username is read from the response.
+ */
+export async function getViewerUsername() {
+  try {
+    const res = await fetch(`${ORIGIN}/api/v1/accounts/edit/web_form_data/`, {
+      credentials: "include",
+      signal: AbortSignal.timeout(8000),
+      headers: { "x-ig-app-id": APP_ID, "x-requested-with": "XMLHttpRequest", Accept: "application/json" },
+    });
+    return res.ok ? (await res.json())?.form_data?.username || null : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Several reels at once (archive days, story rings): [{ id, items }]. */
 export async function getReels(reelIds) {
   const data = await graphql(DOC_REEL, { reel_ids_arr: reelIds, is_highlight: false, ...REEL_FLAGS });

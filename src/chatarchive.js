@@ -135,8 +135,9 @@ function mapStrings(value, fn) {
 
 /** JSON for the archive; `instagramEncoding` reproduces the export's mojibake byte for byte. */
 export function chatJson(chat, { instagramEncoding = false } = {}) {
-  if (!instagramEncoding) return JSON.stringify(chat, null, 2);
-  return JSON.stringify(mapStrings(chat, asInstagramBytes), null, 2).replace(
+  const { _kept, ...dyi } = chat; // Kept's own notes stay out of Instagram's format
+  if (!instagramEncoding) return JSON.stringify(dyi, null, 2);
+  return JSON.stringify(mapStrings(dyi, asInstagramBytes), null, 2).replace(
     /[\u007f-ÿ]/g,
     (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")
   );

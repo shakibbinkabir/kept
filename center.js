@@ -13,7 +13,8 @@ function toast(text) {
   toast.t = setTimeout(() => $("toast").classList.remove("show"), 1800);
 }
 
-function summaryLabel(s = {}) {
+const summaryLabel = (s = {}) => baseLabel(s) + (s.fingerprint ? ` · fingerprint ${s.fingerprint.slice(0, 12)}…` : "");
+function baseLabel(s = {}) {
   const n = (v, one, many = one + "s") => `${v} ${v === 1 ? one : many}`;
   const extra = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "");
   if (s.messages != null) return `${s.chats > 1 ? n(s.chats, "chat") + ", " : ""}${n(s.messages, "message")}${s.media ? `, ${n(s.media - (s.failed || 0), "media file")}` : ""}`;
@@ -142,6 +143,8 @@ async function loadSettings() {
   $("sBestVideo").checked = o.bestVideo !== false;
   $("sJpg").checked = !!o.jpg;
   $("sInpage").checked = o.inpage !== false;
+  $("sComments").checked = !!o.comments;
+  $("sEvidence").checked = !!o.evidence;
   $("sPattern").value = o.pattern || "";
   $("sPattern").placeholder = o.folder ? "{date}_{code}" : "{index}_{date}_{code}";
   const c = all.chatOptions || {};
@@ -169,11 +172,11 @@ function saveSettings() {
   $("sPattern").placeholder = $("sFolder").checked ? "{date}_{code}" : "{index}_{date}_{code}";
   showPreview();
   store.set({
-    saveOptions: { folder: $("sFolder").checked, onlyNew: $("sOnlyNew").checked, pattern: $("sPattern").value.trim(), bestVideo: $("sBestVideo").checked, jpg: $("sJpg").checked, inpage: $("sInpage").checked },
+    saveOptions: { folder: $("sFolder").checked, onlyNew: $("sOnlyNew").checked, pattern: $("sPattern").value.trim(), bestVideo: $("sBestVideo").checked, jpg: $("sJpg").checked, inpage: $("sInpage").checked, comments: $("sComments").checked, evidence: $("sEvidence").checked },
     chatOptions: { media: $("sMedia").checked, instagramEncoding: $("sEncoding").checked },
   });
 }
-for (const id of ["sFolder", "sOnlyNew", "sMedia", "sEncoding", "sPattern", "sBestVideo", "sJpg", "sInpage"]) $(id).addEventListener("change", saveSettings);
+for (const id of ["sFolder", "sOnlyNew", "sMedia", "sEncoding", "sPattern", "sBestVideo", "sJpg", "sInpage", "sComments", "sEvidence"]) $(id).addEventListener("change", saveSettings);
 $("forgetSeen").addEventListener("click", async () => {
   const all = await store.get(null);
   await store.remove(Object.keys(all).filter((k) => k.startsWith("seen:") || k === "audience:me"));

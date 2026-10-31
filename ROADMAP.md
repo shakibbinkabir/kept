@@ -110,7 +110,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Best-quality video (Instagram's separate video and audio combined)
 - "Save images as JPG" option
 
-## 4.8: Evidence and comments
+## 4.8: Evidence and comments ✅ shipped in v4.8.0
 
 - Evidence mode: export fingerprint, usernames, timezone, export log
 - Comments export

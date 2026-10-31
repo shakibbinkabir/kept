@@ -597,6 +597,7 @@
       if (problems.length > 0) {
         broadcastError("Validation failed", problems);
       } else {
+        result._kept = store.threadInfo || null; // usernames and ids, for evidence mode; not written to message_1.json
         chrome.runtime.sendMessage({ type: "IG_EXPORTER_SUCCESS", result }).catch(() => {});
       }
     } catch (err) {
@@ -676,6 +677,7 @@
         const { info, nodes } = await fetchChat(list[i], from, (n) => progress(i, list.length, `Chat ${i + 1} of ${list.length} · ${n} messages`));
         const chat = withinRange(normalize(info, nodes), from, to);
         if (!chat.messages.length || validate(chat).length) continue; // nothing in range, or unreadable
+        chat._kept = info;
         await chrome.runtime.sendMessage({ target: "offscreen", type: "CHAT_PART", jobId, chat }).catch(() => {});
         sent++;
       }

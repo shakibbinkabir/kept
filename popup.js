@@ -95,6 +95,9 @@ const els = {
   pickBtn: document.getElementById("pickBtn"),
   optBestVideo: document.getElementById("optBestVideo"),
   optJpg: document.getElementById("optJpg"),
+  optComments: document.getElementById("optComments"),
+  optEvidence: document.getElementById("optEvidence"),
+  optChatEvidence: document.getElementById("optChatEvidence"),
   usernameField: document.getElementById("usernameField"),
   collectionField: document.getElementById("collectionField"),
   collectionSelect: document.getElementById("collectionSelect"),
@@ -601,7 +604,7 @@ function showProfileError(title, body) {
 function summaryLabel(s) {
   if (!s) return "complete";
   const count = (n, one, many = one + "s") => `${n} ${n === 1 ? one : many}`;
-  const fail = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "");
+  const fail = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "") + (s.fingerprint ? ` · fingerprint ${s.fingerprint.slice(0, 12)}…` : "");
   if (s.followers != null) return `${count(s.followers, "follower")}, ${s.following} following` + (s.newFollowers != null ? ` · ${s.newFollowers} new, ${s.unfollowers} unfollowed, ${s.notBack} not following back` : "");
   if (s.posts != null) return count(s.posts, "post") + fail;
   if (s.reels != null) return count(s.reels, "reel") + fail;
@@ -684,6 +687,8 @@ function buildJobFromForm() {
     options.pattern = els.optPattern.value.trim();
     options.bestVideo = els.optBestVideo.checked;
     options.jpg = els.optJpg.checked;
+    options.comments = els.optComments.checked;
+    options.evidence = els.optEvidence.checked;
   }
 
   return { mode, username, options };
@@ -836,7 +841,7 @@ function handleChatJob(msg) {
     const chats = s.chats > 1 ? `${s.chats} chats, ` : "";
     setPhase("success", "Exported", `${chats}${s.messages} messages${media}`);
     renderButtons();
-    showDone("Chat saved", `${chats}${s.messages} messages${media}\n${msg.filename || ""}`, msg.jobId);
+    showDone("Chat saved", `${chats}${s.messages} messages${media}${s.fingerprint ? `\nFingerprint ${s.fingerprint}` : ""}\n${msg.filename || ""}`, msg.jobId);
   } else if (msg.type === "EXPORT_ERROR") {
     showError("Export failed", msg.error || "Couldn't build the chat export.");
   }
@@ -927,7 +932,7 @@ function openPicker(open) {
 function exportChats() {
   const folders = FOLDERS();
   const ids = els.everyChat.checked ? undefined : [...picker.selected].filter((id) => folders.includes(picker.chats.get(id)?.folder));
-  const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked };
+  const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked, evidence: els.optChatEvidence.checked };
   clearError();
   openPicker(false);
   els.exportBtn.disabled = true;
@@ -1164,7 +1169,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // The chat is captured and validated: the offscreen doc downloads its
     // media and builds the ZIP; progress comes back as EXPORT_* messages.
     if (message.type === "IG_EXPORTER_SUCCESS") {
-      const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked };
+      const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked, evidence: els.optChatEvidence.checked };
       setPhase("exporting", "Exporting", options.media ? "saving media" : "packaging");
       chrome.runtime.sendMessage({ type: "CHAT_EXPORT", chat: message.result, options }, (resp) => {
         if (chrome.runtime.lastError || !resp?.ok) {
@@ -1202,19 +1207,23 @@ document.addEventListener("DOMContentLoaded", () => {
       els.optPattern.value = o.pattern || "";
       els.optBestVideo.checked = o.bestVideo !== false;
       els.optJpg.checked = !!o.jpg;
+      els.optComments.checked = !!o.comments;
+      els.optEvidence.checked = els.optChatEvidence.checked = !!o.evidence;
       showPattern();
     })
     .catch(() => {});
   const saveSaveOptions = (e) => {
     if (e?.target === els.optChatFolder) els.optFolder.checked = els.optChatFolder.checked;
     els.optChatFolder.checked = els.optFolder.checked;
+    if (e?.target === els.optChatEvidence) els.optEvidence.checked = els.optChatEvidence.checked;
+    els.optChatEvidence.checked = els.optEvidence.checked;
     showPattern();
     chrome.storage.local
       .get("saveOptions")
-      .then(({ saveOptions: old = {} }) => chrome.storage.local.set({ saveOptions: { ...old, folder: els.optFolder.checked, onlyNew: els.optOnlyNew.checked, pattern: els.optPattern.value.trim(), bestVideo: els.optBestVideo.checked, jpg: els.optJpg.checked } }))
+      .then(({ saveOptions: old = {} }) => chrome.storage.local.set({ saveOptions: { ...old, folder: els.optFolder.checked, onlyNew: els.optOnlyNew.checked, pattern: els.optPattern.value.trim(), bestVideo: els.optBestVideo.checked, jpg: els.optJpg.checked, comments: els.optComments.checked, evidence: els.optEvidence.checked } }))
       .catch(() => {});
   };
-  for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew, els.optBestVideo, els.optJpg]) el.addEventListener("change", saveSaveOptions);
+  for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew, els.optBestVideo, els.optJpg, els.optComments, els.optEvidence, els.optChatEvidence]) el.addEventListener("change", saveSaveOptions);
   els.optPattern.addEventListener("change", saveSaveOptions);
 
   // A live example of the file names the pattern gives.

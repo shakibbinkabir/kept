@@ -82,6 +82,8 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Your saved posts and collections** — all of them, one collection, or every collection in its own folder, each post with its author, link, date and caption; the gallery browses them by collection.
 - **A save button on instagram.com** — hover over any photo or video and click the small Kept button in its corner to save it (on a carousel, just the photo you're looking at).
 - **Best-quality video and JPG images** — videos come out at up to 1080p with sound (Kept joins Instagram's separate picture and sound files), and images can be saved as JPG instead of WebP.
+- **Evidence mode** — a SHA-256 for every file, one fingerprint for the whole export, who exported it, when, in which timezone, the people in a chat with their usernames, and a step-by-step log, with instructions for checking it.
+- **Comments** — each post's comments (up to 150) with their replies, as JSON and readable text.
 - **Followers and following as CSV** — your own lists in full, with who doesn't follow you back and, from the second export on, who followed and unfollowed you since last time; another account's lists once, capped and paced slowly.
 - **Tagged posts and your story archive** — the posts an account is tagged in, and the stories in your own archive, by month. Highlights come with their covers, and every Range option (including From/To) works for highlights too.
 - **Real file types** — images keep Instagram's own format (mostly WebP, sometimes JPEG) and are named accordingly; names in any script (Bengali, Arabic, …) are kept readable.
@@ -118,19 +120,20 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.7.0 |
-| Current stories | ✅ Working | 2026-10-31 · v4.7.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.7.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v4.7.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v4.7.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.7.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.7.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.7.0 |
-| Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.7.0 |
-| Saved posts and collections | ✅ Working | 2026-10-31 · v4.7.0 |
-| Tagged posts, archived stories, highlight covers and ranges | ✅ Working | 2026-10-31 · v4.7.0 |
-| Followers and following CSV, snapshot comparison | ✅ Working | 2026-10-31 · v4.7.0 |
-| Save button on instagram.com, best-quality video, JPG | ✅ Working | 2026-10-31 · v4.7.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.8.0 |
+| Current stories | ✅ Working | 2026-10-31 · v4.8.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.8.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v4.8.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v4.8.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.8.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.8.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.8.0 |
+| Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.8.0 |
+| Saved posts and collections | ✅ Working | 2026-10-31 · v4.8.0 |
+| Tagged posts, archived stories, highlight covers and ranges | ✅ Working | 2026-10-31 · v4.8.0 |
+| Followers and following CSV, snapshot comparison | ✅ Working | 2026-10-31 · v4.8.0 |
+| Save button on instagram.com, best-quality video, JPG | ✅ Working | 2026-10-31 · v4.8.0 |
+| Evidence mode, comments | ✅ Working | 2026-10-31 · v4.8.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -415,6 +418,7 @@ kept/
 │   ├── profilepage.js     # profile: the offline gallery index.html
 │   ├── audience.js        # followers/following CSV and snapshot comparison
 │   ├── mp4mux.js          # joins Instagram's separate video and audio into one MP4
+│   ├── evidence.js        # evidence mode: file hashes, fingerprint, export record
 │   ├── inpage.js          # the save button on photos and videos on instagram.com
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
@@ -430,7 +434,7 @@ kept/
 
 The website is plain HTML, CSS and JS. `node site/build.mjs` fills in the feature status from this README and turns CHANGELOG.md and PRIVACY.md into pages, writing the result to `site/public/`; open `site/public/index.html` to preview it.
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/profilepage.test.mjs`, `node test/audience.test.mjs`, `node test/mp4mux.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/profilepage.test.mjs`, `node test/audience.test.mjs`, `node test/mp4mux.test.mjs`, `node test/evidence.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 
