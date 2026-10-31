@@ -125,13 +125,17 @@ button:disabled { cursor: not-allowed; }
 /* ===== Fields ===== */
 .field { margin-bottom: var(--space-3); }
 .field-label { display: block; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--text-dim); margin-bottom: 4px; }
-input[type="text"], input[type="number"], input[type="date"], select {
+input[type="text"], input[type="number"], input[type="date"], select, .dp-field {
   width: 100%; background: var(--surface); color: var(--text); border: 0; border-radius: var(--radius-sm);
   padding: 10px 12px; font: inherit; outline: none; box-shadow: inset 0 0 0 1px var(--border);
   transition: box-shadow var(--dur) var(--ease);
 }
-input:focus, select:focus { box-shadow: inset 0 0 0 2px var(--focus); }
-select { cursor: pointer; appearance: none; background-image: none; }
+input:not([type="checkbox"]):focus, select:focus { box-shadow: inset 0 0 0 2px var(--focus); }
+select { cursor: pointer; appearance: none; background: var(--surface) var(--chevron) no-repeat right 10px center / 16px; padding-right: 34px; }
+[dir="rtl"] select { background-position: left 10px center; padding-right: 12px; padding-left: 34px; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.dp-field:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .username-wrap { position: relative; }
 .username-wrap .at { position: absolute; left: 12px; top: 31px; color: var(--text-faint); pointer-events: none; }
@@ -142,7 +146,6 @@ select { cursor: pointer; appearance: none; background-image: none; }
 .field-hint { unicode-bidi: plaintext; font-size: var(--text-xs); color: var(--text-faint); margin-top: 4px; }
 .field-hint.preview { color: var(--text-dim); overflow-wrap: anywhere; }
 .check { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--text-sm); color: var(--text-dim); cursor: pointer; line-height: 1.35; }
-.check input { accent-color: var(--sky); margin: 1px 0 0; width: 14px; height: 14px; flex-shrink: 0; }
 
 /* ===== Options, folded away ===== */
 .more { margin-top: var(--space-3); }
@@ -168,7 +171,6 @@ select { cursor: pointer; appearance: none; background-image: none; }
 .chat-list label:hover { background: var(--surface-2); }
 .chat-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-list .when { color: var(--text-faint); font-size: var(--text-xs); }
-.chat-list input { accent-color: var(--sky); margin: 0; }
 .chat-list .skeleton { height: 34px; margin: 2px 0; border-radius: var(--radius-sm); background: var(--surface-2); animation: pulse 1.4s ease-in-out infinite; }
 .check.every { margin: var(--space-2) 0; }
 

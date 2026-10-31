@@ -73,9 +73,9 @@
         <span id="pickerCount" class="picker-count">0 selected</span>
       </div>
       <div class="picker-folders">
-        <label class="check"><input type="checkbox" id="fInbox" checked /> <span data-i18n="inbox">Inbox</span></label>
-        <label class="check"><input type="checkbox" id="fPending" /> <span data-i18n="requests">Message requests</span></label>
-        <label class="check"><input type="checkbox" id="selectAll" /> <span data-i18n="selectAll">Select all</span></label>
+        <label class="check tick"><input type="checkbox" id="fInbox" checked /> <span data-i18n="inbox">Inbox</span></label>
+        <label class="check tick"><input type="checkbox" id="fPending" /> <span data-i18n="requests">Message requests</span></label>
+        <label class="check tick"><input type="checkbox" id="selectAll" /> <span data-i18n="selectAll">Select all</span></label>
       </div>
       <ul id="chatList" class="chat-list" aria-label="Chats"></ul>
       <button id="loadMore" class="btn-ghost btn-wide" data-i18n="loadMore">Load more</button>
@@ -261,5 +261,6 @@
 
   <script src="src/i18n.js"></script>
   <script src="popup.js"></script>
+  <script type="module" src="src/dates.js"></script>
 </body>
 </html>

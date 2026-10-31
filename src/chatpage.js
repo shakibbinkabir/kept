@@ -8,16 +8,23 @@
 // fetched from the internet. Message text is untrusted, so the page only ever
 // writes it with textContent.
 
+import { enhanceDates } from "./datepicker.js";
+
 const CSS = `
 :root{--bg:#f3f6f8;--panel:#ffffff;--text:#16212a;--dim:#5d6b76;--theirs:#e6edf2;--mine:#0F4C75;--mine-text:#fff;--accent:#3282B8;--line:#dde5eb;--mark:#BBE1FA;--bar:#3282B8}
 @media (prefers-color-scheme:dark){:root{--bg:#11171b;--panel:#1B262C;--text:#e7eef3;--dim:#8fa1ad;--theirs:#24323b;--mine:#0F4C75;--mine-text:#eaf6ff;--accent:#3282B8;--line:#26343d;--mark:#3282B8;--bar:#4A97CC}}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}html{scroll-behavior:smooth}
+:root{--dp-bg:var(--panel);--dp-text:var(--text);--dp-dim:var(--dim);--dp-line:var(--line);--dp-accent:var(--mine);--dp-on-accent:var(--mine-text);--dp-ring:var(--accent);--dp-link:var(--accent);--dp-hover:var(--theirs)}
+.dp-field{min-width:150px}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 h1{font-size:18px;margin:0}header p{margin:2px 0 0;color:var(--dim);font-size:13px}
 .tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 input,button{font:inherit;font-size:14px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
-input[type=search]{width:220px}button{cursor:pointer;padding:7px 11px}button:hover{border-color:var(--accent)}
+input[type=search]{width:220px}
+input[type=search]{-webkit-appearance:none;appearance:none;padding-left:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa1ad' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:11px center;background-size:16px}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;width:16px;height:16px;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa1ad' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center/14px no-repeat}
+button{cursor:pointer;padding:7px 11px}button:hover{border-color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #count{color:var(--dim);font-size:13px;min-width:70px;text-align:right}
 main{max-width:760px;margin:0 auto;padding:12px 16px 60px}
@@ -443,7 +450,7 @@ function closeViewer() { viewer.hidden = true; vVideo.pause(); document.body.sty
 document.getElementById("vClose").onclick = closeViewer;
 document.getElementById("vPrev").onclick = () => openViewer(vi - 1);
 document.getElementById("vNext").onclick = () => openViewer(vi + 1);
-document.getElementById("vShow").onclick = () => { const it = media[vi]; closeViewer(); showGallery(false); filter("all"); it.item.row.scrollIntoView({ block: "center" }); };
+document.getElementById("vShow").onclick = () => { const it = media[vi]; closeViewer(); showGallery(false); filter("all"); reveal(it.item.row, "center"); };
 viewer.addEventListener("click", (e) => { if (e.target.classList.contains("stage")) closeViewer(); });
 addEventListener("keydown", (e) => {
   if (viewer.hidden) return;
@@ -479,7 +486,7 @@ function go(step) {
   if (cur >= 0) hits[cur].row.classList.remove("current");
   cur = (cur + step + hits.length) % hits.length;
   hits[cur].row.classList.add("current");
-  hits[cur].row.scrollIntoView({ block: "center" });
+  reveal(hits[cur].row, "center");
   count.textContent = (cur + 1) + " of " + hits.length;
 }
 q.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(search, 200); });
@@ -490,9 +497,26 @@ document.getElementById("prev").onclick = () => go(-1);
 // Jump to the first day on or after the chosen date.
 const jump = document.getElementById("jump");
 jump.addEventListener("change", () => {
+  if (!jump.value) return;
   const target = days.find((d) => d.dataset.date >= jump.value) || days[days.length - 1];
-  if (target) target.scrollIntoView({ block: "start" });
+  if (target) reveal(target, "start");
 });
+
+// Days off screen aren't laid out yet (content-visibility), so a first scroll
+// lands on a guess. Scroll again until the days around the target have their
+// real height and it stops moving.
+function reveal(el, block) {
+  let tries = 6;
+  const go = () => {
+    el.scrollIntoView({ block, behavior: "instant" });
+    const top = el.getBoundingClientRect().top;
+    requestAnimationFrame(() => { if (--tries && Math.abs(el.getBoundingClientRect().top - top) > 2) go(); });
+  };
+  go();
+}
+// Kept's date picker (the same one as in the extension) instead of the browser's.
+${enhanceDates}
+enhanceDates(document);
 
 // Print, or save as PDF: load every photo first so none prints blank.
 function loadAll() {
@@ -533,7 +557,7 @@ export function chatPage(chat, { exportedAt = new Date(), base = "", back = "", 
 <header><div>${back ? `<a class="back" href="${escapeHtml(back)}">← All chats</a>` : ""}<h1>${title}</h1><p>${escapeHtml(people)} · ${msgs.length} messages${span ? " · " + span : ""}</p></div>
 <div class="tools"><input id="q" type="search" placeholder="Search messages" aria-label="Search messages"><span id="count" aria-live="polite"></span>
 <button id="prev" title="Previous result (Shift+Enter)" aria-label="Previous result">↑</button><button id="next" title="Next result (Enter)" aria-label="Next result">↓</button>
-<input id="jump" type="date" aria-label="Jump to date" title="Jump to date"><button id="print" title="Print the chat as a book, or save it as a PDF">Print / PDF</button></div>
+<input id="jump" type="date" aria-label="Jump to date" title="Jump to date" data-empty="Jump to date"><button id="print" title="Print the chat as a book, or save it as a PDF">Print / PDF</button></div>
 <div class="chips" role="toolbar" aria-label="Show"><button class="chip" data-f="all" aria-pressed="true">All</button><button class="chip" data-f="photo" aria-pressed="false">Photos</button><button class="chip" data-f="video" aria-pressed="false">Videos</button><button class="chip" data-f="audio" aria-pressed="false">Voice notes</button><button class="chip" data-f="link" aria-pressed="false">Links</button><button class="chip" data-f="call" aria-pressed="false">Calls</button><button class="chip" id="galleryBtn" aria-pressed="false">Gallery</button><button class="chip" id="statsBtn" aria-pressed="false">Insights</button></div></header>
 <section class="cover" aria-hidden="true"><h1>${title}</h1><p>${escapeHtml(people)}</p><p>${span}</p><p>${msgs.length} messages</p><small>Kept on ${escapeHtml(exportedAt.toLocaleDateString("en-GB"))}</small></section>
 <main id="chat"><p id="loading">Loading…</p></main>

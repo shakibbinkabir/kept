@@ -662,5 +662,32 @@
   },
   "exportingShort": {
     "message": "Exportando"
+  },
+  "dpChoose": {
+    "message": "Elige una fecha"
+  },
+  "dpPickMonth": {
+    "message": "Elige un mes"
+  },
+  "dpPrevMonth": {
+    "message": "Mes anterior"
+  },
+  "dpNextMonth": {
+    "message": "Mes siguiente"
+  },
+  "dpPrevYear": {
+    "message": "Año anterior"
+  },
+  "dpNextYear": {
+    "message": "Año siguiente"
+  },
+  "dpClear": {
+    "message": "Borrar"
+  },
+  "dpToday": {
+    "message": "Hoy"
+  },
+  "dpAnyDate": {
+    "message": "Cualquier fecha"
   }
 }

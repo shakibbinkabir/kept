@@ -662,5 +662,32 @@
   },
   "exportingShort": {
     "message": "جارٍ التصدير"
+  },
+  "dpChoose": {
+    "message": "اختر تاريخًا"
+  },
+  "dpPickMonth": {
+    "message": "اختر شهرًا"
+  },
+  "dpPrevMonth": {
+    "message": "الشهر السابق"
+  },
+  "dpNextMonth": {
+    "message": "الشهر التالي"
+  },
+  "dpPrevYear": {
+    "message": "السنة السابقة"
+  },
+  "dpNextYear": {
+    "message": "السنة التالية"
+  },
+  "dpClear": {
+    "message": "مسح"
+  },
+  "dpToday": {
+    "message": "اليوم"
+  },
+  "dpAnyDate": {
+    "message": "أي تاريخ"
   }
 }

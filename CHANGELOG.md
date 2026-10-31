@@ -2,6 +2,21 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.9.2] — 2026-11-01
+
+"Kept's own controls." Checked on every page in light, dark and Arabic: the date picker set the same values the old fields did (exports and jumps read them unchanged), worked from the keyboard, and axe, the accessibility checker, found nothing with it open.
+
+### Changed
+
+- **Switches for settings.** Options in the popup and the Export Center are switches on the trailing side of each row, like a phone's settings; lists (chats, folders, highlights) use rounded checkboxes with a drawn tick, in place of the browser's grey boxes.
+- **Kept's own date picker** replaces the browser's calendar in the popup and in chat archives: a month view with today marked, a month and year view for jumping far back, Clear and Today, arrow keys and Page Up/Down, and dates outside the chat greyed out. It follows the browser's language, including the first day of the week and right-to-left layout.
+- Dropdowns have an arrow, the number field has no spinner, scrollbars are thin, and the search boxes in archives have a search icon and their own clear button.
+- Faint text in dark mode is a little brighter, so it reaches a 4.5:1 contrast ratio on every panel.
+
+### Fixed
+
+- In long chat archives, jumping to a date, a search result or "Show in chat" could land days away from the message, because days off screen aren't laid out until they're needed. It now lands on the right one.
+
 ## [4.9.1] — 2026-11-01
 
 "Shares look like Instagram." Checked against a real chat of 500 messages: its 28 shared reels, posts, story mentions and profiles came out as 17 reels, 2 posts, 6 story mentions and 1 profile, with 2 plain links left for shares that had no picture, and no "(no content)" rows remained. Each kind of card was compared side by side with instagram.com.

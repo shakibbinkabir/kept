@@ -14,6 +14,9 @@ const CSS = `
 header{position:sticky;top:0;z-index:3;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--panel);border-bottom:1px solid var(--line)}
 h1{margin:0;font-size:20px}header p{margin:2px 0 0;color:var(--dim);font-size:13px}
 input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:8px 14px;width:240px}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+input[type=search]{-webkit-appearance:none;appearance:none;padding-left:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa1ad' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:11px center;background-size:16px}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;width:16px;height:16px;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa1ad' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E") center/14px no-repeat}
 main{padding:16px 24px 48px;max-width:1280px;margin:0 auto}
 h2{font-size:15px;margin:24px 0 10px;color:var(--dim)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}

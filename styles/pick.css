@@ -41,7 +41,6 @@ main { padding: 0 var(--space-6); }
 
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-width: 640px; }
 .list label { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--surface); border-radius: var(--radius); cursor: pointer; }
-.list input { accent-color: var(--sky); width: 16px; height: 16px; }
 .list .cover { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--surface-2); opacity: 0; transition: opacity var(--dur) var(--ease); }
 .list .cover.ok { opacity: 1; }
 .empty { padding: var(--space-6); background: var(--surface); border-radius: var(--radius-lg); color: var(--text-dim); max-width: 640px; }

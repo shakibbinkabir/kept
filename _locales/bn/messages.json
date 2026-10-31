@@ -662,5 +662,32 @@
   },
   "exportingShort": {
     "message": "এক্সপোর্ট হচ্ছে"
+  },
+  "dpChoose": {
+    "message": "একটি তারিখ বেছে নিন"
+  },
+  "dpPickMonth": {
+    "message": "মাস বেছে নিন"
+  },
+  "dpPrevMonth": {
+    "message": "আগের মাস"
+  },
+  "dpNextMonth": {
+    "message": "পরের মাস"
+  },
+  "dpPrevYear": {
+    "message": "আগের বছর"
+  },
+  "dpNextYear": {
+    "message": "পরের বছর"
+  },
+  "dpClear": {
+    "message": "মুছুন"
+  },
+  "dpToday": {
+    "message": "আজ"
+  },
+  "dpAnyDate": {
+    "message": "যেকোনো তারিখ"
   }
 }
