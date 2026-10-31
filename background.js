@@ -87,6 +87,37 @@ function rememberSeen(key, ids) {
 
 const MULTI = ["posts", "images", "reels", "stories", "highlights"];
 
+/* ===== finished jobs: their files, and the history ===== */
+
+// jobId -> { show, open }: a download to reveal in its folder, and (for a chat
+// saved as a folder) its index.html to open. Lost if the worker restarts.
+const jobFiles = new Map();
+function noteFile(jobId, downloadId, filename) {
+  if (!jobId) return;
+  const f = jobFiles.get(jobId) || {};
+  if (f.show == null) f.show = downloadId;
+  if (/(^|\/)index\.html$/.test(filename || "")) f.open = downloadId;
+  jobFiles.set(jobId, f);
+}
+
+// The Export Center lists the last 200 exports.
+function addHistory(msg) {
+  const files = jobFiles.get(msg.jobId) || {};
+  const entry = {
+    jobId: msg.jobId,
+    kind: String(msg.jobId || "").startsWith("chat_") ? "chat" : "profile",
+    filename: msg.filename || "",
+    summary: msg.summary || {},
+    at: Date.now(),
+    show: files.show ?? null,
+    open: files.open ?? null,
+  };
+  chrome.storage.local
+    .get("history")
+    .then(({ history = [] }) => chrome.storage.local.set({ history: [entry, ...history].slice(0, 200) }))
+    .catch(() => {});
+}
+
 /* ===== badge ===== */
 
 function setBadge(text, color = "#0095f6") {
@@ -176,6 +207,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       // Answer once the file is fully written, so a stopped export never
       // counts a half-saved file as done.
+      noteFile(msg.jobId, downloadId, msg.filename);
       pendingDownloads.set(downloadId, { url: msg.url, done: sendResponse });
     }, false);
     return true; // async sendResponse
@@ -190,7 +222,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // From offscreen (folder mode): every file handed to Chrome.
   if (msg?.type === "EXPORT_DONE") {
     clearBadgeSoon("✓");
+    addHistory(msg);
     return; // popup renders it
+  }
+
+  // From the popup's done card: which download to show or open.
+  if (msg?.type === "JOB_FILES") {
+    sendResponse(jobFiles.get(msg.jobId) || null);
+    return;
   }
 
   // From offscreen: progress tick → badge.
@@ -216,8 +255,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       pendingDownloads.set(downloadId, { url: msg.url, jobId: msg.jobId });
       if (msg.remember) rememberSeen(msg.remember.key, msg.remember.ids);
+      noteFile(msg.jobId, downloadId, msg.filename);
       clearBadgeSoon("✓");
-      chrome.runtime.sendMessage({ type: "EXPORT_DONE", jobId: msg.jobId, filename: msg.filename, summary: msg.summary || {} }).catch(() => {});
+      const done = { type: "EXPORT_DONE", jobId: msg.jobId, filename: msg.filename, summary: msg.summary || {} };
+      addHistory(done);
+      chrome.runtime.sendMessage(done).catch(() => {});
     });
     return;
   }

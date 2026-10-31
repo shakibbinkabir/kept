@@ -270,6 +270,13 @@
 
   // Approximate count of items that will survive normalization, so the popup's
   // live count tracks the export.
+  // The oldest message captured so far (ms), for "back to <date>" in the popup.
+  function oldestCaptured() {
+    let oldest = Infinity;
+    for (const node of store.items.values()) oldest = Math.min(oldest, Number(node.timestamp_ms) || Infinity);
+    return oldest === Infinity ? null : oldest;
+  }
+
   function exportableCount() {
     let n = 0;
     let afterEnd = false; // the previous (newer) call notice was an "ended"/"missed" one
@@ -511,6 +518,7 @@
         type: "IG_EXPORTER_UPDATED",
         messageCount: exportableCount(),
         threadTitle: titleForPopup(),
+        oldest: oldestCaptured(),
       })
       .catch(() => {});
   }
@@ -673,6 +681,7 @@
       sendResponse({
         messageCount: exportableCount(),
         threadTitle: titleForPopup(),
+        oldest: oldestCaptured(),
         autoScrolling: autoScroll.active,
         capturing,
       });

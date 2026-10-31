@@ -204,7 +204,7 @@ export function chatPage(chat, { exportedAt = new Date(), base = "", back = "" }
 <div class="chips" role="toolbar" aria-label="Show"><button class="chip" data-f="all" aria-pressed="true">All</button><button class="chip" data-f="photo" aria-pressed="false">Photos</button><button class="chip" data-f="video" aria-pressed="false">Videos</button><button class="chip" data-f="audio" aria-pressed="false">Voice notes</button><button class="chip" data-f="link" aria-pressed="false">Links</button><button class="chip" data-f="call" aria-pressed="false">Calls</button><button class="chip" id="galleryBtn" aria-pressed="false">Gallery</button></div></header>
 <main id="chat"></main>
 <section id="gallery" hidden aria-label="Photos and videos"></section>
-<footer>Exported with IG Exporter on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline; media comes from the folders next to this file.</footer>
+<footer>Exported with Kept on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline; media comes from the folders next to this file.</footer>
 <script type="application/json" id="data">${data}</script>
 <script>${JS}</script>
 </body></html>
@@ -228,7 +228,7 @@ export function inboxPage(chats, { exportedAt = new Date() } = {}) {
 <header><div><h1>Instagram chats</h1><p>${chats.length} chats · ${total} messages</p></div>
 <div class="tools"><input id="q" type="search" placeholder="Find a chat" aria-label="Find a chat"></div></header>
 <ul class="list" id="list">${rows.join("")}</ul>
-<footer>Exported with IG Exporter on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline.</footer>
+<footer>Exported with Kept on ${escapeHtml(exportedAt.toLocaleString("en-GB"))}. Opens offline.</footer>
 <script>
 const q = document.getElementById("q"), rows = [...document.querySelectorAll("#list li")];
 q.addEventListener("input", () => { const v = q.value.trim().toLowerCase(); for (const r of rows) r.hidden = !!v && !r.dataset.q.includes(v); });

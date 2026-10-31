@@ -2,6 +2,26 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.0.0] — 2026-10-31
+
+"New name, new look." IG Exporter is now **Kept**, with a redesigned popup, a full-page Export Center and a website at kept.thisissbk.com. Tested end to end in the real extension against live Instagram: the popup on a profile, a post, a chat and the inbox; a profile ZIP export and a chat saved as a folder with the done card, Show in folder and Open chat; the history entry each one left; capture with the "back to" date; the error card; and all seven Instagram checks.
+
+### Changed
+
+- **The new name, everywhere:** the extension, the popup, the offline chat pages, the docs, and the GitHub repository (github.com/shakibbinkabir/kept; the old address redirects). Your settings and remembered downloads carry over.
+- **A redesigned popup.** It reads the open tab and names it ("Chat with Ana", "@nasa's profile", "A post by @nasa"), opens the right tab, and offers one main action that says what it will do ("Export @nasa's posts"). Options fold away until you need them.
+- **Progress you can read:** a ring with a live count, how far back a chat has reached ("Back to 12 Mar 2024"), time left on downloads, and the slow-down countdown.
+- **A done card** with what was saved, **Show in folder**, and **Open chat** for a chat saved as a folder; friendly error cards with Retry and Report; loading placeholders in the chat list.
+- **Motion and access:** a sliding tab indicator, fading panels, counting numbers, button feedback, reduced-motion support, keyboard focus rings, and labels for screen readers.
+- **README redesign** with a hero image, a popup demo and a feature tour.
+
+### Added
+
+- **A first-run welcome** that explains Kept in three lines.
+- **The Export Center** (the sliders button in the popup): the export in progress, your last 200 exports with shortcuts to their files, settings (light, dark or system theme; saving and chat defaults; forget remembered downloads), and the Instagram check.
+- **The website**, kept.thisissbk.com.
+- Permission `downloads.open`, used only when you click **Open chat**.
+
 ## [3.9.0] — 2026-10-31
 
 "Design foundation." The brand, design system and website for the 4.0 rename to Kept. Checked in a browser: the popup in light and dark, every icon at 16, 32 and 48 px, and the website at desktop, tablet and phone widths.

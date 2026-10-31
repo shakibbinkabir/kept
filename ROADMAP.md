@@ -1,8 +1,8 @@
 # Roadmap
 
-Where IG Exporter is going, release by release, from 3.3.0 (current) to 5.0. The order puts reliability first, then complete chat archives, then the new name and design in 4.0, then new features on top of it, then a public store launch in 5.0. Dates aren't fixed; each release ships when it's tested.
+Where Kept (IG Exporter until 4.0) is going, release by release, from 3.3.0 to 5.0. The order puts reliability first, then complete chat archives, then the new name and design in 4.0, then new features on top of it, then a public store launch in 5.0. Dates aren't fixed; each release ships when it's tested.
 
-The extension gets a new name in 4.0 (another product already uses "IG Exporter"), and a website at `<new-name>.thisissbk.com`.
+The extension took a new name in 4.0, Kept (another product already used "IG Exporter"), with a website at kept.thisissbk.com.
 
 ## 3.4: Never broken for long ✅ shipped in v3.4.0
 
@@ -13,7 +13,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Privacy statement: local only, no remote code, minimal permissions, open source, never for sale
 - "Not affiliated with Instagram" line, and no Meta logos
 - README rewritten around what people search for, like "export Instagram DMs" and "save Instagram voice notes"
-- Pick the new name and reserve `<new-name>.thisissbk.com`
+- Pick the new name and reserve `kept.thisissbk.com`
 
 ## 3.5: Chats with their media ✅ shipped in v3.5.0
 
@@ -50,9 +50,9 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Light and dark themes that follow the system setting
 - One premium typeface, bundled with the extension (no outside font services)
 - Custom SVG icon set
-- Website built at `<new-name>.thisissbk.com`: home, install guide, feature status, changelog, privacy, FAQ
+- Website built at `kept.thisissbk.com`: home, install guide, feature status, changelog, privacy, FAQ
 
-## 4.0: New name, new look
+## 4.0: New name, new look ✅ shipped in v4.0.0
 
 - The new name, everywhere
 - Redesigned popup that detects the open page and offers one main action: export this chat, profile, post or highlight
@@ -65,7 +65,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Respects "reduce motion"; full keyboard use, focus rings, strong contrast, screen-reader labels
 - Popup opens instantly with no layout jumps; animated progress and success on the toolbar badge
 - README redesign: hero image, GIF demos, feature tour
-- Website launch at `<new-name>.thisissbk.com`
+- Website launch at `kept.thisissbk.com`
 
 ## 4.1: The chat page, polished
 

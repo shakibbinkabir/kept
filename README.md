@@ -1,34 +1,62 @@
 <p align="center">
-  <img src="icons/icon256.png" width="128" alt="IG Exporter" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/lockup-on-dark.svg" />
+    <img src="brand/lockup.svg" width="260" alt="Kept" />
+  </picture>
 </p>
 
-<h1 align="center">IG Exporter</h1>
+<p align="center"><b>Keep your Instagram chats, voice notes and posts on your own computer.</b><br />A free, open-source browser extension. Nothing leaves your browser.</p>
+
+<p align="center">
+  <a href="https://kept.thisissbk.com">Website</a> ·
+  <a href="https://github.com/shakibbinkabir/kept/releases/latest">Download</a> ·
+  <a href="#installation">Install</a> ·
+  <a href="#faq">FAQ</a> ·
+  <a href="PRIVACY.md">Privacy</a>
+</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
-  <a href="https://github.com/shakibbinkabir/igexporter/releases"><img src="https://img.shields.io/github/v/release/shakibbinkabir/igexporter?label=version&color=blue" alt="Latest version" /></a>
-  <a href="https://github.com/shakibbinkabir/igexporter/releases/latest"><img src="https://img.shields.io/github/release-date/shakibbinkabir/igexporter?label=released" alt="Latest release date" /></a>
-  <a href="https://github.com/shakibbinkabir/igexporter/commits/main"><img src="https://img.shields.io/github/last-commit/shakibbinkabir/igexporter?label=last%20update" alt="Last update" /></a>
+  <a href="https://github.com/shakibbinkabir/kept/releases"><img src="https://img.shields.io/github/v/release/shakibbinkabir/kept?label=version&color=0f4c75" alt="Latest version" /></a>
+  <a href="https://github.com/shakibbinkabir/kept/releases/latest"><img src="https://img.shields.io/github/release-date/shakibbinkabir/kept?label=released&color=3282b8" alt="Latest release date" /></a>
+  <a href="https://github.com/shakibbinkabir/kept/commits/main"><img src="https://img.shields.io/github/last-commit/shakibbinkabir/kept?label=last%20update&color=3282b8" alt="Last update" /></a>
   <a href="https://developer.chrome.com/docs/extensions/mv3/intro/"><img src="https://img.shields.io/badge/Manifest-V3-green.svg" alt="Manifest V3" /></a>
 </p>
 
-<p align="center"><b>Export Instagram DMs and download Instagram posts, reels, stories and highlights.</b><br />Free, open source, and it runs only in your browser.</p>
+<p align="center"><img src="docs/hero.png" width="860" alt="The Kept popup after saving a chat, beside the offline chat page it creates (sample chat)" /></p>
 
-IG Exporter is a browser extension for Chrome, Brave, Edge and other Chromium browsers that:
+Kept (called IG Exporter until 4.0) is a browser extension for Chrome, Brave, Edge and other Chromium browsers that:
 
-1. **Exports Instagram chats** (DM conversations): one, several, or your whole inbox, with photos, videos and voice notes, in the same format as Instagram's own "Download Your Information" export, in minutes instead of days.
-2. **Downloads Instagram posts, images, reels, stories, highlights and profile pictures** from any public account, or a private account you follow, as neatly foldered ZIP files.
+1. **Saves Instagram chats**: one, several, or your whole inbox, with photos, videos and voice notes, in the same format as Instagram's own "Download Your Information" export, plus a page to read them offline. Minutes instead of days.
+2. **Saves posts, images, reels, stories, highlights and profile pictures** from any public account, or a private account you follow, as a ZIP or straight into a folder.
 
 > **No servers. No password. No tracking.** Everything runs in your browser using the Instagram session you're already logged in with. The only network traffic is to `instagram.com` and Instagram's media servers. See [PRIVACY.md](PRIVACY.md).
+
+## A quick tour
+
+<table>
+  <tr>
+    <td width="300" valign="top"><img src="docs/popup.gif" width="280" alt="The popup: welcome, capturing a chat, then saved (sample data)" /></td>
+    <td valign="top">
+      <p><b>One button for what's open.</b> Kept reads the tab you're on: a chat, a profile, a post or a highlight. The popup names it and offers the one action that saves it.</p>
+      <p><b>Progress you can read.</b> A ring and a live count, how far back a chat has reached, time left on downloads, and a countdown when Instagram asks Kept to slow down.</p>
+      <p><b>Done means done.</b> The finished card says what was saved, with <i>Show in folder</i>, and <i>Open chat</i> for a chat saved as a folder.</p>
+      <p><b>Light or dark,</b> following your system, with keyboard focus, screen-reader labels and reduced motion respected.</p>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/center-dark.png" width="760" alt="The Export Center: current export, history, settings and Instagram status (sample data)" /></p>
+<p align="center"><sub>The Export Center: the current export, your history with shortcuts to each file, settings, and a one-click check that Instagram still works.</sub></p>
 
 ---
 
 ## Why
 
-- **One chat, in minutes.** Instagram's own data download can take days, often fails, and only gives you your whole account as a pile of files. IG Exporter backs up just the conversation you want, right now.
+- **One chat, in minutes.** Instagram's own data download can take days, often fails, and only gives you your whole account as a pile of files. Kept backs up just the conversation you want, right now.
 - **Safe by design.** It never asks for your password, sends nothing anywhere except Instagram, and every line is open source. It paces its requests and backs off when Instagram asks it to slow down.
 - **Free, with no limits.** No sign-up, no paywall, no daily cap, no watermark.
-- **Keeps working.** Instagram changes its private API every few weeks. IG Exporter reads Instagram's current query ids from the page itself, and a built-in **Check Instagram** button tells you in seconds whether everything works.
+- **Keeps working.** Instagram changes its private API every few weeks. Kept reads Instagram's current query ids from the page itself, and a built-in **Check Instagram** button tells you in seconds whether everything works.
 
 Useful for backing up a conversation before it's deleted, keeping messages from a friendship or relationship, saving a chat as evidence, archiving your own posts before leaving Instagram, or importing one thread into tools that already understand Instagram's export format.
 
@@ -72,20 +100,20 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 
 ## Status & maintenance
 
-IG Exporter runs on Instagram's private web API, which Instagram changes without notice, so a feature can break overnight. Each break is fixed in a new release; since v3.0 (June 2026) that has meant a release every 3–6 weeks. The badges above show the latest release and the last change; [CHANGELOG.md](CHANGELOG.md) says what each release fixed.
+Kept runs on Instagram's private web API, which Instagram changes without notice, so a feature can break overnight. Each break is fixed in a new release; since v3.0 (June 2026) that has meant a release every 3–6 weeks. The badges above show the latest release and the last change; [CHANGELOG.md](CHANGELOG.md) says what each release fixed.
 
 Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.9.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.9.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.9.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.9.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.9.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.9.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.9.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v3.9.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.0.0 |
+| Current stories | ✅ Working | 2026-10-31 · v4.0.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.0.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v4.0.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v4.0.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.0.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.0.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.0.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -101,11 +129,11 @@ This extension is distributed as an unpacked Chrome Extension. It is **not** on 
 
 1. Download or clone this repository:
    ```bash
-   git clone https://github.com/shakibbinkabir/igexporter.git
+   git clone https://github.com/shakibbinkabir/kept.git
    ```
 2. Open Chrome and navigate to `chrome://extensions/`.
 3. Toggle **Developer mode** on (top-right).
-4. Click **Load unpacked** and select the cloned `igexporter` folder.
+4. Click **Load unpacked** and select the cloned `kept` folder.
 5. Pin the extension to your toolbar for easy access.
 
 Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
@@ -116,7 +144,7 @@ Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
 
 1. Make sure you're **logged in** to Instagram in this browser and have an instagram.com tab open (any page). Instagram only answers its GraphQL API from its own pages, so the exporter runs its queries through that tab.
 2. (Optional) Open the profile, post, reel, or highlight you care about — the popup auto-fills the username and detects an open post or highlight.
-3. Click the **IG Exporter** icon and switch to the **Profile** tab.
+3. Click the **Kept** icon and switch to the **Profiles** tab (the popup opens there by itself on a profile, post or highlight).
 4. Type/confirm the `@username`, pick **What to export** (All posts / All images / All reels / Current stories / Story highlights / Profile picture / This post-reel). For the feed modes, choose a **Range** (Everything, Most recent N, Oldest N, or a Date range).
 5. Click **Export**. The toolbar badge shows progress; when it finishes, Chrome prompts you to save the ZIP (or image).
 
@@ -148,7 +176,7 @@ username_posts_2026-06-06.zip
 ## Usage — Chat export
 
 1. Go to <https://www.instagram.com/> and open a DM thread.
-2. Click the **IG Exporter** icon in your toolbar and click **Start Capture**. The most recent messages load right away.
+2. Click the **Kept** icon in your toolbar and click **Start capture**. The most recent messages load right away.
 3. **Scroll up** inside the thread to pull in older history — each scroll fetches the next page from Instagram and the count climbs. Or click **Auto-scroll** to load the rest of the thread automatically; it stops when it reaches the beginning (or click it again to stop early).
 4. When you've loaded as much as you want, click **Export chat**. Leave **Include photos, videos and voice notes** ticked to download them into the archive (they're fetched right away, because Instagram's links expire).
 5. The exporter validates the structure, downloads the media, then prompts you to save `instagram_<title>_<timestamp>.zip`:
@@ -168,11 +196,11 @@ instagram_ana_2026-10-31T15-05-35Z.zip
 
 ### Only some dates
 
-In the Chat tab, set **From** and/or **To** before exporting. Only messages in that range are saved (To includes the whole day).
+In the Chats tab, open **Options** and set **From** and/or **To** before exporting. Only messages in that range are saved (To includes the whole day).
 
 ### Several chats, or your whole inbox
 
-1. With instagram.com open, click the **IG Exporter** icon, then **Export several chats or the whole inbox…** (in the Chat tab).
+1. With instagram.com open, click the **Kept** icon (the ring), then **Several chats, or the whole inbox** (in the Chats tab).
 2. Your chats load newest first. Tick the ones you want (**Load more** for older ones), or pick **Inbox** and/or **Message requests** and tick **Every chat in these folders**.
 3. Click **Export N chats**. Each chat is fetched in full (or just the date range, if set) and packed into one ZIP:
 
@@ -191,16 +219,16 @@ Exporting a whole inbox takes time: the extension paces its requests so Instagra
 ## FAQ
 
 **How do I export one Instagram chat?**
-Open the conversation on instagram.com in Chrome (or another Chromium browser), click IG Exporter, then **Start Capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
+Open the conversation on instagram.com in Chrome (or another Chromium browser), click Kept, then **Start capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
 
 **Can I download all my Instagram messages at once?**
-Yes. Click **Export several chats or the whole inbox…** in the Chat tab, pick **Inbox** (and **Message requests** if you want those), tick **Every chat in these folders**, and click **Export**. See [Several chats, or your whole inbox](#several-chats-or-your-whole-inbox).
+Yes. Click **Several chats, or the whole inbox** in the Chats tab, pick **Inbox** (and **Message requests** if you want those), tick **Every chat in these folders**, and click **Export**. See [Several chats, or your whole inbox](#several-chats-or-your-whole-inbox).
 
 **Can I export only messages from certain dates?**
-Yes. Set **From** and **To** in the Chat tab before exporting.
+Yes. Set **From** and **To** in the Chats tab's **Options** before exporting.
 
 **Can I download only new posts since my last export?**
-Yes. Tick **Only what I haven't downloaded yet** in the Profile tab. The extension remembers what each export saved (per account and type) and skips it.
+Yes. Tick **Only what I haven't downloaded yet** under **Options** in the Profiles tab, or in the Export Center's settings. The extension remembers what each export saved (per account and type) and skips it.
 
 **My export is huge or stopped halfway. What do I do?**
 Tick **Save as files in a folder, not a ZIP**: files are saved one by one with no size limit. If it stops, run it again with **Only what I haven't downloaded yet** ticked, or click **Resume**, and it continues where it stopped.
@@ -221,7 +249,7 @@ It only loads what your account can already see, paces its requests and backs of
 Yes, for private accounts you follow, and always for your own.
 
 **How do I download Instagram stories, highlights or reels?**
-Open the profile, click IG Exporter, switch to **Profile**, pick *Current stories*, *Story highlights* or *All reels*, and click **Export**. Opening a single highlight first exports just that one.
+Open the profile, click Kept, switch to **Profiles**, pick *Current stories*, *Story highlights* or *All reels*, and click **Export**. Opening a single highlight first exports just that one.
 
 **It stopped working. What now?**
 Click **Check Instagram** in the popup to see what's broken, then **Report a problem**. Instagram changes things often; fixes usually ship in a new release.
@@ -265,7 +293,7 @@ The two capabilities use two independent pipelines.
 **Chat export** (active, session-authenticated):
 
 ```
-popup.js (Chat tab) ──▶ src/bridge.js (content script on instagram.com)
+popup.js (Chats tab) ──▶ src/bridge.js (content script on instagram.com)
                                   │  fetches the open thread via persisted GraphQL queries
                                   ▼
                          instagram.com /api/graphql  (thread metadata + paged thread history)
@@ -295,7 +323,7 @@ popup.js (Profile tab) ──job──▶ background.js (service worker)
       instagram.com tab)
 ```
 
-- **`bridge.js`** — content script on instagram.com. On **Start Capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. It also runs the profile exporter's GraphQL queries, relayed by `background.js`, since `/api/graphql` rejects requests from the extension's own origin. Every query uses the id the page currently uses, read by **`pageids.js`** (which runs in instagram.com's own JavaScript world) and remembered in extension storage; if Instagram rejects that id, the built-in one is tried. All requests are paced and back off on `429`.
+- **`bridge.js`** — content script on instagram.com. On **Start capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. It also runs the profile exporter's GraphQL queries, relayed by `background.js`, since `/api/graphql` rejects requests from the extension's own origin. Every query uses the id the page currently uses, read by **`pageids.js`** (which runs in instagram.com's own JavaScript world) and remembered in extension storage; if Instagram rejects that id, the built-in one is tried. All requests are paced and back off on `429`.
 - **`normalizer.js` / `schema.js`** — map each `SlideMessage` node (text, images, videos, view-once media, voice messages, GIFs/stickers, shared reels/posts/links, call notices, …) to the DYI shape and validate it. If Instagram changes the DM API, these two plus `bridge.js` are where the fix goes.
 - **`background.js`** — MV3 service worker; the stable hub for profile exports. Spins up the offscreen document, relays its GraphQL queries to an open instagram.com tab (injecting `bridge.js` if that tab predates the extension), mirrors progress onto the toolbar badge, and performs every `chrome.downloads.download` (chat JSON included), re-asserting the filename so download-manager extensions like IDM can't rename it.
 - **`offscreen.js` / `offscreen.html`** — a headless offscreen document (the only context that can both fetch with host permissions *and* `URL.createObjectURL` a blob). Runs the chosen export pipeline, fetches CDN bytes with bounded concurrency, and assembles the ZIP.
@@ -350,9 +378,10 @@ The project is intentionally toolchain-free. There is **no build step, no bundle
 Layout:
 
 ```
-igexporter/
+kept/
 ├── manifest.json          # MV3 manifest
-├── popup.html / popup.js  # toolbar UI (Chat + Profile tabs)
+├── popup.html / popup.js  # toolbar popup (Chats + Profiles)
+├── center.html / center.js # Export Center: now, history, settings, Instagram check
 ├── background.js          # service worker — profile export orchestrator
 ├── offscreen.html         # headless offscreen document host
 ├── offscreen.js           # profile export engine (fetch → zip → download)
@@ -368,7 +397,8 @@ igexporter/
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
 ├── test/                  # self-checks: node test/<name>.test.mjs
-├── styles/tokens.css      # design tokens: colour, type, spacing, motion; light and dark
+├── styles/                # tokens.css (design tokens, light and dark), popup.css, center.css
+├── docs/                  # README images
 ├── fonts/                 # Manrope (SIL Open Font License), bundled
 ├── icons/                 # extension icons + ui.svg, the interface icon set
 ├── brand/                 # the Keeper ring kit, usage notes, and the script that draws it

@@ -55,7 +55,7 @@ export function chatText(chat, { folder = "", exportedAt = new Date() } = {}) {
   const names = (chat.participants || []).map((p) => p.name).join(", ");
   const out = [
     chat.title || "Instagram chat",
-    `Exported with IG Exporter on ${exportedAt.toLocaleString("en-GB")} · ${messages.length} messages · ${names}`,
+    `Exported with Kept on ${exportedAt.toLocaleString("en-GB")} · ${messages.length} messages · ${names}`,
     "",
   ];
   let day = "";

@@ -3,519 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="styles/tokens.css" />
-  <style>
-    /* Names this page used before the design tokens (styles/tokens.css). */
-    :root {
-      --bg-card: var(--surface);
-      --bg-card-hover: var(--surface-2);
-      --accent-hot: var(--accent-hover);
-      --accent-glow: var(--accent-soft);
-      --danger-bg: var(--danger-soft);
-      --transition: var(--dur) var(--ease);
-    }
-
-    * { box-sizing: border-box; }
-    [hidden] { display: none !important; }
-
-    body {
-      width: 340px;
-      margin: 0;
-      padding: 18px 16px 16px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 13px;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ===== Header ===== */
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .logo { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
-    .title {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      flex: 1;
-    }
-    .version {
-      font-size: 10px;
-      color: var(--text-faint);
-      font-variant-numeric: tabular-nums;
-      font-weight: 500;
-    }
-
-    /* ===== Tabs ===== */
-    .tabs {
-      display: flex;
-      gap: 4px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 3px;
-      margin-bottom: 12px;
-    }
-    .tab {
-      flex: 1;
-      background: transparent;
-      color: var(--text-dim);
-      border: none;
-      padding: 7px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all var(--transition);
-    }
-    .tab.active { background: var(--accent); color: var(--on-accent); }
-    .tab:not(.active):hover { color: var(--text); background: var(--bg-card-hover); }
-
-    /* ===== Status card ===== */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      margin-bottom: 12px;
-      transition: border-color var(--transition);
-    }
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--text-faint);
-      flex-shrink: 0;
-      transition: background var(--transition), box-shadow var(--transition);
-    }
-    .status-dot[data-state="capturing"],
-    .status-dot[data-state="scrolling"] {
-      background: var(--accent);
-      box-shadow: 0 0 0 0 var(--accent-glow);
-      animation: pulse 1.6s ease-out infinite;
-    }
-    .status-dot[data-state="success"] { background: var(--success); }
-    .status-dot[data-state="error"]   { background: var(--danger); }
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0 var(--accent-glow); }
-      70%  { box-shadow: 0 0 0 6px transparent; }
-      100% { box-shadow: 0 0 0 0 transparent; }
-    }
-    .status-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text);
-    }
-    .status-label .sub {
-      color: var(--text-dim);
-      font-weight: 400;
-      margin-left: 4px;
-    }
-
-    .thread-name {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-bottom: 12px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .thread-name::before {
-      content: "↳ ";
-      color: var(--text-faint);
-    }
-
-    .count-row {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    .count {
-      font-size: 26px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      transition: color var(--transition);
-    }
-    .count.bumping { color: var(--accent-hot); }
-    .count-label {
-      font-size: 11px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .progress {
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-      position: relative;
-    }
-    .progress-fill {
-      position: absolute;
-      inset: 0;
-      width: 30%;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      transform: translateX(-100%);
-      opacity: 0;
-      transition: opacity var(--transition);
-    }
-    .progress.active .progress-fill {
-      opacity: 1;
-      animation: slide 1.4s linear infinite;
-    }
-    /* Determinate fill (profile downloads): width driven from JS. */
-    .progress.determinate .progress-fill {
-      position: absolute;
-      inset: 0;
-      width: var(--pct, 0%);
-      background: var(--accent);
-      transform: none;
-      opacity: 1;
-      animation: none;
-      transition: width 220ms ease;
-    }
-    @keyframes slide {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(400%); }
-    }
-
-    /* ===== Form controls ===== */
-    .field { margin-bottom: 10px; }
-    .field-label {
-      display: block;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-dim);
-      margin-bottom: 5px;
-    }
-    input[type="text"], input[type="number"], input[type="date"], select {
-      width: 100%;
-      background: var(--bg);
-      color: var(--text);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      padding: 9px 10px;
-      font-family: inherit;
-      font-size: 13px;
-      outline: none;
-      transition: border-color var(--transition);
-    }
-    input:focus, select:focus { border-color: var(--accent); }
-    select { cursor: pointer; appearance: none; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .username-wrap { position: relative; }
-    .username-wrap .at {
-      position: absolute;
-      left: 10px;
-      top: 27px;
-      color: var(--text-faint);
-      font-size: 13px;
-      pointer-events: none;
-    }
-    .username-wrap input { padding-left: 22px; }
-    .profile-hint {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-top: 10px;
-      min-height: 14px;
-    }
-
-    /* ===== Actions ===== */
-    .actions-primary { margin-bottom: 8px; }
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .btn-wide { width: 100%; }
-    .btn-danger {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
-    }
-    .btn-danger:hover:not(:disabled) {
-      background: var(--danger-soft);
-      border-color: var(--danger);
-    }
-    button {
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      padding: 10px 14px;
-      transition: all var(--transition);
-      letter-spacing: -0.005em;
-    }
-    button:disabled { cursor: not-allowed; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: var(--on-accent);
-      box-shadow: var(--shadow-1);
-    }
-    .btn-primary:hover:not(:disabled) {
-      background: var(--accent-hot);
-      box-shadow: var(--shadow-2);
-      transform: translateY(-1px);
-    }
-    .btn-primary:active:not(:disabled) { transform: translateY(0); }
-    .btn-primary:disabled {
-      background: var(--surface-2);
-      color: var(--text-faint);
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border-strong);
-      padding: 10px 12px;
-    }
-    .btn-secondary:hover:not(:disabled) {
-      background: var(--bg-card-hover);
-      border-color: var(--text-faint);
-    }
-    .btn-secondary.active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .btn-secondary:disabled { color: var(--text-faint); border-color: var(--border); }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--text-dim);
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 500;
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover:not(:disabled) {
-      color: var(--text);
-      background: var(--bg-card-hover);
-    }
-
-    /* ===== Error card ===== */
-    .error-card {
-      margin-top: 12px;
-      background: var(--danger-bg);
-      border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
-      border-radius: var(--radius);
-      padding: 12px;
-    }
-    .error-card[hidden] { display: none; }
-    .error-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .error-icon {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--danger);
-      color: var(--bg);
-      font-size: 11px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .error-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--danger);
-    }
-    .error-body {
-      font-size: 11px;
-      color: var(--text);
-      margin-bottom: 6px;
-      word-break: break-word;
-    }
-    .error-hint {
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-bottom: 10px;
-      padding-left: 8px;
-      border-left: 2px solid var(--border-strong);
-    }
-    .error-hint:empty { display: none; }
-    .error-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    /* ===== Footer ===== */
-    .footer {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-      font-size: 10px;
-      color: var(--text-faint);
-      text-align: center;
-      letter-spacing: 0.02em;
-    }
-    .footer a, .link-btn {
-      color: var(--text-dim);
-      text-decoration: none;
-    }
-    .footer a:hover, .link-btn:hover:not(:disabled) { color: var(--text); }
-    .footer-links {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-    .link-btn {
-      background: none;
-      border: none;
-      padding: 0;
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-    }
-    .link-btn:disabled { color: var(--text-faint); }
-    .footer-note { color: var(--text-faint); }
-
-    /* ===== Chat export options ===== */
-    .chat-options { margin-top: 12px; display: grid; gap: 6px; }
-    .check {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 11px;
-      color: var(--text-dim);
-      cursor: pointer;
-    }
-    .check input { accent-color: var(--accent); margin: 0; }
-
-    /* ===== Several chats ===== */
-    .picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .picker-count { font-size: 11px; color: var(--text-dim); }
-    .picker-folders { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-    .chat-list { list-style: none; margin: 0 0 8px; padding: 0; max-height: 210px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-    .chat-list:empty::after { content: "Loading chats…"; display: block; padding: 10px; font-size: 11px; color: var(--text-faint); }
-    .chat-list label { display: flex; gap: 8px; align-items: center; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .chat-list label:hover { background: var(--bg-card-hover); }
-    .chat-list .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .chat-list .when { color: var(--text-faint); font-size: 10px; }
-    .chat-list input { accent-color: var(--accent); margin: 0; }
-    .check.every { margin: 8px 0; }
-    .date-row { margin: 4px 0 0; }
-    .picker-open { margin-top: 2px; text-align: left; font-size: 11px; }
-
-    /* ===== Saving options (profile) ===== */
-    .save-opts { display: grid; gap: 6px; margin: 4px 0 12px; }
-    .save-opts .field { margin: 4px 0 0; }
-    .field-hint { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
-
-    /* ===== "Check Instagram" card ===== */
-    .check-card { margin-top: 12px; margin-bottom: 0; }
-    .check-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .check-head .sub { font-size: 11px; color: var(--text-dim); }
-    .check-list { list-style: none; margin: 0 0 10px; padding: 0; }
-    .check-list li {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      padding: 4px 0;
-      font-size: 12px;
-    }
-    .check-list .status-dot { margin-top: 4px; }
-    .check-list .status-dot[data-state="running"] { background: var(--accent); animation: pulse 1.6s ease-out infinite; }
-    .check-list .status-dot[data-state="ok"] { background: var(--success); }
-    .check-list .status-dot[data-state="fail"] { background: var(--danger); }
-    .check-detail { display: block; font-size: 11px; color: var(--text-dim); word-break: break-word; }
-
-    /* ===== Toast ===== */
-    .toast {
-      position: fixed;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--text);
-      color: var(--bg);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 500;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 200ms ease;
-      z-index: 10;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-  </style>
+  <link rel="stylesheet" href="styles/popup.css" />
 </head>
 <body>
-  <div class="header">
+  <header class="header">
     <svg class="logo" viewBox="0 0 256 256" aria-hidden="true"><use href="icons/ui.svg#mark" /></svg>
-    <span class="title">IG Exporter</span>
+    <span class="title">Kept</span>
     <span class="version"></span>
+    <button id="centerBtn" class="icon-btn" title="Open the Export Center: history, settings and Instagram status" aria-label="Open the Export Center">
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#sliders" /></svg>
+    </button>
+  </header>
+
+  <p class="context" id="context" aria-live="polite">
+    <svg class="icon" aria-hidden="true"><use id="contextIcon" href="icons/ui.svg#search" /></svg>
+    <span id="contextText">Looking at this tab…</span>
+  </p>
+
+  <div class="tabs" role="tablist" aria-label="What to export" data-active="chat">
+    <button class="tab active" id="tabChat" data-panel="chatPanel" role="tab" aria-selected="true" aria-controls="chatPanel">
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Chats
+    </button>
+    <button class="tab" id="tabProfile" data-panel="profilePanel" role="tab" aria-selected="false" aria-controls="profilePanel">
+      <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#profile" /></svg>Profiles
+    </button>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" id="tabChat" data-panel="chatPanel">Chat</button>
-    <button class="tab" id="tabProfile" data-panel="profilePanel">Profile</button>
-  </div>
-
-  <!-- ===== Chat panel (DM export — unchanged behavior) ===== -->
-  <div class="panel" id="chatPanel">
+  <!-- ===== Chats ===== -->
+  <section class="panel" id="chatPanel" role="tabpanel" aria-labelledby="tabChat">
     <div id="chatSingle">
-    <div class="card">
-      <div class="status-row">
-        <span class="status-dot" id="statusDot" data-state="idle"></span>
-        <span class="status-label" id="statusText">Waiting<span class="sub" id="statusSub"></span></span>
+      <div class="card status-card" aria-live="polite">
+        <div class="ring" id="progress" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27" /><circle class="ring-fill" cx="32" cy="32" r="27" pathLength="100" /></svg>
+          <span class="status-dot" id="statusDot" data-state="idle"></span>
+        </div>
+        <div class="status-text">
+          <span class="status-label" id="statusText">Waiting<span class="sub" id="statusSub"></span></span>
+          <span class="thread-name" id="threadName">No chat open</span>
+          <span class="count-row"><span class="count" id="msgCount">0</span> <span class="count-label">messages</span></span>
+          <span class="reached" id="reached"></span>
+        </div>
       </div>
-      <div class="thread-name" id="threadName">No thread detected</div>
-      <div class="count-row">
-        <span class="count" id="msgCount">0</span>
-        <span class="count-label">captured</span>
-      </div>
-      <div class="progress" id="progress">
-        <div class="progress-fill"></div>
-      </div>
-    </div>
 
-    <div class="actions-primary">
-      <button id="captureBtn" class="btn-primary btn-wide" disabled>
-        <span id="captureLabel">Start Capture</span>
+      <button id="captureBtn" class="btn-primary btn-wide btn-main" disabled>
+        <span id="captureLabel">Start capture</span>
       </button>
-    </div>
-    <div class="actions">
-      <button id="autoScrollBtn" class="btn-secondary" disabled title="Auto-scroll the thread to load more history">
-        <span id="autoScrollLabel">Auto-scroll</span>
+      <div class="actions">
+        <button id="autoScrollBtn" class="btn-secondary" disabled title="Scroll the chat back to its first message">
+          <span id="autoScrollLabel">Auto-scroll</span>
+        </button>
+        <button id="exportBtn" class="btn-secondary" disabled>Export chat</button>
+      </div>
+      <button id="pickerOpen" class="link-btn picker-open">
+        <svg class="icon" aria-hidden="true"><use href="icons/ui.svg#inbox" /></svg>Several chats, or the whole inbox
       </button>
-      <button id="exportBtn" class="btn-secondary" disabled>Export chat</button>
-    </div>
     </div>
 
     <!-- Several chats: pick from the inbox and message requests -->
@@ -532,25 +73,27 @@
       <ul id="chatList" class="chat-list" aria-label="Chats"></ul>
       <button id="loadMore" class="btn-ghost btn-wide">Load more</button>
       <label class="check every"><input type="checkbox" id="everyChat" /> <span>Every chat in these folders, not just the ones listed</span></label>
-      <button id="exportChatsBtn" class="btn-primary btn-wide" disabled>Export 0 chats</button>
+      <button id="exportChatsBtn" class="btn-primary btn-wide btn-main" disabled>Export 0 chats</button>
     </div>
 
-    <div class="chat-options">
-      <label class="check"><input type="checkbox" id="optMedia" checked /> <span>Include photos, videos and voice notes</span></label>
-      <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span>Match Instagram's text encoding</span></label>
-      <label class="check" title="Files go straight into Downloads/Instagram/chats/, with no 4 GB limit"><input type="checkbox" id="optChatFolder" /> <span>Save as a folder, not a ZIP (for big exports)</span></label>
-      <div class="field-row date-row">
-        <div><label class="field-label" for="chatFrom">From (optional)</label><input type="date" id="chatFrom" /></div>
-        <div><label class="field-label" for="chatTo">To (optional)</label><input type="date" id="chatTo" /></div>
+    <details class="more">
+      <summary>Options</summary>
+      <div class="more-body">
+        <label class="check"><input type="checkbox" id="optMedia" checked /> <span>Include photos, videos and voice notes</span></label>
+        <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span>Match Instagram's text encoding</span></label>
+        <label class="check" title="Files go straight into Downloads/Instagram/chats/, with no 4 GB limit"><input type="checkbox" id="optChatFolder" /> <span>Save as a folder, not a ZIP (for big exports)</span></label>
+        <div class="field-row">
+          <div><label class="field-label" for="chatFrom">From (optional)</label><input type="date" id="chatFrom" /></div>
+          <div><label class="field-label" for="chatTo">To (optional)</label><input type="date" id="chatTo" /></div>
+        </div>
       </div>
-      <button id="pickerOpen" class="link-btn picker-open">Export several chats or the whole inbox…</button>
-    </div>
-  </div>
+    </details>
+  </section>
 
-  <!-- ===== Profile panel (media export) ===== -->
-  <div class="panel" id="profilePanel" hidden>
+  <!-- ===== Profiles ===== -->
+  <section class="panel" id="profilePanel" role="tabpanel" aria-labelledby="tabProfile" hidden>
     <div class="field username-wrap">
-      <label class="field-label" for="usernameInput">Username</label>
+      <label class="field-label" for="usernameInput">Account</label>
       <span class="at">@</span>
       <input type="text" id="usernameInput" placeholder="username" autocomplete="off" spellcheck="false" />
     </div>
@@ -568,69 +111,76 @@
       </select>
     </div>
 
-    <div class="field" id="filterField">
-      <label class="field-label" for="filterSelect">Range</label>
-      <select id="filterSelect">
-        <option value="all">Everything</option>
-        <option value="recent">Most recent…</option>
-        <option value="oldest">Oldest…</option>
-        <option value="range">Date range</option>
-      </select>
-    </div>
-
-    <div class="field" id="countField" hidden>
-      <label class="field-label" id="countFieldLabel" for="countInput">How many</label>
-      <input type="number" id="countInput" min="1" step="1" value="12" />
-    </div>
-
-    <div class="field-row" id="dateField" hidden>
-      <div>
-        <label class="field-label" for="fromInput">From</label>
-        <input type="date" id="fromInput" />
-      </div>
-      <div>
-        <label class="field-label" for="toInput">To</label>
-        <input type="date" id="toInput" />
-      </div>
-    </div>
-
-    <div class="save-opts" id="saveOpts">
-      <label class="check" title="Files go straight into Downloads/Instagram/&lt;account&gt;/&lt;type&gt;/, with no 4 GB limit"><input type="checkbox" id="optFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
-      <label class="check"><input type="checkbox" id="optOnlyNew" /> <span>Only what I haven't downloaded yet (also resumes a stopped export)</span></label>
-      <div class="field">
-        <label class="field-label" for="optPattern">File names</label>
-        <input type="text" id="optPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
-        <div class="field-hint">{username} {date} {time} {code} {index}</div>
-      </div>
-    </div>
-
-    <button id="profileExportBtn" class="btn-primary btn-wide">Export</button>
+    <button id="profileExportBtn" class="btn-primary btn-wide btn-main">Export</button>
     <div class="profile-hint" id="profileHint"></div>
 
-    <div class="card" id="profileStatus" hidden style="margin-top:12px;">
-      <div class="status-row">
+    <div class="card status-card" id="profileStatus" hidden aria-live="polite">
+      <div class="ring" id="pProgress" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27" /><circle class="ring-fill" cx="32" cy="32" r="27" pathLength="100" /></svg>
         <span class="status-dot" id="pStatusDot" data-state="idle"></span>
+      </div>
+      <div class="status-text">
         <span class="status-label" id="pStatusText">Ready<span class="sub" id="pStatusSub"></span></span>
+        <span class="count-row"><span class="count" id="pCount">0</span> <span class="count-label" id="pCountLabel">progress</span></span>
       </div>
-      <div class="count-row">
-        <span class="count" id="pCount">0</span>
-        <span class="count-label" id="pCountLabel">progress</span>
+    </div>
+
+    <details class="more">
+      <summary>Options</summary>
+      <div class="more-body">
+        <div class="field" id="filterField">
+          <label class="field-label" for="filterSelect">Range</label>
+          <select id="filterSelect">
+            <option value="all">Everything</option>
+            <option value="recent">Most recent…</option>
+            <option value="oldest">Oldest…</option>
+            <option value="range">Date range</option>
+          </select>
+        </div>
+        <div class="field" id="countField" hidden>
+          <label class="field-label" id="countFieldLabel" for="countInput">How many</label>
+          <input type="number" id="countInput" min="1" step="1" value="12" />
+        </div>
+        <div class="field-row" id="dateField" hidden>
+          <div><label class="field-label" for="fromInput">From</label><input type="date" id="fromInput" /></div>
+          <div><label class="field-label" for="toInput">To</label><input type="date" id="toInput" /></div>
+        </div>
+        <div class="save-opts" id="saveOpts">
+          <label class="check" title="Files go straight into Downloads/Instagram/&lt;account&gt;/&lt;type&gt;/, with no 4 GB limit"><input type="checkbox" id="optFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
+          <label class="check"><input type="checkbox" id="optOnlyNew" /> <span>Only what I haven't downloaded yet (also resumes a stopped export)</span></label>
+          <div class="field">
+            <label class="field-label" for="optPattern">File names</label>
+            <input type="text" id="optPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
+            <div class="field-hint">{username} {date} {time} {code} {index}</div>
+          </div>
+        </div>
       </div>
-      <div class="progress" id="pProgress">
-        <div class="progress-fill"></div>
-      </div>
+    </details>
+  </section>
+
+  <!-- ===== Done ===== -->
+  <div id="doneCard" class="done-card" hidden role="status">
+    <div class="done-head">
+      <span class="done-icon"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#check" /></svg></span>
+      <span class="done-title" id="doneTitle">Saved</span>
+    </div>
+    <p class="done-body" id="doneBody"></p>
+    <div class="card-actions">
+      <button id="showFileBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#folder" /></svg>Show in folder</button>
+      <button id="openChatBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Open chat</button>
+      <button id="doneCloseBtn" class="btn-ghost">Done</button>
     </div>
   </div>
 
-  <!-- ===== Shared error card ===== -->
-  <div id="errorCard" class="error-card" hidden>
+  <!-- ===== Error ===== -->
+  <div id="errorCard" class="error-card" hidden role="alert">
     <div class="error-header">
-      <span class="error-icon">!</span>
+      <span class="error-icon"><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#alert" /></svg></span>
       <span class="error-title" id="errorTitle">Something went wrong</span>
     </div>
     <div class="error-body" id="errorBody"></div>
     <div class="error-hint" id="errorHint"></div>
-    <div class="error-actions">
+    <div class="card-actions">
       <button id="retryBtn" class="btn-ghost">Retry</button>
       <button id="copyErrBtn" class="btn-ghost">Copy details</button>
       <button id="errReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report</button>
@@ -644,24 +194,40 @@
       <span class="sub" id="checkSummary"></span>
     </div>
     <ul class="check-list" id="checkList"></ul>
-    <div class="error-actions">
+    <div class="card-actions">
       <button id="checkReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report a problem</button>
       <button id="checkCloseBtn" class="btn-ghost">Close</button>
     </div>
   </div>
 
-  <div class="footer">
+  <footer class="footer">
     <div class="footer-links">
       <button id="checkBtn" class="link-btn" title="Test every feature against Instagram right now">Check Instagram</button>
       <span aria-hidden="true">·</span>
       <button id="reportBtn" class="link-btn" title="Opens a GitHub issue you can review before posting">Report a problem</button>
       <span aria-hidden="true">·</span>
-      <a href="https://github.com/shakibbinkabir/igexporter/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+      <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
     </div>
     <div class="footer-note">Runs only in your browser. Not affiliated with Instagram or Meta.</div>
+  </footer>
+
+  <!-- ===== First run ===== -->
+  <div id="welcome" class="welcome" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <svg class="welcome-mark" viewBox="0 0 256 256" aria-hidden="true">
+      <path d="M201.9 131.4A74 74 0 1 1 137.5 54.6" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" />
+      <circle class="welcome-gem" cx="184.7" cy="80.4" r="24" />
+    </svg>
+    <h1 id="welcomeTitle">Welcome to Kept</h1>
+    <ul class="welcome-list">
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#chat" /></svg>Save chats with their photos and voice notes, and read them offline.</li>
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#grid" /></svg>Save posts, reels, stories and highlights from any account you can see.</li>
+      <li><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#lock" /></svg>Everything stays on your computer. No account, no password, no servers.</li>
+    </ul>
+    <p class="welcome-note">Kept was called IG Exporter until 4.0. Your settings carried over.</p>
+    <button id="welcomeBtn" class="btn-primary btn-wide btn-main">Get started</button>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status"></div>
 
   <script src="popup.js"></script>
 </body>

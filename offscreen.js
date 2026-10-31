@@ -177,7 +177,7 @@ function makeSink(job, root = "", username = "") {
     async add(path, bytes, time) {
       if (!folder) return entries.push({ path, bytes, date: time ? new Date(time * 1000) : undefined }) > 0;
       // Each run's index gets its own name, so repeat runs into one folder keep theirs.
-      return saveToFolder(`Instagram/${root}/${path === "index.json" ? `index_${stamp}.json` : path}`, bytes);
+      return saveToFolder(`Instagram/${root}/${path === "index.json" ? `index_${stamp}.json` : path}`, bytes, job.jobId);
     },
     // In folder mode each finished item is remembered as it lands, so running
     // the export again with "only new" picks up where it stopped.
@@ -193,10 +193,10 @@ function makeSink(job, root = "", username = "") {
   };
 }
 
-async function saveToFolder(filename, bytes) {
+async function saveToFolder(filename, bytes, jobId) {
   const type = MIME[filename.split(".").pop()] || "application/octet-stream";
   const url = URL.createObjectURL(new Blob([bytes], { type }));
-  const resp = await chrome.runtime.sendMessage({ type: "SAVE_TO_FOLDER", url, filename }).catch(() => null);
+  const resp = await chrome.runtime.sendMessage({ type: "SAVE_TO_FOLDER", url, filename, jobId }).catch(() => null);
   if (!resp?.ok) URL.revokeObjectURL(url);
   return !!resp?.ok;
 }

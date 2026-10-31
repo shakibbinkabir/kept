@@ -77,9 +77,24 @@ const els = {
   checkList: document.getElementById("checkList"),
   checkReportBtn: document.getElementById("checkReportBtn"),
   checkCloseBtn: document.getElementById("checkCloseBtn"),
+
+  // 4.0: what's open, done card, first run, Export Center
+  tabs: document.querySelector(".tabs"),
+  contextText: document.getElementById("contextText"),
+  contextIcon: document.getElementById("contextIcon"),
+  reached: document.getElementById("reached"),
+  centerBtn: document.getElementById("centerBtn"),
+  doneCard: document.getElementById("doneCard"),
+  doneTitle: document.getElementById("doneTitle"),
+  doneBody: document.getElementById("doneBody"),
+  showFileBtn: document.getElementById("showFileBtn"),
+  openChatBtn: document.getElementById("openChatBtn"),
+  doneCloseBtn: document.getElementById("doneCloseBtn"),
+  welcome: document.getElementById("welcome"),
+  welcomeBtn: document.getElementById("welcomeBtn"),
 };
 
-const REPO = "https://github.com/shakibbinkabir/igexporter";
+const REPO = "https://github.com/shakibbinkabir/kept";
 
 const state = {
   tabId: null,
@@ -136,11 +151,11 @@ function setPhase(phase, label, sub) {
 function renderButtons() {
   // Capture toggle
   if (state.capturing) {
-    els.captureLabel.textContent = "Stop Capture";
+    els.captureLabel.textContent = "Stop capture";
     els.captureBtn.classList.remove("btn-primary");
     els.captureBtn.classList.add("btn-danger");
   } else {
-    els.captureLabel.textContent = "Start Capture";
+    els.captureLabel.textContent = "Start capture";
     els.captureBtn.classList.add("btn-primary");
     els.captureBtn.classList.remove("btn-danger");
   }
@@ -190,11 +205,16 @@ function updateCount(newCount) {
   renderButtons();
 }
 
+function showReached(oldest) {
+  els.reached.textContent = oldest ? `Back to ${new Date(oldest).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "";
+}
+
 function updateThread(title) {
   if (title) {
     if (title !== state.threadTitle) {
       state.threadTitle = title;
       els.threadName.textContent = title;
+      if (state.context === "chat") setContext("chat", `Chat with ${title}`);
     }
     return;
   }
@@ -229,7 +249,7 @@ function showError(title, body, problems) {
   els.errorCard.hidden = false;
   renderButtons();
   if (state.count > 0) {
-    els.exportBtn.textContent = "Retry Export";
+    els.exportBtn.textContent = "Retry export";
   }
 }
 
@@ -291,7 +311,7 @@ function openIssue(title, details) {
     "<!-- What you clicked and what you expected. A screenshot helps. -->",
     "",
     "",
-    "**Details** (added by IG Exporter, usernames removed)",
+    "**Details** (added by Kept, usernames removed)",
     "```",
     `Version: ${chrome.runtime.getManifest().version}`,
     browser ? `Browser: Chromium ${browser}` : null,
@@ -377,6 +397,73 @@ function switchTab(panelId) {
   els.profilePanel.hidden = !onProfile;
   els.tabChat.classList.toggle("active", !onProfile);
   els.tabProfile.classList.toggle("active", onProfile);
+  els.tabChat.setAttribute("aria-selected", String(!onProfile));
+  els.tabProfile.setAttribute("aria-selected", String(onProfile));
+  els.tabs.dataset.active = onProfile ? "profile" : "chat";
+}
+
+/* ===== What's open in this tab, and its one main action ===== */
+function setContext(icon, text) {
+  els.contextIcon.setAttribute("href", `icons/ui.svg#${icon}`);
+  els.contextText.textContent = text;
+}
+
+// Reads the tab's address, names what's open and picks the tab that exports it.
+function detectContext(url) {
+  const { username, shortcode, highlightId, story } = parseIgUrl(url);
+  let path = "";
+  try { path = new URL(url).pathname; } catch {}
+  if (!state.isInstagram) {
+    state.context = "none";
+    setContext("search", "Open instagram.com to start");
+    return;
+  }
+  if (path.startsWith("/direct/t/")) {
+    state.context = "chat";
+    setContext("chat", "A chat is open");
+    switchTab("chatPanel");
+  } else if (path.startsWith("/direct")) {
+    state.context = "inbox";
+    setContext("inbox", "Your inbox: open a chat, or export several");
+    switchTab("chatPanel");
+  } else if (shortcode) {
+    state.context = "post";
+    setContext("image", username ? `A post by @${username}` : "A post or reel");
+    switchTab("profilePanel");
+  } else if (highlightId) {
+    state.context = "highlight";
+    setContext("highlight", "A story highlight");
+    switchTab("profilePanel");
+  } else if (story) {
+    state.context = "story";
+    setContext("story", `@${username}'s stories`);
+    switchTab("profilePanel");
+  } else if (username) {
+    state.context = "profile";
+    setContext("profile", `@${username}'s profile`);
+    switchTab("profilePanel");
+  } else {
+    state.context = "home";
+    setContext("search", "Open a chat or a profile to export it");
+  }
+}
+
+// The Profiles tab's button says exactly what it will do.
+function updateMainAction() {
+  if (state.profile.running) return;
+  const mode = els.modeSelect.value;
+  const who = els.usernameInput.value.trim().replace(/^@/, "");
+  const whose = who ? `@${who}'s ` : "";
+  const label = {
+    posts: `Export ${whose}posts`,
+    images: `Export ${whose}images`,
+    reels: `Export ${whose}reels`,
+    stories: `Save ${whose}stories`,
+    highlights: state.profile.detectedHighlightId ? "Export this highlight" : `Export ${whose}highlights`,
+    profilePic: `Save ${whose}profile picture`,
+    post: "Export this post",
+  }[mode];
+  els.profileExportBtn.textContent = label || "Export";
 }
 
 function updateProfileHint() {
@@ -411,6 +498,7 @@ function refreshProfileFields() {
   if (filter === "recent") els.countFieldLabel.textContent = "How many (most recent)";
   else if (filter === "oldest") els.countFieldLabel.textContent = "How many (oldest)";
   updateProfileHint();
+  updateMainAction();
 }
 
 function initProfile(url) {
@@ -440,11 +528,11 @@ function setProfileProgress({ indeterminate, pct }) {
   if (indeterminate) {
     els.pProgress.classList.add("active");
     els.pProgress.classList.remove("determinate");
-    els.pProgress.style.removeProperty("--pct");
+    els.pProgress.style.removeProperty("--p");
   } else {
     els.pProgress.classList.remove("active");
     els.pProgress.classList.add("determinate");
-    els.pProgress.style.setProperty("--pct", `${pct}%`);
+    els.pProgress.style.setProperty("--p", String(pct));
   }
 }
 
@@ -472,8 +560,8 @@ function showProfileError(title, body) {
   setProfilePhase("error", "Error", "");
   els.pProgress.classList.remove("active");
   els.profileExportBtn.disabled = false;
-  els.profileExportBtn.textContent = "Export";
   state.profile.running = false;
+  updateMainAction();
 }
 
 function summaryLabel(s) {
@@ -541,7 +629,9 @@ function buildJobFromForm() {
 
 function startProfileExport(job) {
   clearError();
+  hideDone();
   state.profile.lastJob = job;
+  state.profile.dlStart = 0;
   state.profile.running = true;
   state.profile.jobId = null;
   els.profileExportBtn.disabled = true;
@@ -596,7 +686,8 @@ function handleProfileMessage(msg) {
       els.pCountLabel.textContent = "found";
     } else if (msg.phase === "downloading") {
       const pct = msg.total ? Math.floor((msg.done / msg.total) * 100) : 0;
-      setProfilePhase("running", "Downloading", `${msg.done}/${msg.total}`);
+      if (!state.profile.dlStart || !msg.done) state.profile.dlStart = Date.now();
+      setProfilePhase("running", "Downloading", `${msg.done}/${msg.total}${timeLeft(state.profile.dlStart, msg.done, msg.total)}`);
       setProfileProgress({ indeterminate: false, pct });
       els.pCount.textContent = `${pct}%`;
       els.pCountLabel.textContent = "downloaded";
@@ -617,14 +708,48 @@ function handleProfileMessage(msg) {
     els.pCount.textContent = "✓";
     els.pCountLabel.textContent = summaryLabel(msg.summary);
     els.profileExportBtn.disabled = false;
-    els.profileExportBtn.textContent = "Export";
-    showToast("✓ Saved " + (msg.filename || "file"));
+    updateMainAction();
+    showDone("Saved", `${summaryLabel(msg.summary)}\n${msg.filename || ""}`, msg.jobId);
     return;
   }
 
   if (msg.type === "EXPORT_ERROR") {
     showProfileError("Export failed", msg.error || "Something went wrong.");
   }
+}
+
+/* ===== Time left, and the done card ===== */
+function timeLeft(start, done, total) {
+  if (!start || done < 3 || done >= total) return "";
+  const secs = ((Date.now() - start) / done) * (total - done) / 1000;
+  if (secs < 45) return " · a few seconds left";
+  const mins = Math.round(secs / 60);
+  return ` · about ${mins} min left`;
+}
+
+function hideDone() {
+  els.doneCard.hidden = true;
+}
+
+// Shows what was saved, with "Show in folder" (and "Open chat" for a chat
+// saved as a folder) once the background says which download it was.
+function showDone(title, body, jobId) {
+  els.doneTitle.textContent = title;
+  els.doneBody.textContent = body.trim();
+  els.showFileBtn.hidden = true;
+  els.openChatBtn.hidden = true;
+  els.doneCard.hidden = false;
+  chrome.runtime.sendMessage({ type: "JOB_FILES", jobId }, (files) => {
+    if (chrome.runtime.lastError || !files) return;
+    if (files.show != null) {
+      els.showFileBtn.hidden = false;
+      els.showFileBtn.onclick = () => chrome.downloads.show(files.show);
+    }
+    if (files.open != null) {
+      els.openChatBtn.hidden = false;
+      els.openChatBtn.onclick = () => chrome.downloads.open(files.open);
+    }
+  });
 }
 
 /* ===== Chat archive progress ===== */
@@ -649,7 +774,7 @@ function handleChatJob(msg) {
     const chats = s.chats > 1 ? `${s.chats} chats, ` : "";
     setPhase("success", "Exported", `${chats}${s.messages} messages${media}`);
     renderButtons();
-    showToast("✓ Saved " + (msg.filename || "chat"));
+    showDone("Chat saved", `${chats}${s.messages} messages${media}\n${msg.filename || ""}`, msg.jobId);
   } else if (msg.type === "EXPORT_ERROR") {
     showError("Export failed", msg.error || "Couldn't build the chat export.");
   }
@@ -661,6 +786,14 @@ const FOLDERS = () => [els.fInbox.checked && "INBOX", els.fPending.checked && "P
 
 function renderPicker() {
   els.chatList.textContent = "";
+  if (picker.loading && !picker.chats.size) {
+    for (let i = 0; i < 5; i++) {
+      const li = document.createElement("li");
+      li.className = "skeleton";
+      li.setAttribute("aria-hidden", "true");
+      els.chatList.append(li);
+    }
+  }
   for (const c of picker.chats.values()) {
     if (!FOLDERS().includes(c.folder)) continue;
     const li = document.createElement("li");
@@ -868,6 +1001,18 @@ function checkDetails() {
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".version").textContent = `v${chrome.runtime.getManifest().version}`;
 
+  // Theme from the Export Center (system by default), and the first-run welcome.
+  chrome.storage.local.get(["theme", "welcomed"]).then(({ theme, welcomed }) => {
+    if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+    if (!welcomed) els.welcome.hidden = false;
+  }).catch(() => {});
+  els.welcomeBtn.addEventListener("click", () => {
+    els.welcome.hidden = true;
+    chrome.storage.local.set({ welcomed: true }).catch(() => {});
+  });
+  els.centerBtn.addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("center.html") }));
+  els.doneCloseBtn.addEventListener("click", hideDone);
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     if (!tab) return;
@@ -877,6 +1022,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Profile tab works regardless of the active tab; autodetect runs first.
     initProfile(tab.url);
+    detectContext(tab.url);
 
     if (!state.isInstagram) {
       setPhase("idle", "Not Instagram", "");
@@ -899,6 +1045,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (resp.threadTitle) updateThread(resp.threadTitle);
       if (resp.messageCount > 0) state.count = resp.messageCount;
+      showReached(resp.oldest);
       state.autoScrolling = !!resp.autoScrolling;
       applyCaptureState(!!resp.capturing);
       if (state.count > 0) els.msgCount.textContent = state.count;
@@ -909,6 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (message.type === "IG_EXPORTER_UPDATED") {
       if (message.threadTitle) updateThread(message.threadTitle);
       updateCount(message.messageCount);
+      showReached(message.oldest);
       if (state.capturing && state.phase !== "scrolling") {
         setPhase("capturing", "Capturing", `${message.messageCount}`);
         clearError();
@@ -1029,6 +1177,7 @@ document.addEventListener("DOMContentLoaded", () => {
   els.exportBtn.addEventListener("click", () => {
     if (state.count === 0) return;
     clearError();
+    hideDone();
     els.exportBtn.disabled = true;
     els.exportBtn.textContent = "Validating…";
     setPhase("exporting", "Exporting", "validating");
@@ -1071,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!state.lastError) return;
     const chat = state.errorContext === "chat";
     const payload = [
-      `IG Exporter v${chrome.runtime.getManifest().version} — ${chat ? "chat" : "profile"} error report`,
+      `Kept v${chrome.runtime.getManifest().version} — ${chat ? "chat" : "profile"} error report`,
       chat ? `Phase: ${state.phase}` : `Mode: ${state.profile.lastJob?.mode || els.modeSelect.value}`,
       chat ? `Captured: ${state.count}` : null,
       chat ? `Capturing: ${state.capturing}` : null,
@@ -1096,6 +1245,7 @@ document.addEventListener("DOMContentLoaded", () => {
   els.usernameInput.addEventListener("input", () => {
     state.profile.detectedUsername = els.usernameInput.value.trim();
     updateProfileHint();
+    updateMainAction();
   });
 
   els.profileExportBtn.addEventListener("click", () => {
