@@ -2,6 +2,16 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.6.0] — 2026-10-31
+
+"Read your chats offline." Tested end to end against live Instagram: a 198-message chat exported, unzipped and opened from a local folder (all messages, photos and the voice note load; search and jump to date work).
+
+### Added
+
+- **An offline chat page in every chat export.** The ZIP now opens with `index.html`, which shows the chat like a messaging app: your messages on the right, theirs on the left, a heading for each day, photos inline, videos and voice notes you can play, shared posts as links, calls and reactions. It works with no internet connection and loads nothing from outside; media comes from the folders next to it.
+- **Search inside a chat.** Type in the search box to highlight every match; Enter and Shift+Enter (or the arrows) step through them.
+- **Jump to a date.** Pick a date to scroll to the first message on or after it.
+
 ## [3.5.0] — 2026-10-31
 
 "Chats with their media." Tested end to end against live Instagram: a 198-message chat with photos and a voice note, with and without media, with and without Instagram encoding, plus a profile smoke test.

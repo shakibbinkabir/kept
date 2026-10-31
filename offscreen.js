@@ -10,6 +10,7 @@
 
 import { createZip } from "./src/zip.js";
 import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
+import { chatPage } from "./src/chatpage.js";
 import {
   resolveUser,
   paginateFeed,
@@ -569,6 +570,8 @@ async function runChatExport(job) {
 
     progress(jobId, "zipping", null, null, "Packaging ZIP…");
     entries.unshift(
+      // Open this to read the chat offline; media loads from the folders beside it.
+      { path: "index.html", bytes: textEncoder.encode(chatPage(chat)) },
       { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
       { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
     );

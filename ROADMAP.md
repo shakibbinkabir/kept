@@ -21,7 +21,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Plain-text copy of each chat next to the JSON
 - Optional "match Instagram's encoding" setting, for tools built for Instagram's own data download
 
-## 3.6: Read your chats offline
+## 3.6: Read your chats offline ✅ shipped in v3.6.0
 
 - Offline chat page (`index.html`) in every chat export
 - Search inside a chat

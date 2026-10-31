@@ -52,6 +52,7 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 ### Chat export
 
 - **A complete chat archive** — a ZIP laid out like Instagram's own data download: `message_1.json` in the same format, the chat's **photos, videos and voice notes** as real files (the JSON points at them), and a readable **`chat.txt`** transcript. Drop it into any tool that already understands Instagram's export.
+- **Read it offline** — every archive opens with an `index.html` that shows the chat like a messaging app: bubbles, day headings, inline photos, videos and playable voice notes, **search** (Enter / Shift+Enter steps through matches) and **jump to a date**. No internet needed; nothing loads from outside.
 - **Optional Instagram encoding** — Instagram's own export stores emoji and accents as garbled bytes, and some tools expect that. One checkbox reproduces it exactly; by default text is clean UTF-8.
 - **Manifest V3** — no remote code, no `<all_urls>`, scoped to `instagram.com` only.
 - **Zero backend** — no analytics, no telemetry, no network calls beyond what Instagram itself makes.
@@ -71,12 +72,12 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.5.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.5.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.5.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.5.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.5.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.5.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.6.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.6.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.6.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.6.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.6.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.6.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -140,6 +141,7 @@ username_posts_2026-06-06.zip
 
 ```
 instagram_ana_2026-10-31T15-05-35Z.zip
+├── index.html           # open this: the chat, offline, with search and jump-to-date
 └── your_instagram_activity/messages/inbox/ana_1784…/
     ├── message_1.json   # Instagram's export format, media uris point at the files below
     ├── chat.txt         # readable transcript, oldest first, one heading per day
@@ -159,6 +161,9 @@ Open the conversation on instagram.com in Chrome (or another Chromium browser), 
 
 **Can I download all my Instagram messages at once?**
 Not yet: today it's one conversation at a time. Exporting several chats or your whole inbox is planned for 3.7 ([roadmap](ROADMAP.md)).
+
+**How do I read an exported chat?**
+Unzip it and open `index.html` in any browser. It works offline: search the whole chat, jump to a date, view photos and play voice notes.
 
 **Does it save the photos, videos and voice messages from a chat?**
 Yes. The export is a ZIP with every photo, video and voice note from the loaded part of the chat saved as a file, plus a readable `chat.txt`. Untick **Include photos, videos and voice notes** for a quick text-only export.
@@ -310,6 +315,7 @@ igexporter/
 │   ├── pageids.js         # runs in instagram.com's page — reads current query ids
 │   ├── normalizer.js      # chat: raw SlideMessage nodes → DYI shape
 │   ├── chatarchive.js     # chat: media plan, chat.txt transcript, optional Instagram encoding
+│   ├── chatpage.js        # chat: the offline index.html viewer (search, jump to date, media)
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
@@ -317,7 +323,7 @@ igexporter/
 └── icons/
 ```
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 
