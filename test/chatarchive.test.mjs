@@ -39,4 +39,16 @@ assert.ok(meta.includes("caf\\u00c3\\u00a9 \\u00e2\\u0098\\u0095"), "é and ☕ 
 assert.ok(!/[^\x00-\x7f]/.test(meta), "pure ASCII output, like Instagram's");
 assert.equal(JSON.parse(meta).title, "Ana");
 
+// Markdown: escaped text, a heading per day, media linked relative to the chat folder.
+{
+  const { chatMarkdown } = await import("../src/chatarchive.js");
+  const md = chatMarkdown({ title: "T", participants: [{ name: "A" }], messages: [
+    { sender_name: "A", timestamp_ms: 1700000100000, content: "# *x* [y](z)" },
+    { sender_name: "A", timestamp_ms: 1700000000000, photos: [{ uri: "f/photos/a b.jpg" }] },
+  ] }, { folder: "f" });
+  assert.ok(md.includes(String.raw`\# \*x\* \[y\](z)`), "message text can't become Markdown");
+  assert.ok(md.includes("![Photo](photos/a%20b.jpg)"), "photos link to their files");
+  assert.ok(/^## /m.test(md) && md.startsWith("# T"), "headings");
+}
+
 console.log("chatarchive ok");

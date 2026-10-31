@@ -9,7 +9,7 @@
 // hands the finished blob URL + filename to the service worker to download.
 
 import { createZip } from "./src/zip.js";
-import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
+import { planMedia, chatFolder, chatText, chatJson, chatMarkdown } from "./src/chatarchive.js";
 import { chatPage, inboxPage } from "./src/chatpage.js";
 import { pad, dateStr, sanitize, ident, fileBase } from "./src/names.js";
 import { profilePage } from "./src/profilepage.js";
@@ -796,7 +796,8 @@ async function runChatExport(job) {
       const folder = chatFolder(chat);
       pages.push(
         { path: `${folder}/message_1.json`, bytes: textEncoder.encode(chatJson(chat, { instagramEncoding: !!options.instagramEncoding })) },
-        { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) }
+        { path: `${folder}/chat.txt`, bytes: textEncoder.encode(chatText(chat, { folder })) },
+        { path: `${folder}/chat.md`, bytes: textEncoder.encode(chatMarkdown(chat, { folder })) }
       );
       if (chats.length > 1) pages.push({ path: `chats/${pad(i + 1, 3)}.html`, bytes: textEncoder.encode(chatPage(chat, { base: "../", back: "../index.html", waves })) });
     });

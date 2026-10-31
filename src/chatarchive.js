@@ -48,6 +48,39 @@ function duration(seconds) {
   return m ? `${m} min ${s} s` : `${s} s`;
 }
 
+/**
+ * The chat as Markdown: a heading per day, the sender in bold, photos inline
+ * and videos and voice notes as links to their files. Message text is
+ * escaped so it can't turn into Markdown formatting by accident.
+ */
+export function chatMarkdown(chat, { folder = "", exportedAt = new Date() } = {}) {
+  const local = (uri) => (folder && uri.startsWith(folder + "/") ? encodeURI(uri.slice(folder.length + 1)) : /^https?:/.test(uri) ? uri : null);
+  const esc = (s) => String(s).replace(/([\\`*_[\]<>#|~])/g, "\\$1");
+  const messages = [...(chat.messages || [])].reverse();
+  const names = (chat.participants || []).map((p) => p.name).join(", ");
+  const out = [`# ${esc(chat.title || "Instagram chat")}`, "", `${esc(names)} · ${messages.length} messages · exported with Kept on ${exportedAt.toLocaleDateString("en-GB")}`];
+  let day = "";
+  for (const m of messages) {
+    const at = new Date(m.timestamp_ms);
+    const thisDay = at.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    if (thisDay !== day) {
+      out.push("", `## ${thisDay}`, "");
+      day = thisDay;
+    }
+    const parts = [];
+    if (m.call_duration != null) parts.push(m.call_duration ? `*Call, ${duration(m.call_duration)}*` : "*Missed call*");
+    if (m.content) parts.push(esc(m.content).replace(/\n/g, "  \n"));
+    for (const p of m.photos || []) parts.push(local(p.uri) ? `![Photo](${local(p.uri)})` : "*Photo*");
+    for (const v of m.videos || []) parts.push(local(v.uri) ? `[Video](${local(v.uri)})` : "*Video*");
+    for (const a of m.audio_files || []) parts.push(local(a.uri) ? `[Voice note](${local(a.uri)})` : "*Voice note*");
+    if (m.share) parts.push(m.share.link ? `[${esc(m.share.share_text || "Shared post")}](${m.share.link})` : `*${esc(m.share.share_text || "Shared post")}*`);
+    const time = at.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    out.push(`**${esc(m.sender_name)}** · ${time}  `, parts.join(" ") || "*(no content)*", "");
+    if (m.reactions?.length) out.splice(out.length - 1, 0, `> ${m.reactions.map((r) => `${r.reaction} ${esc(r.actor)}`).join(", ")}`);
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n") + "\n";
+}
+
 /** Readable transcript, oldest message first, in the computer's local time. */
 export function chatText(chat, { folder = "", exportedAt = new Date() } = {}) {
   const local = (uri) => (folder && uri.startsWith(folder + "/") ? uri.slice(folder.length + 1) : null);

@@ -93,6 +93,8 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Photos full screen, voice notes with a waveform** — click any photo (or anything in the gallery) to view it full screen and step through them with the arrow keys; voice notes play from a waveform you can click to jump around.
 - **Print it as a book, or save it as a PDF** — **Print / PDF** lays the chat out with a cover page, a heading for each day and clean page breaks, using your browser's own print dialog.
 - **Long chats stay fast** — the page shows the first messages at once and builds the rest in the background; tested with 100,000 messages.
+- **Insights** — who writes most, when you talk (by hour and weekday), how it changed month by month, the first message, the busiest day and the longest streak, in charts you can also read as tables.
+- **Markdown too** — every archive has a `chat.md` with a heading per day and photos inline, for notes apps and editors.
 - **Optional Instagram encoding** — Instagram's own export stores emoji and accents as garbled bytes, and some tools expect that. One checkbox reproduces it exactly; by default text is clean UTF-8.
 - **Manifest V3** — no remote code, no `<all_urls>`, scoped to `instagram.com` only.
 - **Zero backend** — no analytics, no telemetry, no network calls beyond what Instagram itself makes.
@@ -112,16 +114,16 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.3.0 |
-| Current stories | ✅ Working | 2026-10-31 · v4.3.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.3.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v4.3.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v4.3.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.3.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.3.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.3.0 |
-| Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.3.0 |
-| Saved posts and collections | ✅ Working | 2026-10-31 · v4.3.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.4.0 |
+| Current stories | ✅ Working | 2026-10-31 · v4.4.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.4.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v4.4.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v4.4.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.4.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.4.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.4.0 |
+| Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.4.0 |
+| Saved posts and collections | ✅ Working | 2026-10-31 · v4.4.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -195,6 +197,7 @@ instagram_ana_2026-10-31T15-05-35Z.zip
 └── your_instagram_activity/messages/inbox/ana_1784…/
     ├── message_1.json   # Instagram's export format, media uris point at the files below
     ├── chat.txt         # readable transcript, oldest first, one heading per day
+    ├── chat.md          # the same as Markdown, photos inline
     ├── photos/
     ├── videos/
     └── audio/           # voice notes

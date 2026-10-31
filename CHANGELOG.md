@@ -2,6 +2,19 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.4.0] — 2026-10-31
+
+"Chat insights." Checked in a browser on a 20,000-message sample chat (every number cross-checked against the table views, hover labels, light and dark, reduced motion) and in a real export, which now carries `chat.md` and the Insights view.
+
+### Added
+
+- **Insights in the offline chat page.** A new **Insights** button shows how the chat went: the number of messages and the days you talked, the first message, the busiest day, the longest streak of days in a row, photos, videos, voice notes, calls, links and reactions, and four charts: messages per person, by hour, by weekday, and per month (per year for chats longer than four years). The bars grow in when you open it (still with reduced motion), each shows its number on hover, and every chart has a table view.
+- **The chat as Markdown.** Every chat archive now includes `chat.md` beside `chat.txt`: a heading for each day, senders in bold, photos inline and videos and voice notes linked to their files, ready for notes apps and editors.
+
+### Not possible
+
+- **Voice-note transcripts.** Instagram's web data has none: a voice message carries only the audio, its length and its waveform. If Instagram adds transcripts, Kept will save them.
+
 ## [4.3.0] — 2026-10-31
 
 "Everything you saved." Tested end to end against live Instagram: opened on one of your collections, the popup switched to it by itself and exported its newest posts with their authors, links, dates and captions; "every collection" exported four collections into four folders with a gallery grouped the same way; "all saved posts" exported the newest saved posts.

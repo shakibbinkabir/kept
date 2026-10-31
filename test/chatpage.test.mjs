@@ -26,6 +26,7 @@ assert.ok(!/@import|url\(http/i.test(html));
 // Message text is written with textContent only.
 const js = html.slice(html.lastIndexOf("<script>"));
 assert.ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(js), "no HTML injection paths");
+new Function(js.slice(8, js.lastIndexOf("</script>"))); // the page's script must parse
 for (const id of ['id="q"', 'id="jump"', 'id="next"', 'id="prev"']) assert.ok(html.includes(id));
 
 // Pages in chats/ reach the media through a base path and link back.

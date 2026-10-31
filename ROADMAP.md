@@ -84,12 +84,12 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Saved posts and collections, with media, captions, authors, links and dates
 - Collection browser with search in the gallery page
 
-## 4.4: Chat insights
+## 4.4: Chat insights ✅ shipped in v4.4.0
 
 - Chat statistics: messages per person, active hours, first message
 - Statistics page with animated charts
 - Markdown chat export
-- Voice-note transcripts, where Instagram provides them
+- Voice-note transcripts, where Instagram provides them (it doesn't: Instagram's web data has no transcripts, only the audio, its length and waveform)
 
 ## 4.5: More from profiles
 

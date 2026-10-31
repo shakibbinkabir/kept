@@ -9,8 +9,8 @@
 // writes it with textContent.
 
 const CSS = `
-:root{--bg:#f3f6f8;--panel:#ffffff;--text:#16212a;--dim:#5d6b76;--theirs:#e6edf2;--mine:#0F4C75;--mine-text:#fff;--accent:#3282B8;--line:#dde5eb;--mark:#BBE1FA}
-@media (prefers-color-scheme:dark){:root{--bg:#11171b;--panel:#1B262C;--text:#e7eef3;--dim:#8fa1ad;--theirs:#24323b;--mine:#0F4C75;--mine-text:#eaf6ff;--accent:#3282B8;--line:#26343d;--mark:#3282B8}}
+:root{--bg:#f3f6f8;--panel:#ffffff;--text:#16212a;--dim:#5d6b76;--theirs:#e6edf2;--mine:#0F4C75;--mine-text:#fff;--accent:#3282B8;--line:#dde5eb;--mark:#BBE1FA;--bar:#3282B8}
+@media (prefers-color-scheme:dark){:root{--bg:#11171b;--panel:#1B262C;--text:#e7eef3;--dim:#8fa1ad;--theirs:#24323b;--mine:#0F4C75;--mine-text:#eaf6ff;--accent:#3282B8;--line:#26343d;--mark:#3282B8;--bar:#4A97CC}}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
@@ -68,12 +68,32 @@ footer{text-align:center;color:var(--dim);font-size:12px;padding:20px}
 .list a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;margin:6px 0;border-radius:14px;background:var(--panel);border:1px solid var(--line);color:inherit;text-decoration:none}
 .list a:hover{border-color:var(--accent)}.list small{color:var(--dim)}
 .cover{display:none}
+#stats{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.st{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.st .big{display:block;font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.st .label{color:var(--dim);font-size:13px}.st .more{display:block;font-size:13px;margin-top:4px;overflow-wrap:anywhere}
+.ch{grid-column:1/-1;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.ch h3{margin:0;font-size:15px}.ch .note{margin:2px 0 12px;color:var(--dim);font-size:13px}
+.cols{display:flex;align-items:flex-end;gap:2px;height:150px;border-bottom:1px solid var(--line)}
+.cols .b{flex:1;min-width:2px;height:100%;display:flex;align-items:flex-end;cursor:default}
+.cols i{display:block;width:100%;height:var(--h);min-height:1px;background:var(--bar);border-radius:4px 4px 0 0;transform-origin:bottom;transform:scaleY(0);transition:transform .7s cubic-bezier(.16,1,.3,1) var(--d,0ms)}
+.cols .b:hover i{opacity:.8}
+.axis{display:flex;justify-content:space-between;color:var(--dim);font-size:11px;margin-top:4px}.axis.each{gap:2px}.axis.each span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows .r{display:grid;grid-template-columns:minmax(70px,170px) 1fr minmax(48px,auto);gap:10px;align-items:center;margin:7px 0;font-size:14px}
+.rows .who2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rows .n{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+.rows .track{height:14px}
+.rows i{display:block;height:100%;width:var(--w);min-width:2px;background:var(--bar);border-radius:0 4px 4px 0;transform-origin:left;transform:scaleX(0);transition:transform .7s cubic-bezier(.16,1,.3,1) var(--d,0ms)}
+#stats.in .cols i{transform:scaleY(1)}#stats.in .rows i{transform:scaleX(1)}
+.ch details{margin-top:10px;font-size:13px;color:var(--dim)}.ch summary{cursor:pointer}
+.ch table{border-collapse:collapse;margin-top:6px;color:var(--text)}.ch td,.ch th{padding:2px 14px 2px 0;text-align:left;font-variant-numeric:tabular-nums;font-weight:400}
+#tip{position:fixed;z-index:30;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;padding:5px 9px;border-radius:8px;transform:translate(-50%,calc(-100% - 8px));white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.cols i,.rows i{transition:none;transform:none}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{
   @page{margin:18mm 16mm}
   :root{--bg:#fff;--panel:#fff;--text:#111;--dim:#555;--theirs:#eef2f5;--mine:#0F4C75;--mine-text:#fff;--line:#ccc}
   body{background:#fff;font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  header,#gallery,#viewer,footer,#loading,.who:empty{display:none!important}
+  header,#gallery,#viewer,#stats,#tip,footer,#loading,.who:empty{display:none!important}
   main{max-width:none;padding:0}
   .cover{display:flex;flex-direction:column;justify-content:center;min-height:240mm;break-after:page;text-align:center}
   .cover h1{font-size:30pt;margin:0 0 12pt}.cover p{margin:4pt 0;color:#444;font-size:13pt}.cover small{margin-top:40pt;color:#777}
@@ -204,11 +224,12 @@ function filter(kind) {
   for (const it of items) it.row.hidden = kind !== "all" && !it.row.dataset.k.split(" ").includes(kind);
   for (const s of document.querySelectorAll(".day")) s.hidden = ![...s.querySelectorAll(".msg")].some((r) => !r.hidden);
 }
-for (const c of chips) c.onclick = () => { showGallery(false); filter(c.dataset.f); };
+for (const c of chips) c.onclick = () => { showStats(false); showGallery(false); filter(c.dataset.f); };
 
 // Gallery: every photo and video in a grid; click one to view it full screen.
 const gallery = document.getElementById("gallery"), galleryBtn = document.getElementById("galleryBtn");
 function showGallery(on) {
+  if (on) showStats(false);
   galleryBtn.setAttribute("aria-pressed", String(on));
   gallery.hidden = !on; main.hidden = on;
   if (!on || gallery.children.length) return;
@@ -223,6 +244,116 @@ function showGallery(on) {
   if (!gallery.children.length) gallery.append(el("p", null, "No photos or videos in this chat."));
 }
 galleryBtn.onclick = () => showGallery(gallery.hidden);
+
+// Insights: who writes most, when you talk, and how it changed over time.
+const stats = document.getElementById("stats"), statsBtn = document.getElementById("statsBtn"), tip = document.getElementById("tip");
+const nf = (n) => n.toLocaleString();
+function tile(big, label, more) {
+  const t = el("div", "st"); t.append(el("span", "big", big), el("span", "label", label));
+  if (more) t.append(el("span", "more", more));
+  return t;
+}
+function table(rows) {
+  const d = el("details"), tb = el("table");
+  d.append(el("summary", null, "Show as a table"));
+  for (const [k, v] of rows) { const tr = el("tr"); tr.append(el("th", null, k), el("td", null, nf(v))); tb.append(tr); }
+  d.append(tb); return d;
+}
+function columns(title, note, rows, first, last) {
+  const box = el("div", "ch"), cols = el("div", "cols"), top = Math.max(1, ...rows.map((r) => r[1]));
+  box.append(el("h3", null, title), el("p", "note", note));
+  rows.forEach(([k, v], i) => {
+    const b = el("div", "b"), bar = el("i");
+    bar.style.setProperty("--h", (v / top) * 100 + "%"); bar.style.setProperty("--d", Math.min(i * 12, 600) + "ms");
+    b.dataset.tip = k + ": " + nf(v); b.append(bar); cols.append(b);
+  });
+  const axis = el("div", "axis" + (rows.length <= 12 ? " each" : ""));
+  if (rows.length <= 12) for (const [k] of rows) axis.append(el("span", null, k));
+  else axis.append(el("span", null, first), el("span", null, last));
+  box.append(cols, axis, table(rows)); return box;
+}
+function insights() {
+  const per = new Map(), hours = Array(24).fill(0), week = Array(7).fill(0), months = new Map(), days = new Map();
+  const totals = { photos: 0, videos: 0, voice: 0, links: 0, calls: 0, reactions: 0 };
+  for (const m of msgs) {
+    const d = new Date(m.timestamp_ms);
+    totals.reactions += (m.reactions || []).length;
+    if (m.call_duration != null) { totals.calls++; continue; }
+    per.set(m.sender_name, (per.get(m.sender_name) || 0) + 1);
+    hours[d.getHours()]++; week[(d.getDay() + 6) % 7]++;
+    const mk = d.getFullYear() + "-" + pad(d.getMonth() + 1); months.set(mk, (months.get(mk) || 0) + 1);
+    const dk = dayKey(d); days.set(dk, (days.get(dk) || 0) + 1);
+    totals.photos += (m.photos || []).length; totals.videos += (m.videos || []).length; totals.voice += (m.audio_files || []).length;
+    if (m.share || /https?:\\/\\//.test(m.content || "")) totals.links++;
+  }
+  stats.textContent = "";
+  if (!msgs.length) { stats.append(el("p", null, "No messages in this chat.")); return; }
+  // Headline facts.
+  const firstMsg = msgs[0], dayList = [...days.keys()].sort();
+  let best = ["", 0], run = 1, longest = [1, dayList[0], dayList[0]], start = dayList[0];
+  for (const [k, v] of days) if (v > best[1]) best = [k, v];
+  for (let i = 1; i < dayList.length; i++) {
+    const gap = Math.round((new Date(dayList[i] + "T12:00") - new Date(dayList[i - 1] + "T12:00")) / 864e5);
+    if (gap === 1) run++; else { run = 1; start = dayList[i]; }
+    if (run > longest[0]) longest = [run, start, dayList[i]];
+  }
+  const longDay = (k) => new Date(k + "T12:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const firstText = firstMsg.content ? (firstMsg.content.length > 120 ? firstMsg.content.slice(0, 120) + "…" : firstMsg.content) : (firstMsg.photos || []).length ? "A photo" : (firstMsg.audio_files || []).length ? "A voice note" : (firstMsg.videos || []).length ? "A video" : "";
+  stats.append(
+    tile(nf(msgs.length), "messages", nf(days.size) + " days with messages · " + nf(Math.round(msgs.length / Math.max(1, days.size))) + " a day on those days"),
+    tile(longDay(dayKey(new Date(firstMsg.timestamp_ms))), "first message", firstMsg.sender_name + (firstText ? ": “" + firstText + "”" : "")),
+    tile(nf(best[1]), "messages on the busiest day", longDay(best[0])),
+    tile(nf(longest[0]) + (longest[0] === 1 ? " day" : " days"), "longest daily streak", longest[0] > 1 ? longDay(longest[1]) + " – " + longDay(longest[2]) : ""),
+    tile(nf(totals.photos) + " · " + nf(totals.videos), "photos · videos"),
+    tile(nf(totals.voice) + " · " + nf(totals.calls), "voice notes · calls"),
+    tile(nf(totals.links) + " · " + nf(totals.reactions), "links · reactions")
+  );
+  // Who writes most: horizontal bars, labelled.
+  const people = [...per].sort((a, b) => b[1] - a[1]), topP = people[0][1];
+  const pb = el("div", "ch"), rows = el("div", "rows");
+  pb.append(el("h3", null, "Messages per person"), el("p", "note", people.length > 1 ? people[0][0] + " sent " + Math.round((topP / msgs.length) * 100) + "% of messages." : ""));
+  people.slice(0, 12).forEach(([name, n], i) => {
+    const r = el("div", "r"), track = el("div", "track"), bar = el("i");
+    bar.style.setProperty("--w", (n / topP) * 100 + "%"); bar.style.setProperty("--d", i * 40 + "ms");
+    track.append(bar); r.append(el("span", "who2", name), track, el("span", "n", nf(n))); rows.append(r);
+  });
+  pb.append(rows, table(people)); stats.append(pb);
+  // When: hours and weekdays.
+  const peakH = hours.indexOf(Math.max(...hours));
+  stats.append(columns("Messages by hour", "Busiest hour: " + pad(peakH) + ":00–" + pad((peakH + 1) % 24) + ":00, " + nf(hours[peakH]) + " messages.", hours.map((v, h) => [pad(h) + ":00", v]), "00:00", "23:00"));
+  const names = [...Array(7)].map((_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(undefined, { weekday: "short" }));
+  const peakW = week.indexOf(Math.max(...week));
+  stats.append(columns("Messages by weekday", "Most on " + new Date(2024, 0, 1 + peakW).toLocaleDateString(undefined, { weekday: "long" }) + "s.", week.map((v, i) => [names[i], v]), names[0], names[6]));
+  // Over time: months (years for very long chats), gaps filled with zero.
+  const keys = [...months.keys()].sort(), series = [];
+  const [y0, m0] = keys[0].split("-").map(Number), [y1, m1] = keys[keys.length - 1].split("-").map(Number);
+  const span = (y1 - y0) * 12 + (m1 - m0) + 1;
+  if (span > 48) {
+    for (let y = y0; y <= y1; y++) series.push([String(y), keys.filter((k) => k.startsWith(y + "-")).reduce((n, k) => n + months.get(k), 0)]);
+  } else {
+    for (let i = 0; i < span; i++) {
+      const d = new Date(y0, m0 - 1 + i, 1), k = d.getFullYear() + "-" + pad(d.getMonth() + 1);
+      series.push([d.toLocaleDateString(undefined, { month: "short", year: "numeric" }), months.get(k) || 0]);
+    }
+  }
+  const peakT = series.reduce((a, b) => (b[1] > a[1] ? b : a));
+  stats.append(columns(span > 48 ? "Messages per year" : "Messages per month", "Busiest: " + peakT[0] + ", " + nf(peakT[1]) + " messages.", series, series[0][0], series[series.length - 1][0]));
+}
+function showStats(on) {
+  statsBtn.setAttribute("aria-pressed", String(on));
+  stats.hidden = !on;
+  if (on) { gallery.hidden = true; galleryBtn.setAttribute("aria-pressed", "false"); main.hidden = true; stats.classList.remove("in"); insights(); requestAnimationFrame(() => requestAnimationFrame(() => stats.classList.add("in"))); }
+  else if (gallery.hidden) main.hidden = false;
+}
+statsBtn.onclick = () => showStats(stats.hidden);
+stats.addEventListener("mouseover", (e) => {
+  const b = e.target.closest("[data-tip]");
+  if (!b) { tip.hidden = true; return; }
+  const r = b.getBoundingClientRect();
+  tip.textContent = b.dataset.tip; tip.hidden = false;
+  tip.style.left = r.left + r.width / 2 + "px"; tip.style.top = r.bottom - b.firstChild.offsetHeight + "px";
+});
+stats.addEventListener("mouseleave", () => (tip.hidden = true));
 
 // Full-screen viewer: arrows or ← → to move, Esc to close.
 const viewer = document.getElementById("viewer"), vImg = document.getElementById("vImg"), vVideo = document.getElementById("vVideo"), vCount = document.getElementById("vCount");
@@ -334,10 +465,11 @@ export function chatPage(chat, { exportedAt = new Date(), base = "", back = "", 
 <div class="tools"><input id="q" type="search" placeholder="Search messages" aria-label="Search messages"><span id="count" aria-live="polite"></span>
 <button id="prev" title="Previous result (Shift+Enter)" aria-label="Previous result">↑</button><button id="next" title="Next result (Enter)" aria-label="Next result">↓</button>
 <input id="jump" type="date" aria-label="Jump to date" title="Jump to date"><button id="print" title="Print the chat as a book, or save it as a PDF">Print / PDF</button></div>
-<div class="chips" role="toolbar" aria-label="Show"><button class="chip" data-f="all" aria-pressed="true">All</button><button class="chip" data-f="photo" aria-pressed="false">Photos</button><button class="chip" data-f="video" aria-pressed="false">Videos</button><button class="chip" data-f="audio" aria-pressed="false">Voice notes</button><button class="chip" data-f="link" aria-pressed="false">Links</button><button class="chip" data-f="call" aria-pressed="false">Calls</button><button class="chip" id="galleryBtn" aria-pressed="false">Gallery</button></div></header>
+<div class="chips" role="toolbar" aria-label="Show"><button class="chip" data-f="all" aria-pressed="true">All</button><button class="chip" data-f="photo" aria-pressed="false">Photos</button><button class="chip" data-f="video" aria-pressed="false">Videos</button><button class="chip" data-f="audio" aria-pressed="false">Voice notes</button><button class="chip" data-f="link" aria-pressed="false">Links</button><button class="chip" data-f="call" aria-pressed="false">Calls</button><button class="chip" id="galleryBtn" aria-pressed="false">Gallery</button><button class="chip" id="statsBtn" aria-pressed="false">Insights</button></div></header>
 <section class="cover" aria-hidden="true"><h1>${title}</h1><p>${escapeHtml(people)}</p><p>${span}</p><p>${msgs.length} messages</p><small>Kept on ${escapeHtml(exportedAt.toLocaleDateString("en-GB"))}</small></section>
 <main id="chat"><p id="loading">Loading…</p></main>
 <section id="gallery" hidden aria-label="Photos and videos"></section>
+<section id="stats" hidden aria-label="Chat insights"></section><div id="tip" hidden></div>
 <div id="viewer" hidden role="dialog" aria-modal="true" aria-label="Photo and video viewer">
 <div class="bar"><span id="vCount"></span><span><button id="vShow">Show in chat</button> <button id="vClose" aria-label="Close (Esc)">Close</button></span></div>
 <div class="stage"><button id="vPrev" aria-label="Previous (←)">←</button><div><img id="vImg" alt="Photo"><video id="vVideo" controls hidden></video></div><button id="vNext" aria-label="Next (→)">→</button></div>
