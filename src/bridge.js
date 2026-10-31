@@ -166,8 +166,10 @@
         afterEnd = !start && /ended|missed/i.test(text);
         continue;
       }
-      // Placeholders for shares that are no longer available are dropped too.
-      if (/Placeholder/.test(c.xma?.__typename || "") && !node.text_body) continue;
+      // Placeholders for shares that are no longer available are dropped too,
+      // unless they carry text or reactions, which the normalizer keeps.
+      const hasText = node.text_body || c.text_body || c.xma_text_body;
+      if (/Placeholder/.test(c.xma?.__typename || "") && !hasText && !node.reactions?.length) continue;
       n++;
     }
     return n;

@@ -12,6 +12,7 @@ import { createZip } from "./src/zip.js";
 import {
   resolveUser,
   paginateFeed,
+  paginateReels,
   extractMedia,
   shortcodeToMediaId,
   getMediaInfo,
@@ -153,9 +154,9 @@ async function fetchQueueToEntries(jobId, queue, label) {
 
 /* ===== enumeration ===== */
 
-// Collect normalized posts from a user's grid, honoring the mode filter
-// (e.g. reels-only) and the count/date filters. Returns newest-first.
-async function collectItems(jobId, username, modeFilter, filter) {
+// Collect normalized posts from a pager (the posts grid or the Reels tab),
+// honoring the mode filter and the count/date filters. Returns newest-first.
+async function collectItems(jobId, pager, modeFilter, filter) {
   const collected = [];
   const seen = new Set();
   const fromTs = filter?.fromDate ? Math.floor(Date.parse(filter.fromDate + "T00:00:00") / 1000) : null;
@@ -164,7 +165,7 @@ async function collectItems(jobId, username, modeFilter, filter) {
   let unpinned = 0;
 
   let stop = false;
-  await paginateFeed(username, (rawItems) => {
+  await pager((rawItems) => {
     for (const raw of rawItems) {
       const ex = extractMedia(raw);
       if (seen.has(ex.shortcode)) continue;
@@ -225,7 +226,11 @@ function planPostFiles(post, { imagesOnly = false } = {}) {
 // Shared pipeline for the foldered ZIP modes (posts / images).
 async function exportFolderedZip(job, user, { imagesOnly }) {
   const { jobId } = job;
-  const items = await collectItems(jobId, user.username, () => true, job.options.filter);
+  // Images-only counts posts that have an image, so "most recent 5" means five
+  // posts with images, not the five newest posts minus the reels among them.
+  const hasImage = (ex) => ex.media.some((m) => !m.isVideo && !m.isThumb);
+  const grid = (onItems) => paginateFeed(user.username, onItems);
+  const items = await collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter);
 
   // Attach a planned file list to each post; drop posts that contribute nothing.
   const posts = [];
@@ -289,7 +294,9 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
 
 async function exportReels(job, user) {
   const { jobId } = job;
-  const reels = await collectItems(jobId, user.username, (ex) => ex.kind === "reel", job.options.filter);
+  // The Reels tab, not the grid: reels can be hidden from the posts grid.
+  const tab = (onItems) => paginateReels(user.id, onItems);
+  const reels = await collectItems(jobId, tab, (ex) => ex.kind === "reel", job.options.filter);
   if (reels.length === 0) throw new IGError("No reels found for this selection.", 0);
 
   const queue = [];

@@ -584,7 +584,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (message.type === "IG_EXPORTER_SUCCESS") {
       const data = message.result;
       // Keep letters from any script so non-Latin names stay readable.
-      const safeTitle = (data.title || "thread").replace(/[\uFE00-\uFE0F\u200D]/g, "").replace(/[^\p{L}\p{M}\p{N}_-]+/gu, "_");
+      let safeTitle = (data.title || "thread").replace(/[\uFE00-\uFE0F\u200D]/g, "").replace(/[^\p{L}\p{M}\p{N}_-]+/gu, "_");
+      if (/^_*$/.test(safeTitle)) safeTitle = "thread"; // an emoji-only name leaves nothing readable
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `instagram_${safeTitle}_${timestamp}.json`;
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });

@@ -2,6 +2,22 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.3.0] — 2026-10-31
+
+Every feature was tested end to end in a real browser against live Instagram for this release: all profile modes and filters on a public and a private account, the open post / reel / highlight / story detection, the popup's input checks and Retry, and DM capture, scroll and auto-scroll, export and thread switching. Each download was opened and checked: every file matches its index, and every image and video is the format its name says.
+
+### Fixed
+
+- **"All reels" missed reels that aren't on the posts grid.** It filtered the grid, but reels can be hidden from it and then only appear on the profile's Reels tab. An account whose reels were all off the grid got *No reels found*. Reels now come from the Reels tab, with each reel's video, date and caption fetched separately.
+- **"All images" with *Most recent N* or *Oldest N* counted video posts.** It took the N newest posts of any kind and then dropped the videos, so an account posting mostly reels returned fewer than N images or *No images found*. Only posts with an image count now.
+- **"Profile picture" saved Instagram's grey placeholder** for accounts with no photo. It now says *No profile picture available*.
+- **The chat capture count could read lower than the export.** Shared posts that are no longer available but have reactions were exported (with their reactions) but not counted. A thread with seven of them counted 190 messages and exported 197.
+- **A chat with an emoji-only name was saved as `instagram___<time>.json`.** Names with nothing readable left now fall back to `instagram_thread_<time>.json`.
+
+### Added
+
+- README: a **Status & maintenance** section with how often releases ship and when each feature was last verified, plus live badges for the latest release and the last update. The version badge now reads the latest release automatically.
+
 ## [3.2.3] — 2026-10-31
 
 ### Fixed

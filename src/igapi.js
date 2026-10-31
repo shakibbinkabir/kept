@@ -24,6 +24,7 @@ const DOC_TIMELINE = "39527599490219966"; // PolarisProfilePostsTabContentQuery_
 const DOC_USER = "28036671149327607"; // profile header info, by user id
 const DOC_HIGHLIGHTS = "26970053832668570"; // PolarisProfileStoryHighlightsTrayContentQuery: by user id
 const DOC_REEL = "29341065465524437"; // PolarisStoriesV3ReelPageStandaloneQuery: a story ring or highlight
+const DOC_REELS_TAB = "39544804838467783"; // PolarisProfileReelsTabContentQuery_connection: a user's reels, by user id
 const TIMELINE_FLAGS = {
   include_multi_captions: true,
   __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: true,
@@ -150,7 +151,8 @@ export async function resolveUser(username) {
     is_private: isPrivate,
     // friendship_status is null on your own profile, which you can always see.
     can_view: !isPrivate || !user.friendship_status || !!user.friendship_status.following,
-    profile_pic_url_hd: user.hd_profile_pic_url_info?.url || user.profile_pic_url || hit.profile_pic_url || "",
+    // Without a photo these URLs point at Instagram's grey placeholder.
+    profile_pic_url_hd: user.has_profile_pic === false ? "" : user.hd_profile_pic_url_info?.url || user.profile_pic_url || hit.profile_pic_url || "",
   };
 }
 
@@ -180,6 +182,44 @@ export async function paginateFeed(username, onItems, { pageDelayMs = 600 } = {}
     if (!after) break;
     await delay(pageDelayMs);
   } while (true);
+}
+
+/**
+ * Walk a user's Reels tab: every reel, including ones hidden from the posts
+ * grid, newest first after any pinned reels. The tab only lists reel ids, so
+ * each reel's full item (video URL, date, caption) comes from media info.
+ * onItems(rawItems) may return true to stop early.
+ */
+export async function paginateReels(userId, onItems, { pageDelayMs = 600 } = {}) {
+  let after = null;
+  do {
+    const data = await graphql(DOC_REELS_TAB, {
+      after,
+      data: {},
+      first: 12,
+      id: String(userId),
+      __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: true,
+    });
+    const conn = data.fetch__XDTUserDict?.clips_connection;
+    if (!conn) throw new IGError("Instagram returned no reels tab.", 0);
+
+    // ponytail: one media-info request per reel, so "Everything" on an account
+    // with thousands of reels is slow. Reels that are also on the grid
+    // (node.media.is_in_profile_grid) could take the grid query's data instead.
+    for (const { node } of conn.edges || []) {
+      let item;
+      try {
+        item = await getMediaInfo(node.media.pk);
+      } catch (err) {
+        if (err.status === 404) continue; // deleted since the tab was listed
+        throw err;
+      }
+      if (await onItems([item])) return;
+    }
+
+    after = conn.page_info?.has_next_page ? conn.page_info.end_cursor : null;
+    if (after) await delay(pageDelayMs);
+  } while (after);
 }
 
 function pickImageUrl(node) {
@@ -235,8 +275,8 @@ export function extractMedia(item) {
     productType,
     kind,
     caption: item.caption?.text || "",
-    // Pinned posts lead the grid out of date order.
-    pinned: !!item.timeline_pinned_user_ids?.length,
+    // Pinned posts lead the grid (and pinned reels the Reels tab) out of date order.
+    pinned: !!(item.timeline_pinned_user_ids?.length || item.clips_tab_pinned_user_ids?.length),
     media,
   };
 }
