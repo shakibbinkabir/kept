@@ -19,14 +19,14 @@ Kept (called IG Exporter until 4.0) runs entirely in your browser. There is no s
 | Access to `instagram.com`, `cdninstagram.com`, `fbcdn.net` and `fbsbx.com` | To load what you export from Instagram and its media servers |
 | `downloads` | To save the export files you ask for, and show them in their folder |
 | `downloads.open` | To open a chat you saved as a folder, when you click **Open chat** |
-| `offscreen` | To build ZIP files in the background, so closing the popup doesn't stop an export |
+| `offscreen` (Chrome only) | To build ZIP files in the background, so closing the popup doesn't stop an export. Firefox runs the same code in the extension's background page instead |
 | `storage` | To remember Instagram's current query ids, your settings, which posts you've already saved, and your export history |
 | `scripting`, `activeTab` | To reconnect to an instagram.com tab that was open before the extension was installed or reloaded |
 
 ## Promises
 
 - No remote code: everything the extension runs is in this repository.
-- No ads, no tracking, no analytics, no selling of data.
+- No ads, no tracking, no analytics, no selling of data. On Firefox Add-ons, Kept declares that it collects no data.
 - Open source under the MIT license, so anyone can check all of the above.
 - **Never for sale.** Kept won't be sold or handed to anyone who might change these rules. Browser extensions in this category have turned malicious after being sold; this one won't be.
 

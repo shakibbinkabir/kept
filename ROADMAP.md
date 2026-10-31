@@ -121,12 +121,17 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - UI translations, with layouts that also work right to left
 - Full accessibility pass
 
-## 5.0: Public launch
+## 5.0: Public launch ✅ shipped in v5.0.0
 
-- Chrome Web Store listing, described as "back up your Instagram data"
-- Store artwork: screenshots, promo tiles, a short demo video
-- Store listing written around what people search for
-- Website updated with store links
+- Listed on Firefox Add-ons, described as "back up your Instagram data"
+- Store artwork: screenshots of the chat archive, the popup and the Export Center
+- Listing written around what people search for
+- README and website point to the listing
+
+## Next
+
+- Chrome Web Store listing (on hold for now; Chrome, Brave and Edge install from the GitHub release meanwhile)
+- A short demo video for the listings
 
 ## Every release
 

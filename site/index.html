@@ -39,13 +39,10 @@
       <h1 class="reveal">Your Instagram,<br />kept.</h1>
       <p class="sub reveal">Chats with their photos and voice notes, posts, reels and stories. Saved to your own computer. Free and open source.</p>
       <p class="ctas reveal">
-        <a class="pill big" href="{{REPO}}/releases/latest">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
-          Download Kept
-        </a>
-        <a class="ghost" href="#how">See how it works</a>
+        <a class="pill big" href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Add to Firefox</a>
+        <a class="pill big alt" href="#install"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Chrome, Brave, Edge</a>
       </p>
-      <p class="meta reveal">Chrome · Brave · Edge · Firefox &nbsp;·&nbsp; v{{VERSION}} &nbsp;·&nbsp; MIT licence</p>
+      <p class="meta reveal">Free &nbsp;·&nbsp; v{{VERSION}} &nbsp;·&nbsp; MIT licence</p>
 
       <div class="stage" id="stage">
         <div class="stage-ring" data-depth="0.12">
@@ -169,13 +166,19 @@ Ana: Then I can stop worrying about my phone.</textarea>
 
     <section class="install" id="install">
       <h2 class="reveal">Set up in a minute.</h2>
+      <a class="way reveal" href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        <span><b>Firefox</b><span>One click on Firefox Add-ons. It keeps itself up to date.</span></span>
+        <span class="go">Add to Firefox</span>
+      </a>
+      <h3 class="reveal way-title">Chrome, Brave or Edge</h3>
       <ol class="steps">
         <li class="reveal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg><b>Download</b><span>Get the <a href="{{REPO}}/releases/latest">latest release</a> and unzip it.</span></li>
         <li class="reveal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" /><path d="M3 9h18" /></svg><b>Open extensions</b><span>Go to chrome://extensions in Chrome, Brave or Edge.</span></li>
         <li class="reveal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="5" /><circle cx="17" cy="12" r="2.5" /></svg><b>Developer mode</b><span>Turn it on, top right.</span></li>
         <li class="reveal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg><b>Load unpacked</b><span>Choose the folder, then pin the ring.</span></li>
       </ol>
-      <p class="install-note reveal">Firefox 140 or later: load the Firefox ZIP from the release page in about:debugging. A Chrome Web Store listing is on the way.</p>
+      <p class="install-note reveal">A Chrome Web Store listing comes later. Until then, a new release is one download and one click on the reload arrow.</p>
     </section>
 
     <section class="faq" id="faq">
@@ -189,7 +192,7 @@ Ana: Then I can stop worrying about my phone.</textarea>
         <details><summary>Can I download only new posts?</summary><p>Yes. Tick "Only what I haven't downloaded yet". Kept remembers what each export saved.</p></details>
         <details><summary>What about private accounts?</summary><p>You can save what your account can already see: public accounts, and private ones you follow.</p></details>
         <details><summary>Will Instagram mind?</summary><p>Kept uses your normal session, paces its requests and waits when Instagram asks. It only reads; it never posts, likes or follows.</p></details>
-        <details><summary>Which browsers?</summary><p>Chrome, Brave, Edge and other Chromium browsers on a computer, and Firefox 140 or later. Not Safari or phones yet.</p></details>
+        <details><summary>Which browsers?</summary><p>Firefox 140 or later, from Firefox Add-ons; and Chrome, Brave, Edge and other Chromium browsers on a computer, from the GitHub release. Not Safari or phones yet.</p></details>
         <details><summary>Something broke?</summary><p>Click Check Instagram in the popup, then Report a problem. It opens a GitHub issue with the details filled in, usernames removed, for you to review.</p></details>
       </div>
     </section>
@@ -207,13 +210,14 @@ Ana: Then I can stop worrying about my phone.</textarea>
 
     <section class="final">
       <h2 class="reveal">Free, and yours to keep.</h2>
-      <p class="lede reveal">Version {{VERSION}} for Chrome, Brave, Edge and Firefox.</p>
-      <p class="ctas reveal"><a class="pill big" href="{{REPO}}/releases/latest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Download Kept</a><a class="ghost" href="{{REPO}}">Read the source</a></p>
+      <p class="lede reveal">Version {{VERSION}} for Firefox, Chrome, Brave and Edge.</p>
+      <p class="ctas reveal"><a class="pill big" href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Add to Firefox</a><a class="pill big alt" href="{{REPO}}/releases/latest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>Download for Chrome</a></p>
+      <p class="meta reveal"><a href="{{REPO}}">Read the source</a></p>
     </section>
   </main>
 
   <footer class="footer">
-    <p class="links"><a href="#top">Home</a><a href="#features">Features</a><a href="#how">How it works</a><a href="#privacy">Privacy</a><a href="#faq">FAQ</a><a href="changelog.html">Changelog</a><a href="{{REPO}}">GitHub</a><a href="{{REPO}}/releases">Releases</a><a href="{{REPO}}/issues">Report a problem</a></p>
+    <p class="links"><a href="#top">Home</a><a href="#features">Features</a><a href="#how">How it works</a><a href="#privacy">Privacy</a><a href="#faq">FAQ</a><a href="changelog.html">Changelog</a><a href="{{REPO}}">GitHub</a><a href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/">Firefox Add-ons</a><a href="{{REPO}}/releases">Releases</a><a href="{{REPO}}/issues">Report a problem</a></p>
     <p>Kept is free to use, change and share under the <a href="{{REPO}}/blob/main/LICENSE">MIT licence</a>. It is an independent project, not affiliated with Instagram or Meta.</p>
     <p>Made by <a href="https://github.com/shakibbinkabir">Shakib Bin Kabir</a>. This site sets no cookies and loads nothing from anywhere else.</p>
     <p class="credits">{{CREDITS}}</p>

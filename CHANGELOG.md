@@ -2,6 +2,19 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [5.0.0] — 2026-11-01
+
+"Public launch." Kept is on Firefox Add-ons. Tested end to end in Brave against live Instagram before release: every check in Check Instagram passed (finding accounts, posts, reels, stories, highlights, single posts and chats); a chat of 269 messages exported with all 33 of its photos and shared-post pictures, its 17 shares drawn as Instagram's cards; and an export of an account's 3 latest posts saved a carousel, an image and a reel joined into one MP4. Mozilla's add-on checker finds no errors in the Firefox package.
+
+### Added
+
+- **On Firefox Add-ons:** [addons.mozilla.org/firefox/addon/kept-instagram-backup](https://addons.mozilla.org/firefox/addon/kept-instagram-backup/). Firefox 140 or later installs it in one click and keeps it up to date. The listing text is in `docs/store-listing.md`.
+
+### Changed
+
+- The README, the website and the privacy notes point to Firefox Add-ons; Chrome, Brave and Edge still install from the GitHub release. A Chrome Web Store listing comes later.
+- The roadmap's 5.0 is done; a Chrome Web Store listing and a short demo video are next.
+
 ## [4.9.3] — 2026-11-01
 
 "A website you can take in at a glance." Checked at desktop, tablet and phone widths: every headline fits in two lines, nothing runs off the side, and the pictures, the sample chat and the three steps all work.

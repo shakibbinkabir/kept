@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://kept.thisissbk.com">Website</a> ·
+  <a href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/">Firefox Add-ons</a> ·
   <a href="https://github.com/shakibbinkabir/kept/releases/latest">Download</a> ·
   <a href="#installation">Install</a> ·
   <a href="#faq">FAQ</a> ·
@@ -20,12 +21,13 @@
   <a href="https://github.com/shakibbinkabir/kept/releases"><img src="https://img.shields.io/github/v/release/shakibbinkabir/kept?label=version&color=0f4c75" alt="Latest version" /></a>
   <a href="https://github.com/shakibbinkabir/kept/releases/latest"><img src="https://img.shields.io/github/release-date/shakibbinkabir/kept?label=released&color=3282b8" alt="Latest release date" /></a>
   <a href="https://github.com/shakibbinkabir/kept/commits/main"><img src="https://img.shields.io/github/last-commit/shakibbinkabir/kept?label=last%20update&color=3282b8" alt="Last update" /></a>
+  <a href="https://addons.mozilla.org/firefox/addon/kept-instagram-backup/"><img src="https://img.shields.io/badge/Firefox-Add--ons-ff7139.svg" alt="Firefox Add-ons" /></a>
   <a href="https://developer.chrome.com/docs/extensions/mv3/intro/"><img src="https://img.shields.io/badge/Manifest-V3-green.svg" alt="Manifest V3" /></a>
 </p>
 
 <p align="center"><img src="docs/hero.png" width="860" alt="The Kept popup after saving a chat, beside the offline chat page it creates (sample chat)" /></p>
 
-Kept (called IG Exporter until 4.0) is a browser extension for Chrome, Brave, Edge and other Chromium browsers that:
+Kept (called IG Exporter until 4.0) is a browser extension for Firefox, Chrome, Brave, Edge and other Chromium browsers that:
 
 1. **Saves Instagram chats**: one, several, or your whole inbox, with photos, videos and voice notes, in the same format as Instagram's own "Download Your Information" export, plus a page to read them offline. Minutes instead of days.
 2. **Saves posts, images, reels, stories, highlights and profile pictures** from any public account, or a private account you follow, as a ZIP or straight into a folder.
@@ -95,6 +97,7 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Read it offline** — every archive opens with an `index.html` that shows the chat like a messaging app: bubbles, day headings, inline photos, videos and playable voice notes, **search** (Enter / Shift+Enter steps through matches) and **jump to a date**. No internet needed; nothing loads from outside.
 - **Several chats, or the whole inbox** — pick chats from your list (Inbox and Message requests) or tick **Every chat in these folders**; they're fetched for you, no scrolling, and land in one ZIP with an inbox page linking to each chat.
 - **Date range** — export only the messages between two dates, for one chat or many.
+- **Shares look like Instagram** — shared reels, posts, profiles and story mentions show as Instagram's own cards (the owner's photo and name, the picture, the caption, "Mentioned you in their story"), with the pictures saved in the archive.
 - **Filters and a gallery** — in the offline page, show only photos, videos, voice notes, links or calls, or browse every photo and video in a grid.
 - **Photos full screen, voice notes with a waveform** — click any photo (or anything in the gallery) to view it full screen and step through them with the arrow keys; voice notes play from a waveform you can click to jump around.
 - **Print it as a book, or save it as a PDF** — **Print / PDF** lays the chat out with a cover page, a heading for each day and clean page breaks, using your browser's own print dialog.
@@ -120,12 +123,12 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.8.0 |
-| Current stories | ✅ Working | 2026-10-31 · v4.8.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.8.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-11-01 · v5.0.0 |
+| Current stories | ✅ Working | 2026-11-01 · v5.0.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-11-01 · v5.0.0 |
 | Profile picture | ✅ Working | 2026-10-31 · v4.8.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v4.8.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.8.0 |
+| Single post / reel | ✅ Working | 2026-11-01 · v5.0.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-11-01 · v5.0.0 |
 | Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.8.0 |
 | Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.8.0 |
 | Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.8.0 |
@@ -137,7 +140,7 @@ Every release is tested end to end in a real browser against live Instagram:
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
-What's coming next, release by release up to 5.0, is in [ROADMAP.md](ROADMAP.md).
+What's done and what comes next is in [ROADMAP.md](ROADMAP.md).
 
 Something broken that this table says works? Click **Report a problem** in the popup (or **Report** on an error). It opens a GitHub issue filled in with the error and the check results, usernames removed, for you to review and post.
 
@@ -145,20 +148,20 @@ Something broken that this table says works? Click **Report a problem** in the p
 
 ## Installation
 
-This extension is distributed as an unpacked Chrome Extension. It is **not** on the Chrome Web Store.
+**Firefox (140 or later).** Install Kept from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kept-instagram-backup/). It updates itself. The first time you open it, click **Allow access to Instagram**.
 
-1. Download or clone this repository:
+**Chrome, Brave, Edge and other Chromium browsers.** Kept isn't on the Chrome Web Store yet, so it's installed by hand from this repository:
+
+1. Download the [latest release](https://github.com/shakibbinkabir/kept/releases/latest) and unzip it, or clone the repository:
    ```bash
    git clone https://github.com/shakibbinkabir/kept.git
    ```
 2. Open Chrome and navigate to `chrome://extensions/`.
 3. Toggle **Developer mode** on (top-right).
-4. Click **Load unpacked** and select the cloned `kept` folder.
+4. Click **Load unpacked** and select the unzipped (or cloned) `kept` folder.
 5. Pin the extension to your toolbar for easy access.
 
-Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
-
-**Firefox (140 or later).** Download `kept-firefox-<version>.zip` from the [latest release](https://github.com/shakibbinkabir/kept/releases/latest), open `about:debugging`, choose **This Firefox → Load Temporary Add-on**, and pick the ZIP. Firefox removes temporary add-ons when it closes. The first time you open Kept, click **Allow access to Instagram**. The Firefox build is new; please report anything that doesn't work.
+Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi). To update, download the new release and click the reload arrow on Kept's card.
 
 **Languages.** Kept follows your browser's language: English, বাংলা, العربية (right to left) and Español.
 
@@ -244,7 +247,7 @@ Exporting a whole inbox takes time: the extension paces its requests so Instagra
 ## FAQ
 
 **How do I export one Instagram chat?**
-Open the conversation on instagram.com in Chrome (or another Chromium browser), click Kept, then **Start capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
+Open the conversation on instagram.com in Firefox, Chrome or another Chromium browser, click Kept, then **Start capture**, **Auto-scroll**, and **Export chat**. See [Usage — Chat export](#usage--chat-export).
 
 **Can I download all my Instagram messages at once?**
 Yes. Click **Several chats, or the whole inbox** in the Chats tab, pick **Inbox** (and **Message requests** if you want those), tick **Every chat in these folders**, and click **Export**. See [Several chats, or your whole inbox](#several-chats-or-your-whole-inbox).
@@ -279,8 +282,8 @@ Open the profile, click Kept, switch to **Profiles**, pick *Current stories*, *S
 **It stopped working. What now?**
 Click **Check Instagram** in the popup to see what's broken, then **Report a problem**. Instagram changes things often; fixes usually ship in a new release.
 
-**Why isn't it on the Chrome Web Store?**
-It will be (see the [roadmap](ROADMAP.md)). For now, install it from this repository as shown below.
+**Is it on Firefox Add-ons or the Chrome Web Store?**
+It's on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/kept-instagram-backup/). A Chrome Web Store listing comes later; until then Chrome, Brave and Edge users install it from this repository, as shown under [Installation](#installation).
 
 ---
 
@@ -307,7 +310,7 @@ The output mirrors Instagram's official DYI export at the top level:
 }
 ```
 
-Each message may additionally include any of: `photos`, `videos`, `audio_files`, `share`, `reactions`, `call_duration`. Shared posts, reels, stories, profiles, and links all become a `share` with a `link` to the original.
+Each message may additionally include any of: `photos`, `videos`, `audio_files`, `share`, `reactions`, `call_duration`. Shared posts, reels, stories, profiles, and links all become a `share` with a `link` to the original. Kept adds the card details Instagram's export leaves out: `preview` and `owner_icon` (pointing at the saved pictures), `owner_subtitle`, `owner_verified`, `eyebrow` (such as "Mentioned you in their story") and `kind` (`portrait`, `post`, `profile` or `quote`, how Instagram draws the card).
 
 ---
 
@@ -379,7 +382,7 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 - **`creation_timestamp`** on media is derived from the message timestamp when Instagram doesn't expose a separate one.
 - **Call events** are collapsed to one message per call (Instagram sends a "started" notice, then an "ended" or "missed" one), with the "started" text as `content`. Instagram's web API no longer exposes a duration, so `call_duration` is the gap between the two notices in seconds: it includes the time the call rang before it was answered, so it can read up to about a minute over the real talk time. Missed calls get `0`. The pairing matches Instagram's English notice text; in another UI language calls export as two plain text rows without a duration.
 - **Emojis are preserved natively** rather than mimicking the DYI export's well-known mojibake (`ð`) encoding.
-- **Unsupported/expired rows are skipped.** "Message unavailable" placeholders and view-once media whose URL has already expired carry no content, so they're dropped rather than exported as empty messages.
+- **Unsupported/expired rows are skipped.** "Message unavailable" placeholders with nothing else in them, and view-once media whose URL has already expired, carry no content, so they're dropped rather than exported as empty messages. Expired story mentions are kept, as Instagram shows them: "Mentioned you in their story · Story unavailable".
 
 ---
 
@@ -427,12 +430,14 @@ kept/
 │   ├── evidence.js        # evidence mode: file hashes, fingerprint, export record
 │   ├── inpage.js          # the save button on photos and videos on instagram.com
 │   ├── i18n.js            # translations: data-i18n attributes, t() and tr(), right-to-left
+│   ├── datepicker.js      # Kept's date picker for every date field (also copied into chat archives)
+│   ├── dates.js           # starts the date picker in the popup
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
 ├── test/                  # self-checks: node test/<name>.test.mjs
 ├── styles/                # tokens.css (design tokens, light and dark), popup.css, center.css
-├── docs/                  # README images
+├── docs/                  # README images, and the store listing text (store-listing.md)
 ├── fonts/                 # Manrope (SIL Open Font License), bundled
 ├── icons/                 # extension icons + ui.svg, the interface icon set
 ├── brand/                 # the Keeper ring kit, usage notes, and the script that draws it
@@ -454,7 +459,7 @@ Issues and PRs welcome. Good first contributions:
 - More content types in `normalizer.js` (stickers, polls, story replies)
 - Tighter validation in `schema.js`
 - Better thread-title fallbacks for group chats
-- Trying the Firefox build in Firefox and reporting what breaks
+- Using Kept in Firefox and reporting what breaks
 - Translations into more languages (one file in `_locales/`)
 
 Please keep the project dependency-free. The whole point is that a privacy-sensitive user can read every line before installing.
