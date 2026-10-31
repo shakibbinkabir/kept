@@ -40,7 +40,7 @@ const out = normalize(info, [
   }),
   node(4000, me, 'MESSAGE_INLINE_SHARE', {
     __typename: 'SlideMessageXMAContent',
-    xma: { target_url: 'https://www.instagram.com/reel/abc/', header_title_text: 'owner' },
+    xma: { target_url: 'https://www.instagram.com/reel/abc/', header_title_text: 'owner', preview_image: { url: 'https://cdn/reel.jpg' } },
   }),
   // Answered call: started + ended fold into one message, 60s apart.
   call(5000, them, 'Other started an audio call'),
@@ -66,6 +66,18 @@ const out = normalize(info, [
     __typename: 'SlideMessageXMAContent',
     xma: { __typename: 'SlideMessagePlaceholderXMA', title_text: 'Message unavailable' },
   }), // placeholder → dropped
+  node(9500, them, 'MONTAGE_SHARE_XMA', {
+    __typename: 'SlideMessageXMAContent',
+    xma: { __typename: 'SlideMessageExpiredPlaceholderXMA', eyebrow_text: 'Mentioned you in their story', caption_body_text: 'Story unavailable' },
+  }), // expired story mention → kept, as Instagram shows it
+  node(9600, them, 'MESSAGE_INLINE_SHARE', {
+    __typename: 'SlideMessageXMAContent',
+    xma: { __typename: 'SlideMessageStandardXMA', target_url: 'https://www.instagram.com/someone', header_title_text: 'someone', header_subtitle_text: 'Some One', verified_type: 'DEFAULT', header_icon: { url: 'https://cdn/av.jpg' } },
+  }), // shared profile
+  node(9700, them, 'MESSAGE_INLINE_SHARE', {
+    __typename: 'SlideMessageXMAContent',
+    xma: { __typename: 'SlideMessagePortraitXMA', target_url: 'https://www.instagram.com/reel/r/', header_title_text: 'o', verified_type: 'NOT_VERIFIED', preview_image: { url: 'https://cdn/r.jpg', preview_image_decoration_type: 'REEL' } },
+  }), // shared reel
 ]);
 
 assert.deepEqual(validate(out), []);
@@ -74,7 +86,7 @@ assert.equal(out.title, 'Other Person');
 assert.equal(out.thread_path, 'inbox/other_person_999');
 
 // Newest first; the reaction log, the blank text and the placeholder are gone.
-assert.deepEqual(out.messages.map((m) => m.timestamp_ms), [100000, 70000, 7000, 5000, 4000, 3000, 2000, 1000]);
+assert.deepEqual(out.messages.map((m) => m.timestamp_ms), [100000, 70000, 9700, 9600, 9500, 7000, 5000, 4000, 3000, 2000, 1000]);
 const at = (ts) => out.messages.find((m) => m.timestamp_ms === ts);
 
 assert.equal(at(1000).content, 'hi');
@@ -87,7 +99,12 @@ assert.deepEqual(at(4000).share, {
   link: 'https://www.instagram.com/reel/abc/',
   share_text: '',
   original_content_owner: 'owner',
+  preview: { uri: 'https://cdn/reel.jpg' },
+  kind: 'post',
 });
+assert.deepEqual(at(9500).share, { link: '', share_text: 'Story unavailable', original_content_owner: '', eyebrow: 'Mentioned you in their story', kind: 'quote' });
+assert.deepEqual(at(9600).share, { link: 'https://www.instagram.com/someone', share_text: '', original_content_owner: 'someone', owner_subtitle: 'Some One', owner_verified: true, owner_icon: { uri: 'https://cdn/av.jpg' }, kind: 'profile' });
+assert.equal(at(9700).share.kind, 'portrait');
 assert.equal(at(5000).content, 'Other started an audio call');
 assert.equal(at(5000).call_duration, 60);
 assert.equal(at(70000).call_duration, 0);

@@ -156,13 +156,29 @@ export function normalizeItem(node, names, calls = new Map()) {
     // Shared reel, post, story, profile or link — all arrive as an "XMA" card.
     case 'XMAContent': {
       const x = c.xma || {};
-      // "Message unavailable" / expired-story placeholders carry no content.
-      if (/Placeholder/.test(x.__typename || '')) break;
+      // A bare "Message unavailable" placeholder is dropped. One with a line
+      // above it ("Mentioned you in their story" + "Story unavailable"), text
+      // or reactions is kept, as Instagram shows it.
+      if (/Placeholder/.test(x.__typename || '') && !x.eyebrow_text && !msg.content && !node.reactions?.length) break;
       msg.share = {
         link: x.target_url || '',
-        share_text: x.title_text || x.caption_body_text || '',
+        share_text: [x.title_text || x.caption_body_text, x.subtitle_text].filter(Boolean).join('\n'),
         original_content_owner: x.header_title_text || '',
       };
+      const s = msg.share;
+      if (x.eyebrow_text) s.eyebrow = x.eyebrow_text;
+      if (x.header_subtitle_text) s.owner_subtitle = x.header_subtitle_text;
+      if (x.verified_type === 'DEFAULT') s.owner_verified = true;
+      if (x.header_icon?.url) s.owner_icon = { uri: x.header_icon.url };
+      if (x.preview_image?.url) s.preview = { uri: x.preview_image.url };
+      // How Instagram draws the card: a quoted story (mentions, replies), a
+      // tall reel/story picture, a post card, or a profile line.
+      const kind =
+        x.eyebrow_text || x.is_quoted ? 'quote'
+        : !s.preview ? (s.owner_icon && s.original_content_owner ? 'profile' : '')
+        : /Portrait/.test(x.__typename || '') || x.preview_image.preview_image_decoration_type === 'REEL' ? 'portrait'
+        : 'post';
+      if (kind) s.kind = kind;
       break;
     }
 

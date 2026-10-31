@@ -2,6 +2,20 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.9.1] — 2026-11-01
+
+"Shares look like Instagram." Checked against a real chat of 500 messages: its 28 shared reels, posts, story mentions and profiles came out as 17 reels, 2 posts, 6 story mentions and 1 profile, with 2 plain links left for shares that had no picture, and no "(no content)" rows remained. Each kind of card was compared side by side with instagram.com.
+
+### Changed
+
+- **Shared posts, reels, stories and profiles show as cards in chat archives**, drawn the way Instagram draws them: a reel is a tall picture with the owner's photo, username and blue check on top; a post is a card with its picture and caption; a shared profile shows the photo, username and full name; a story mention shows "Mentioned you in their story" with the story's picture. The pictures and profile photos are saved in the archive's `shares/` folder, so the cards work offline. With media turned off, a card falls back to its link and nothing is loaded from the internet.
+- `chat.txt` and `chat.md` name the owner of each share and say when it was a story mention.
+
+### Fixed
+
+- **Story mentions no longer show as "(no content)".** Expired ones say "Story unavailable", as Instagram does, and are kept even when nobody reacted to them.
+- The Links filter no longer counts story mentions as links.
+
 ## [4.9.0] — 2026-11-01
 
 "Ready for everyone." Tested in Brave with the interface in English, Bangla, Arabic and Spanish: every screen took its words from the browser's language, Arabic turned the whole layout right to left with usernames still reading correctly, and an export from the translated popup saved and checked out as before. axe, the standard accessibility checker, found nothing on the popup, the Export Center, the picker or the archive pages, in light and dark. The Firefox build passes Mozilla's add-on checker with no errors; it has not yet been run in Firefox itself.

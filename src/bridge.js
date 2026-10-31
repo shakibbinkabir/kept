@@ -326,9 +326,9 @@
         continue;
       }
       // Placeholders for shares that are no longer available are dropped too,
-      // unless they carry text or reactions, which the normalizer keeps.
+      // unless they carry text, reactions or a story-mention line, which the normalizer keeps.
       const hasText = node.text_body || c.text_body || c.xma_text_body;
-      if (/Placeholder/.test(c.xma?.__typename || "") && !hasText && !node.reactions?.length) continue;
+      if (/Placeholder/.test(c.xma?.__typename || "") && !hasText && !node.reactions?.length && !c.xma.eyebrow_text) continue;
       n++;
     }
     return n;

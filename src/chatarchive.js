@@ -21,16 +21,17 @@ export function planMedia(chat) {
   const byUrl = new Map();
   let n = 0;
   for (const msg of chat.messages || []) {
-    for (const [key, dir, ext] of KINDS) {
-      for (const media of msg[key] || []) {
-        if (!/^https?:/.test(media.uri || "")) continue;
-        let item = byUrl.get(media.uri);
-        if (!item) {
-          item = { url: media.uri, path: `${dir}/${msg.timestamp_ms}_${++n}.${ext}`, time: Math.floor(msg.timestamp_ms / 1000), refs: [] };
-          byUrl.set(media.uri, item);
-        }
-        item.refs.push(media);
+    const list = KINDS.flatMap(([key, dir, ext]) => (msg[key] || []).map((media) => [media, dir, ext]));
+    // The picture and the owner's profile photo on a shared post, reel, story or profile card.
+    for (const media of [msg.share?.preview, msg.share?.owner_icon]) if (media) list.push([media, "shares", "jpg"]);
+    for (const [media, dir, ext] of list) {
+      if (!/^https?:/.test(media.uri || "")) continue;
+      let item = byUrl.get(media.uri);
+      if (!item) {
+        item = { url: media.uri, path: `${dir}/${msg.timestamp_ms}_${++n}.${ext}`, time: Math.floor(msg.timestamp_ms / 1000), refs: [] };
+        byUrl.set(media.uri, item);
       }
+      item.refs.push(media);
     }
   }
   return [...byUrl.values()];
@@ -73,7 +74,12 @@ export function chatMarkdown(chat, { folder = "", exportedAt = new Date() } = {}
     for (const p of m.photos || []) parts.push(local(p.uri) ? `![Photo](${local(p.uri)})` : "*Photo*");
     for (const v of m.videos || []) parts.push(local(v.uri) ? `[Video](${local(v.uri)})` : "*Video*");
     for (const a of m.audio_files || []) parts.push(local(a.uri) ? `[Voice note](${local(a.uri)})` : "*Voice note*");
-    if (m.share) parts.push(m.share.link ? `[${esc(m.share.share_text || "Shared post")}](${m.share.link})` : `*${esc(m.share.share_text || "Shared post")}*`);
+    if (m.share) {
+      const s = m.share, owner = s.original_content_owner && `@${s.original_content_owner}${s.owner_subtitle ? ` (${s.owner_subtitle})` : ""}`;
+      const label = esc([s.eyebrow, owner, s.share_text].filter(Boolean).join(" · ") || "Shared post").replace(/\n/g, " ");
+      if (s.preview && local(s.preview.uri) && !/^https?:/.test(s.preview.uri)) parts.push(`![Preview](${local(s.preview.uri)})`);
+      parts.push(s.link ? `[${label}](${s.link})` : `*${label}*`);
+    }
     const time = at.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     out.push(`**${esc(m.sender_name)}** · ${time}  `, parts.join(" ") || "*(no content)*", "");
     if (m.reactions?.length) out.splice(out.length - 1, 0, `> ${m.reactions.map((r) => `${r.reaction} ${esc(r.actor)}`).join(", ")}`);
@@ -106,7 +112,10 @@ export function chatText(chat, { folder = "", exportedAt = new Date() } = {}) {
     for (const [key, label] of [["photos", "photo"], ["videos", "video"], ["audio_files", "voice message"]]) {
       for (const media of m[key] || []) parts.push(`[${label}${local(media.uri) ? `: ${local(media.uri)}` : ""}]`);
     }
-    if (m.share) parts.push(`[shared${m.share.link ? `: ${m.share.link}` : ""}]${m.share.share_text ? ` ${m.share.share_text}` : ""}`);
+    if (m.share) {
+      const s = m.share, owner = s.original_content_owner ? ` @${s.original_content_owner}${s.owner_subtitle ? ` (${s.owner_subtitle})` : ""}` : "";
+      parts.push(`[${s.eyebrow || "shared"}${s.link ? `: ${s.link}` : ""}]${owner}${s.share_text ? ` ${s.share_text}` : ""}`);
+    }
     const time = at.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     const text = parts.join(" ").replace(/\n/g, "\n        ");
     out.push(`[${time}] ${m.sender_name}: ${text}`);

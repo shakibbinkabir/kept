@@ -9,13 +9,15 @@ const chat = {
   messages: [
     { sender_name: "Bo", timestamp_ms: Date.UTC(2026, 9, 31, 10, 2), audio_files: [{ uri: "https://cdn/x/voice.mp4" }] },
     { sender_name: "Ana", timestamp_ms: Date.UTC(2026, 9, 31, 10, 1), photos: [{ uri: "https://cdn/x/a.jpg" }, { uri: "https://cdn/x/a.jpg" }], content: "café ☕" },
+    { sender_name: "Ana", timestamp_ms: Date.UTC(2026, 9, 30, 9, 30), share: { link: "https://www.instagram.com/reel/r/", share_text: "", original_content_owner: "nasa", preview: { uri: "https://cdn/x/reel.jpg" } } },
     { sender_name: "Bo", timestamp_ms: Date.UTC(2026, 9, 30, 9, 0), call_duration: 75, content: "Bo started an audio call", reactions: [{ reaction: "❤", actor: "Ana" }] },
   ],
 };
 
 // Media: one download per distinct URL, both references rewritten from it.
 const plan = planMedia(chat);
-assert.equal(plan.length, 2);
+assert.equal(plan.length, 3);
+assert.match(plan[2].path, /^shares\/\d+_3\.jpg$/);
 assert.match(plan[0].path, /^audio\/\d+_1\.mp4$/);
 assert.equal(plan[1].refs.length, 2);
 assert.equal(chatFolder(chat), "your_instagram_activity/messages/inbox/ana_123");

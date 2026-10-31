@@ -40,7 +40,31 @@ main{max-width:760px;margin:0 auto;padding:12px 16px 60px}
 .wave i{flex:1;min-width:2px;border-radius:2px;background:currentColor;opacity:.35}
 .wave i.on{opacity:1}
 .voice .dur{font-size:12px;font-variant-numeric:tabular-nums;opacity:.8;min-width:34px}
-.share{display:block;border-left:3px solid var(--accent);padding:2px 0 2px 8px;margin:2px 0;font-size:14px}
+.share{display:block;margin:2px 0;font-size:14px;color:inherit;text-decoration:none;white-space:normal}
+.share.link{border-left:3px solid var(--accent);padding:2px 0 2px 8px;text-decoration:underline}
+.msg .bubble.bare{background:none;padding:0;color:var(--text)}
+.share .eye{font-size:12px;opacity:.7;margin:0 0 4px}
+.share .own{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.25;min-width:0}
+.share .av{width:32px;height:32px;border-radius:50%;object-fit:cover;margin:0;flex-shrink:0}
+.share .names{display:flex;flex-direction:column;min-width:0}
+.share .line{display:flex;align-items:center;min-width:0}.share .line b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.share .sub{font-size:12px;opacity:.7}
+.share .tick{display:inline-grid;place-items:center;width:13px;height:13px;border-radius:50%;background:#0095f6;color:#fff;font-size:9px;margin-left:4px;flex-shrink:0}
+.share.profile{margin-top:8px}
+.share.post{width:260px;max-width:100%;background:var(--theirs);color:var(--text);border-radius:18px;overflow:hidden}
+.share.post .own{padding:10px 12px}
+.share .pic{width:100%;max-height:none;border-radius:0;margin:0}
+.share.post .cap{margin:8px 12px 10px;font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.share.portrait{position:relative;width:175px;max-width:100%;border-radius:18px;overflow:hidden}
+.share.portrait .pic{aspect-ratio:9/16;object-fit:cover}
+.share.portrait .own{position:absolute;inset:0 0 auto;padding:10px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.share.portrait .av{width:28px;height:28px}
+.share .badge{position:absolute;left:10px;bottom:10px;width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.95)}
+.share .badge::after{content:"";position:absolute;left:8px;top:6px;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #111}
+.share.quote .q{border-left:3px solid var(--line);padding-left:8px}
+.mine .share.quote{text-align:right}.mine .share.quote .q{border-left:0;padding-left:0;border-right:3px solid var(--line);padding-right:8px}
+.share.quote .pic{width:140px;border-radius:12px;display:inline-block}
+.share.quote .gone{font-size:13px;opacity:.7}
 .meta{font-size:11px;color:var(--dim);margin:1px 12px}
 .reacts{font-size:12px;margin:-4px 12px 2px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 .system{align-self:center;align-items:center;margin:8px 0}.system .bubble{background:none;color:var(--dim);font-size:13px;padding:2px}
@@ -148,6 +172,51 @@ function voice(s) {
   return box;
 }
 
+// A shared post, reel, story or profile, drawn like Instagram's card. Pictures
+// come only from the archive's own copies; without one it falls back to a link.
+function shareCard(sh) {
+  const local = (o) => (o && o.uri && !/^(https?:|data:)/.test(o.uri) ? src(o.uri) : "");
+  const pic = local(sh.preview), icon = local(sh.owner_icon), who = sh.original_content_owner || "";
+  const kind = sh.kind === "quote" ? "quote" : pic && sh.kind ? sh.kind : sh.kind === "profile" && icon ? "profile" : "link";
+  const link = /^https?:/.test(sh.link || "");
+  const card = el(link ? "a" : "div", "share " + kind);
+  if (link) { card.href = sh.link; card.target = "_blank"; card.rel = "noopener noreferrer"; }
+  const img = (cls, url, alt) => { const i = el("img", cls); i.loading = "lazy"; i.alt = alt; i.src = url; return i; };
+  const owner = () => {
+    const row = el("div", "own"), names = el("span", "names"), line = el("span", "line");
+    if (icon) row.append(img("av", icon, ""));
+    line.append(el("b", null, who));
+    if (sh.owner_verified) { const t = el("span", "tick", "✓"); t.title = "Verified"; line.append(t); }
+    names.append(line);
+    if (sh.owner_subtitle) names.append(el("span", "sub", sh.owner_subtitle));
+    row.append(names);
+    return row;
+  };
+  if (sh.eyebrow) card.append(el("div", "eye", sh.eyebrow));
+  if (kind === "quote") {
+    const q = el("div", "q");
+    q.append(pic ? img("pic", pic, who ? "Story by " + who : "Story") : el("div", "gone", sh.share_text || sh.link || "Story"));
+    card.append(q);
+  } else if (kind === "profile") {
+    card.append(owner());
+  } else if (kind === "link") {
+    if (who) card.append(el("div", null, "@" + who));
+    card.append(el("div", null, sh.share_text || sh.link || "Shared post"));
+  } else {
+    if (who) card.append(owner());
+    card.append(img("pic", pic, who ? "Shared from " + who : "Shared post"));
+    if (kind === "portrait" && /\\/reels?\\//.test(sh.link || "")) card.append(el("span", "badge"));
+    if (kind === "post" && sh.share_text) {
+      // Instagram starts the caption with the owner's name, in bold.
+      const cap = el("div", "cap");
+      if (who && sh.share_text.startsWith(who)) cap.append(el("b", null, who), sh.share_text.slice(who.length));
+      else cap.textContent = sh.share_text;
+      card.append(cap);
+    }
+  }
+  return card;
+}
+
 function addMessage(m, i) {
   const at = new Date(m.timestamp_ms), key = dayKey(at);
   if (key !== lastDay) {
@@ -177,9 +246,9 @@ function addMessage(m, i) {
   }
   for (const s of m.audio_files || []) b.append(voice(s));
   if (m.share) {
-    const s = el(/^https?:/.test(m.share.link || "") ? "a" : "span", "share", m.share.share_text || m.share.link || "Shared post");
-    if (s.tagName === "A") { s.href = m.share.link; s.target = "_blank"; s.rel = "noopener noreferrer"; }
-    b.append(s);
+    const card = shareCard(m.share);
+    if (card.classList.contains("quote")) b.prepend(card); else b.append(card);
+    if (!text && /portrait|post|quote/.test(card.className) && b.childElementCount === 2) b.classList.add("bare");
   }
   if (!text && !b.querySelector("img,video,audio,.share")) t.textContent = "(no content)";
   row.append(b, el("div", "meta", timeFmt.format(at)));
@@ -188,7 +257,7 @@ function addMessage(m, i) {
   if ((m.photos || []).length) kinds.push("photo");
   if ((m.videos || []).length) kinds.push("video");
   if ((m.audio_files || []).length) kinds.push("audio");
-  if (m.share || /https?:\\/\\//.test(text)) kinds.push("link");
+  if ((m.share && m.share.link) || /https?:\\/\\//.test(text)) kinds.push("link");
   if (call) kinds.push("call");
   row.dataset.k = kinds.join(" ");
   section.append(row);
@@ -284,7 +353,7 @@ function insights() {
     const mk = d.getFullYear() + "-" + pad(d.getMonth() + 1); months.set(mk, (months.get(mk) || 0) + 1);
     const dk = dayKey(d); days.set(dk, (days.get(dk) || 0) + 1);
     totals.photos += (m.photos || []).length; totals.videos += (m.videos || []).length; totals.voice += (m.audio_files || []).length;
-    if (m.share || /https?:\\/\\//.test(m.content || "")) totals.links++;
+    if ((m.share && m.share.link) || /https?:\\/\\//.test(m.content || "")) totals.links++;
   }
   stats.textContent = "";
   if (!msgs.length) { stats.append(el("p", null, "No messages in this chat.")); return; }

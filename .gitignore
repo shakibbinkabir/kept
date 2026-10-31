@@ -24,3 +24,4 @@ site/public/
 # Local captures / dumps used during development
 xhr*_dump.json
 probe-capture-*.json
+.wrangler/
