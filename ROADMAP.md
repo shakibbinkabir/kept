@@ -4,7 +4,7 @@ Where IG Exporter is going, release by release, from 3.3.0 (current) to 5.0. The
 
 The extension gets a new name in 4.0 (another product already uses "IG Exporter"), and a website at `<new-name>.thisissbk.com`.
 
-## 3.4: Never broken for long
+## 3.4: Never broken for long ✅ shipped in v3.4.0
 
 - Query ids read automatically from Instagram's own page, with the built-in ones as fallback
 - "Check Instagram" button that tests every feature against your account

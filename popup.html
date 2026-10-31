@@ -395,11 +395,51 @@
       text-align: center;
       letter-spacing: 0.02em;
     }
-    .footer a {
+    .footer a, .link-btn {
       color: var(--text-dim);
       text-decoration: none;
     }
-    .footer a:hover { color: var(--text); }
+    .footer a:hover, .link-btn:hover:not(:disabled) { color: var(--text); }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .link-btn:disabled { color: var(--text-faint); }
+    .footer-note { color: var(--text-faint); }
+
+    /* ===== "Check Instagram" card ===== */
+    .check-card { margin-top: 12px; margin-bottom: 0; }
+    .check-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .check-head .sub { font-size: 11px; color: var(--text-dim); }
+    .check-list { list-style: none; margin: 0 0 10px; padding: 0; }
+    .check-list li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .check-list .status-dot { margin-top: 4px; }
+    .check-list .status-dot[data-state="running"] { background: var(--accent); animation: pulse 1.6s ease-out infinite; }
+    .check-list .status-dot[data-state="ok"] { background: var(--success); }
+    .check-list .status-dot[data-state="fail"] { background: var(--danger); }
+    .check-detail { display: block; font-size: 11px; color: var(--text-dim); word-break: break-word; }
 
     /* ===== Toast ===== */
     .toast {
@@ -542,11 +582,32 @@
     <div class="error-actions">
       <button id="retryBtn" class="btn-ghost">Retry</button>
       <button id="copyErrBtn" class="btn-ghost">Copy details</button>
+      <button id="errReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report</button>
+    </div>
+  </div>
+
+  <!-- ===== "Check Instagram" results ===== -->
+  <div id="checkCard" class="card check-card" hidden>
+    <div class="check-head">
+      <span class="status-label">Instagram check</span>
+      <span class="sub" id="checkSummary"></span>
+    </div>
+    <ul class="check-list" id="checkList"></ul>
+    <div class="error-actions">
+      <button id="checkReportBtn" class="btn-ghost" title="Opens a GitHub issue you can review before posting">Report a problem</button>
+      <button id="checkCloseBtn" class="btn-ghost">Close</button>
     </div>
   </div>
 
   <div class="footer">
-    <a href="https://github.com/shakibbinkabir/igexporter" target="_blank" rel="noopener">github.com/shakibbinkabir/igexporter</a>
+    <div class="footer-links">
+      <button id="checkBtn" class="link-btn" title="Test every feature against Instagram right now">Check Instagram</button>
+      <span aria-hidden="true">·</span>
+      <button id="reportBtn" class="link-btn" title="Opens a GitHub issue you can review before posting">Report a problem</button>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/shakibbinkabir/igexporter/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+    </div>
+    <div class="footer-note">Runs only in your browser. Not affiliated with Instagram or Meta.</div>
   </div>
 
   <div class="toast" id="toast"></div>

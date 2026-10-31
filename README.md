@@ -12,22 +12,25 @@
   <a href="https://developer.chrome.com/docs/extensions/mv3/intro/"><img src="https://img.shields.io/badge/Manifest-V3-green.svg" alt="Manifest V3" /></a>
 </p>
 
-A vanilla-JavaScript, fully local Chrome Extension that **(1)** exports an Instagram DM thread to a JSON file structurally equivalent to Instagram's official **"Download Your Information" (DYI)** export, and **(2)** downloads anyone's **posts, images, reels, or profile picture** as neatly foldered ZIP archives.
+<p align="center"><b>Export Instagram DMs and download Instagram posts, reels, stories and highlights.</b><br />Free, open source, and it runs only in your browser.</p>
 
-> **No servers. No tracking. No third-party calls.** Everything runs in your browser using your own logged-in session — the only network traffic is to `instagram.com` and its media CDNs.
+IG Exporter is a browser extension for Chrome, Brave, Edge and other Chromium browsers that:
+
+1. **Exports an Instagram chat** (DM conversation) to a JSON file in the same format as Instagram's own "Download Your Information" export, in minutes instead of days.
+2. **Downloads Instagram posts, images, reels, stories, highlights and profile pictures** from any public account, or a private account you follow, as neatly foldered ZIP files.
+
+> **No servers. No password. No tracking.** Everything runs in your browser using the Instagram session you're already logged in with. The only network traffic is to `instagram.com` and Instagram's media servers. See [PRIVACY.md](PRIVACY.md).
 
 ---
 
 ## Why
 
-Instagram's official DYI export can take **hours to weeks** to be ready, and you only get *everything* — not just the one conversation you actually need. IG Exporter pulls a single thread's full history directly from Instagram's own DM GraphQL queries, normalizes it into the exact same shape as the DYI `message_*.json` files, and hands you a download.
+- **One chat, in minutes.** Instagram's own data download can take days, often fails, and only gives you your whole account as a pile of files. IG Exporter backs up just the conversation you want, right now.
+- **Safe by design.** It never asks for your password, sends nothing anywhere except Instagram, and every line is open source. It paces its requests and backs off when Instagram asks it to slow down.
+- **Free, with no limits.** No sign-up, no paywall, no daily cap, no watermark.
+- **Keeps working.** Instagram changes its private API every few weeks. IG Exporter reads Instagram's current query ids from the page itself, and a built-in **Check Instagram** button tells you in seconds whether everything works.
 
-Useful for:
-
-- Personal backups of a single conversation
-- Forensic / discovery work on your own DMs
-- Importing one thread into tools that already understand the DYI schema
-- Anything you'd otherwise have to wait days for
+Useful for backing up a conversation before it's deleted, keeping messages from a friendship or relationship, saving a chat as evidence, archiving your own posts before leaving Instagram, or importing one thread into tools that already understand Instagram's export format.
 
 ---
 
@@ -67,16 +70,18 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.3.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.3.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.3.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.3.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.3.0 |
-| DM capture, scroll / auto-scroll, JSON export | ✅ Working | 2026-10-31 · v3.3.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.4.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.4.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.4.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.4.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.4.0 |
+| DM capture, scroll / auto-scroll, JSON export | ✅ Working | 2026-10-31 · v3.4.0 |
+
+To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
 What's coming next, release by release up to 5.0, is in [ROADMAP.md](ROADMAP.md).
 
-Something broken that this table says works? Click **Copy details** on the error in the popup and paste it into a [new issue](https://github.com/shakibbinkabir/igexporter/issues/new).
+Something broken that this table says works? Click **Report a problem** in the popup (or **Report** on an error). It opens a GitHub issue filled in with the error and the check results, usernames removed, for you to review and post.
 
 ---
 
@@ -105,7 +110,7 @@ Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
 4. Type/confirm the `@username`, pick **What to export** (All posts / All images / All reels / Current stories / Story highlights / Profile picture / This post-reel). For the feed modes, choose a **Range** (Everything, Most recent N, Oldest N, or a Date range).
 5. Click **Export**. The toolbar badge shows progress; when it finishes, Chrome prompts you to save the ZIP (or image).
 
-> You can only export from **public accounts** or **private accounts you follow** — same as what your session can already see. Large accounts take a while and are subject to Instagram's rate limits; the exporter backs off automatically on `429`.
+> You can only export from **public accounts** or **private accounts you follow** — same as what your session can already see. Requests are paced a little under a second apart, and if Instagram asks the exporter to slow down, it waits (30 s, then 60 s, then 120 s) with a countdown in the popup.
 
 ZIP layout for **All posts**:
 
@@ -133,6 +138,37 @@ username_posts_2026-06-06.zip
 5. The exporter validates the structure, then prompts you to save `instagram_<title>_<timestamp>.json`.
 
 > You control how much gets exported: stop scrolling (or stop auto-scroll) whenever you have enough, and Export packages exactly what's loaded so far.
+
+---
+
+## FAQ
+
+**How do I export one Instagram chat?**
+Open the conversation on instagram.com in Chrome (or another Chromium browser), click IG Exporter, then **Start Capture**, **Auto-scroll**, and **Export JSON**. See [Usage — Chat export](#usage--chat-export).
+
+**Can I download all my Instagram messages at once?**
+Not yet: today it's one conversation at a time. Exporting several chats or your whole inbox is planned for 3.7 ([roadmap](ROADMAP.md)).
+
+**Does it save the photos, videos and voice messages from a chat?**
+The JSON lists them as links to Instagram's servers, and those links expire after a while. Saving them as files inside the export is coming in 3.5.
+
+**Is it safe? Does it need my Instagram password?**
+It never asks for your password. It works with the session you're already logged in with, talks only to Instagram, and is open source. See [PRIVACY.md](PRIVACY.md).
+
+**Can my Instagram account get banned for using it?**
+It only loads what your account can already see, paces its requests and backs off when Instagram says "slow down". Very large bulk downloads always carry some risk of a temporary block, so prefer *Most recent N* or a date range on huge accounts.
+
+**Does it work with private accounts?**
+Yes, for private accounts you follow, and always for your own.
+
+**How do I download Instagram stories, highlights or reels?**
+Open the profile, click IG Exporter, switch to **Profile**, pick *Current stories*, *Story highlights* or *All reels*, and click **Export**. Opening a single highlight first exports just that one.
+
+**It stopped working. What now?**
+Click **Check Instagram** in the popup to see what's broken, then **Report a problem**. Instagram changes things often; fixes usually ship in a new release.
+
+**Why isn't it on the Chrome Web Store?**
+It will be (see the [roadmap](ROADMAP.md)). For now, install it from this repository as shown below.
 
 ---
 
@@ -198,7 +234,7 @@ popup.js (Profile tab) ──job──▶ background.js (service worker)
       instagram.com tab)
 ```
 
-- **`bridge.js`** — content script on instagram.com. On **Start Capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. It also runs the profile exporter's GraphQL queries, relayed by `background.js`, since `/api/graphql` rejects requests from the extension's own origin. The query doc ids at the top of the file rotate — the header comment says how to refresh them.
+- **`bridge.js`** — content script on instagram.com. On **Start Capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. It also runs the profile exporter's GraphQL queries, relayed by `background.js`, since `/api/graphql` rejects requests from the extension's own origin. Every query uses the id the page currently uses, read by **`pageids.js`** (which runs in instagram.com's own JavaScript world) and remembered in extension storage; if Instagram rejects that id, the built-in one is tried. All requests are paced and back off on `429`.
 - **`normalizer.js` / `schema.js`** — map each `SlideMessage` node (text, images, videos, view-once media, voice messages, GIFs/stickers, shared reels/posts/links, call notices, …) to the DYI shape and validate it. If Instagram changes the DM API, these two plus `bridge.js` are where the fix goes.
 - **`background.js`** — MV3 service worker; the stable hub for profile exports. Spins up the offscreen document, relays its GraphQL queries to an open instagram.com tab (injecting `bridge.js` if that tab predates the extension), mirrors progress onto the toolbar badge, and performs every `chrome.downloads.download` (chat JSON included), re-asserting the filename so download-manager extensions like IDM can't rename it.
 - **`offscreen.js` / `offscreen.html`** — a headless offscreen document (the only context that can both fetch with host permissions *and* `URL.createObjectURL` a blob). Runs the chosen export pipeline, fetches CDN bytes with bounded concurrency, and assembles the ZIP.
@@ -214,10 +250,10 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 **Profile media export:**
 
 - **Login required.** You can only export public accounts or private ones you follow — exactly what your session can already see.
-- **Unofficial endpoints.** It uses Instagram's own web API, which is undocumented and changes periodically. The GraphQL query ids at the top of `src/igapi.js` rotate every so often; when profile export fails with a GraphQL "execution error", refreshing those ids is almost always the fix: open a profile on instagram.com and run `require("<query name>.graphql").params.id` in the DevTools console for each query name listed next to the ids.
+- **Unofficial endpoints.** It uses Instagram's own web API, which is undocumented and changes periodically. Query ids are read from the open instagram.com page automatically (falling back to the ids built into `src/igapi.js` and `src/bridge.js`), so most id rotations need no update. If a query is renamed or its shape changes, an update is still needed; **Check Instagram** shows which feature broke.
 - **In-memory ZIP.** The whole archive is assembled in memory before saving, so exporting a very large account (many GB) can exhaust memory. Use the *Most recent N* / *date range* filters for huge profiles.
 - **Reels take one request each.** The Reels tab lists only reel ids, so *All reels* fetches every reel's details separately. *Everything* on an account with thousands of reels is slow; use *Most recent N* or a date range.
-- **Rate limits.** Aggressive exporting can trigger Instagram throttling (`429`); the exporter backs off and retries, but very large jobs may still be interrupted.
+- **Rate limits.** Requests are paced a little under a second apart, which makes very large exports slower but safer. If Instagram still answers `429`, the exporter waits 30 s, 60 s, then 120 s with a countdown, and stops with a clear message if that isn't enough.
 - **Media URLs expire**, so files are fetched immediately during the run rather than listed for later.
 
 **Chat export** — these are intentional non-goals, because the web client doesn't expose the equivalent data:
@@ -228,7 +264,6 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 - **Call events** are collapsed to one message per call (Instagram sends a "started" notice, then an "ended" or "missed" one), with the "started" text as `content`. Instagram's web API no longer exposes a duration, so `call_duration` is the gap between the two notices in seconds: it includes the time the call rang before it was answered, so it can read up to about a minute over the real talk time. Missed calls get `0`. The pairing matches Instagram's English notice text; in another UI language calls export as two plain text rows without a duration.
 - **Emojis are preserved natively** rather than mimicking the DYI export's well-known mojibake (`ð`) encoding.
 - **Unsupported/expired rows are skipped.** "Message unavailable" placeholders and view-once media whose URL has already expired carry no content, so they're dropped rather than exported as empty messages.
-- **The open conversation must be in your inbox.** The thread is located by scanning your inbox (the top several pages), so a conversation buried far down or in a separate message-requests folder may not resolve; open it fresh so it surfaces to the top.
 
 ---
 
@@ -238,8 +273,10 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 - **No remote code.** All scripts ship in this repo — Manifest V3 forbids loading anything else, and the ZIP writer is hand-rolled rather than a bundled library you can't read.
 - **No analytics.** No pings, no error reporting, no usage stats.
 - **You control the file.** Every export uses `chrome.downloads.download` with `saveAs: true` — Chrome shows the save dialog every time.
+- **Reports are drafts.** "Report a problem" only opens a prefilled GitHub issue page, with usernames removed. Nothing is posted unless you submit it.
+- **Never for sale.** Extensions like this one have turned malicious after being sold. This one won't be sold.
 
-If you don't trust a binary you didn't build, you shouldn't — every file here is plain readable JavaScript. Read it.
+The full statement, including why each permission is needed, is in [PRIVACY.md](PRIVACY.md). If you don't trust a binary you didn't build, you shouldn't — every file here is plain readable JavaScript. Read it.
 
 ---
 
@@ -257,13 +294,18 @@ igexporter/
 ├── offscreen.html         # headless offscreen document host
 ├── offscreen.js           # profile export engine (fetch → zip → download)
 ├── src/
-│   ├── bridge.js          # chat: content script — GraphQL fetch + paging
+│   ├── bridge.js          # content script — all GraphQL (chat paging + relayed profile queries), pacing
+│   ├── queryvars.js       # content script helper — merges the page's current query variables
+│   ├── pageids.js         # runs in instagram.com's page — reads current query ids
 │   ├── normalizer.js      # chat: raw SlideMessage nodes → DYI shape
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
+├── test/                  # self-checks: node test/<name>.test.mjs
 └── icons/
 ```
+
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 

@@ -44,10 +44,23 @@ const els = {
   pCount: document.getElementById("pCount"),
   pCountLabel: document.getElementById("pCountLabel"),
   pProgress: document.getElementById("pProgress"),
+
+  // Report + "Check Instagram"
+  errReportBtn: document.getElementById("errReportBtn"),
+  checkBtn: document.getElementById("checkBtn"),
+  reportBtn: document.getElementById("reportBtn"),
+  checkCard: document.getElementById("checkCard"),
+  checkSummary: document.getElementById("checkSummary"),
+  checkList: document.getElementById("checkList"),
+  checkReportBtn: document.getElementById("checkReportBtn"),
+  checkCloseBtn: document.getElementById("checkCloseBtn"),
 };
+
+const REPO = "https://github.com/shakibbinkabir/igexporter";
 
 const state = {
   tabId: null,
+  tabUrl: "",
   isInstagram: false,
   count: 0,
   threadTitle: "",
@@ -219,6 +232,60 @@ function applyCaptureState(on) {
   }
   updateThread(state.threadTitle || null);
   renderButtons();
+}
+
+/* ===== Countdowns (Instagram asked us to slow down) ===== */
+const countdowns = {};
+function startCountdown(key, until, render) {
+  clearInterval(countdowns[key]);
+  const tick = () => {
+    const secs = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+    render(secs);
+    if (!secs) stopCountdown(key);
+  };
+  tick();
+  countdowns[key] = setInterval(tick, 500);
+}
+function stopCountdown(key) {
+  clearInterval(countdowns[key]);
+  delete countdowns[key];
+}
+
+/* ===== Report a problem ===== */
+// Opens a prefilled GitHub issue the user reviews before posting. Usernames
+// are replaced so a report never says whose account was being exported.
+function redact(text) {
+  return String(text ?? "").replace(/@[\w.]+/g, "@<user>");
+}
+
+function openIssue(title, details) {
+  const browser = (navigator.userAgent.match(/Chrome\/(\d+)/) || [])[1];
+  const body = [
+    "**What happened?**",
+    "<!-- What you clicked and what you expected. A screenshot helps. -->",
+    "",
+    "",
+    "**Details** (added by IG Exporter, usernames removed)",
+    "```",
+    `Version: ${chrome.runtime.getManifest().version}`,
+    browser ? `Browser: Chromium ${browser}` : null,
+    ...details.map(redact),
+    "```",
+  ].filter((line) => line !== null).join("\n");
+  chrome.tabs.create({
+    url: `${REPO}/issues/new?title=${encodeURIComponent(redact(title))}&body=${encodeURIComponent(body)}`,
+  });
+}
+
+function errorDetails() {
+  const e = state.lastError;
+  if (!e) return [];
+  const chat = state.errorContext === "chat";
+  return [
+    chat ? `Area: chat (${state.phase}, ${state.count} captured)` : `Area: profile (${state.profile.lastJob?.mode || els.modeSelect.value})`,
+    `Error: ${e.title}: ${e.body}`,
+    ...(e.problems || []).slice(0, 5).map((p) => `  - ${p}`),
+  ];
 }
 
 function sendToTab(message, callback) {
@@ -468,8 +535,19 @@ function handleProfileMessage(msg) {
   // Ignore messages from a different job once ours is known.
   if (state.profile.jobId && msg.jobId && msg.jobId !== state.profile.jobId) return;
 
+  if (msg.type !== "EXPORT_PROGRESS" || msg.phase !== "waiting") stopCountdown("profile");
+
   if (msg.type === "EXPORT_PROGRESS") {
     state.profile.running = true;
+    if (msg.phase === "waiting") {
+      if (msg.until > Date.now()) {
+        setProfileProgress({ indeterminate: true });
+        startCountdown("profile", msg.until, (secs) =>
+          setProfilePhase("running", "Waiting", secs ? `${secs}s · Instagram asked us to slow down` : "resuming")
+        );
+      }
+      return;
+    }
     if (msg.phase === "resolving") {
       setProfilePhase("running", "Resolving", msg.message || "");
       setProfileProgress({ indeterminate: true });
@@ -513,6 +591,125 @@ function handleProfileMessage(msg) {
   }
 }
 
+/* ===== "Check Instagram" ===== */
+// One request per feature, run by the offscreen doc against a public account;
+// chats are checked in the open conversation, if there is one.
+const CHECK_STEPS = [
+  ["search", "Find accounts"],
+  ["posts", "Posts"],
+  ["post", "Single posts"],
+  ["reels", "Reels"],
+  ["stories", "Stories"],
+  ["highlights", "Highlights"],
+  ["dm", "Chats"],
+];
+const check = { jobId: null, running: false, rows: new Map(), idSources: null };
+
+function checkBusy() {
+  return check.running || check.rows.get("dm")?.state === "running";
+}
+
+function renderCheck() {
+  els.checkList.textContent = "";
+  for (const [key] of CHECK_STEPS) {
+    const row = check.rows.get(key);
+    if (!row) continue;
+    const li = document.createElement("li");
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
+    dot.dataset.state = row.state;
+    const text = document.createElement("span");
+    text.textContent = row.label;
+    if (row.detail) {
+      const detail = document.createElement("span");
+      detail.className = "check-detail";
+      detail.textContent = row.detail;
+      text.appendChild(detail);
+    }
+    li.append(dot, text);
+    els.checkList.appendChild(li);
+  }
+  if (!countdowns.check) {
+    const failed = [...check.rows.values()].filter((r) => r.state === "fail").length;
+    els.checkSummary.textContent = checkBusy() ? "checking…" : failed ? `${failed} not working` : "everything works";
+  }
+  els.checkBtn.disabled = checkBusy();
+}
+
+function startCheck() {
+  if (checkBusy()) return;
+  check.running = true;
+  check.jobId = null;
+  check.idSources = null;
+  check.rows = new Map(CHECK_STEPS.slice(0, -1).map(([key, label]) => [key, { label, state: "idle" }]));
+  els.checkCard.hidden = false;
+
+  if (/instagram\.com\/direct\/t\//.test(state.tabUrl)) {
+    check.rows.set("dm", { label: "Chats", state: "running" });
+    sendToTab({ action: "CHECK_DM" }, (r) => {
+      check.rows.set("dm", {
+        label: "Chats",
+        state: r?.ok ? "ok" : "fail",
+        detail: r?.detail || "The Instagram tab didn't answer. Refresh it and try again.",
+      });
+      renderCheck();
+    });
+  } else {
+    check.rows.set("dm", { label: "Chats", state: "idle", detail: "Open a chat on instagram.com to include chats" });
+  }
+  renderCheck();
+
+  chrome.runtime.sendMessage({ type: "RUN_CHECK" }, (resp) => {
+    if (chrome.runtime.lastError || !resp?.ok) {
+      check.running = false;
+      check.rows.set("search", {
+        label: "Find accounts",
+        state: "fail",
+        detail: resp?.error || chrome.runtime.lastError?.message || "The background worker didn't respond.",
+      });
+      renderCheck();
+      return;
+    }
+    check.jobId = resp.jobId;
+  });
+}
+
+function handleCheckMessage(msg) {
+  if (!check.running || (check.jobId && msg.jobId !== check.jobId)) return;
+  if ("waiting" in msg) {
+    if (msg.waiting > Date.now()) {
+      startCountdown("check", msg.waiting, (secs) => {
+        els.checkSummary.textContent = secs ? `waiting ${secs}s` : "checking…";
+      });
+    } else {
+      stopCountdown("check");
+    }
+  } else if (msg.type === "CHECK_PROGRESS") {
+    check.rows.set(msg.key, { label: msg.label, state: msg.state, detail: msg.detail });
+  } else if (msg.type === "CHECK_DONE") {
+    check.running = false;
+    check.idSources = msg.idSources || {};
+    stopCountdown("check");
+  }
+  renderCheck();
+}
+
+function checkDetails() {
+  if (!check.rows.size) return [];
+  const mark = { ok: "✓", fail: "✗", running: "…", idle: "–" };
+  const lines = ["Instagram check:"];
+  for (const [key] of CHECK_STEPS) {
+    const row = check.rows.get(key);
+    if (row) lines.push(`  ${mark[row.state] || "–"} ${row.label}${row.detail ? ` — ${row.detail}` : ""}`);
+  }
+  if (check.idSources) {
+    const sources = Object.values(check.idSources);
+    const fromPage = sources.filter((s) => s === "page").length;
+    lines.push(`Query ids: ${fromPage} read from the page, ${sources.length - fromPage} built-in`);
+  }
+  return lines;
+}
+
 /* ===== Init ===== */
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelector(".version").textContent = `v${chrome.runtime.getManifest().version}`;
@@ -521,6 +718,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tab = tabs[0];
     if (!tab) return;
     state.tabId = tab.id;
+    state.tabUrl = tab.url || "";
     state.isInstagram = !!tab.url?.includes("instagram.com");
 
     // Profile tab works regardless of the active tab; autodetect runs first.
@@ -577,7 +775,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderButtons();
     }
 
+    if (message.type === "IG_EXPORTER_WAIT") {
+      if (message.until > Date.now()) {
+        startCountdown("chat", message.until, (secs) =>
+          setPhase(state.autoScrolling ? "scrolling" : "capturing", "Waiting", secs ? `${secs}s · Instagram asked us to slow down` : "resuming")
+        );
+      } else {
+        stopCountdown("chat");
+        if (state.autoScrolling) setPhase("scrolling", "Auto-scrolling", "loading history");
+        else applyCaptureState(state.capturing);
+      }
+    }
+
     if (message.type === "IG_EXPORTER_ERROR") {
+      stopCountdown("chat");
       showError(state.phase === "exporting" ? "Export failed" : "Capture failed", message.error, message.problems);
     }
 
@@ -701,5 +912,25 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       handleProfileMessage(message);
     }
+    if (message?.type === "CHECK_PROGRESS" || message?.type === "CHECK_DONE") {
+      handleCheckMessage(message);
+    }
+  });
+
+  /* ===== Check Instagram + Report a problem ===== */
+  els.checkBtn.addEventListener("click", startCheck);
+  els.checkCloseBtn.addEventListener("click", () => {
+    els.checkCard.hidden = true;
+  });
+  els.checkReportBtn.addEventListener("click", () => {
+    const broken = [...check.rows.values()].filter((r) => r.state === "fail").map((r) => r.label);
+    openIssue(broken.length ? `Not working: ${broken.join(", ")}` : "Instagram check", checkDetails());
+  });
+  els.errReportBtn.addEventListener("click", () => {
+    const e = state.lastError;
+    openIssue(e ? `${e.title}: ${e.body}`.slice(0, 120) : "Problem report", [...errorDetails(), ...checkDetails()]);
+  });
+  els.reportBtn.addEventListener("click", () => {
+    openIssue("Something isn't working", [`Open tab: ${state.activeTab || "chat"}`, ...errorDetails(), ...checkDetails()]);
   });
 });

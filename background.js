@@ -58,12 +58,13 @@ async function ensureOffscreen() {
 async function gqlInTab(msg) {
   const [tab] = await chrome.tabs.query({ url: "https://www.instagram.com/*", discarded: false });
   if (!tab) return { error: "Open instagram.com in a tab (logged in), then try again." };
-  const ask = () => chrome.tabs.sendMessage(tab.id, { action: "IG_GQL", docId: msg.docId, variables: msg.variables });
+  const ask = () => chrome.tabs.sendMessage(tab.id, { action: "IG_GQL", query: msg.query, variables: msg.variables });
   try {
     return await ask();
   } catch {
     // Tabs opened before the extension was (re)loaded don't have bridge.js yet.
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["src/bridge.js"] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["src/queryvars.js", "src/bridge.js"] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["src/pageids.js"], world: "MAIN" });
     return ask();
   }
 }
@@ -100,6 +101,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: false, error: err?.message || "Could not start export." });
       }
     })();
+    return true; // async sendResponse
+  }
+
+  // From popup: "Check Instagram" runs one request per feature in the offscreen doc.
+  if (msg?.type === "RUN_CHECK") {
+    const jobId = `check_${Date.now()}`;
+    ensureOffscreen()
+      .then(() => {
+        chrome.runtime.sendMessage({ target: "offscreen", type: "RUN_CHECK", jobId });
+        sendResponse({ ok: true, jobId });
+      })
+      .catch((err) => sendResponse({ ok: false, error: err?.message || "Could not start the check." }));
     return true; // async sendResponse
   }
 

@@ -11,10 +11,11 @@
 // that (/api/v1/direct_v2/inbox/ and threads/<id>/) are gone from the web:
 // they answer 404 now.
 //
-// These queries are NOT public and Instagram rotates the doc ids every so
-// often. When capture starts failing with a GraphQL error, open a DM thread on
-// instagram.com and run require("<query name>.graphql").params.id in the
-// DevTools console for the two query names below, then paste the new ids here.
+// These queries are NOT public and Instagram rotates their ids every few
+// weeks. src/pageids.js reads the current ids from the page itself, and the
+// last ones seen are kept in extension storage; the ids below are only the
+// fallback. The profile exporter (offscreen.js) runs its queries through this
+// script too (see IG_GQL), because /api/graphql only answers instagram.com.
 //
 // The UI is unchanged: Start Capture loads the most recent page and lets the
 // count grow as you scroll up (each scroll pulls the next older page); Auto-
@@ -26,8 +27,8 @@
   const srcURL = chrome.runtime.getURL("src/");
   const APP_ID = "936619743392459"; // Instagram Web app id (see src/igapi.js)
   const PAGE = 20; // messages per fetch — the server caps a page at 20
-  const DOC_THREAD = "28784987187762419"; // IGDInboxHeaderOffMsysQuery: title + participants
-  const DOC_MESSAGES = "28742488222105007"; // IGDMessageListOffMsysQuery: paged history
+  const DOC_THREAD = { name: "IGDInboxHeaderOffMsysQuery", id: "28914252884904227" }; // title + participants
+  const DOC_MESSAGES = { name: "IGDMessageListOffMsysQuery", id: "28574971342201921" }; // paged history
   const PAGE_VAR = "__relay_internal__pv__IGDInitialMessagePageCountrelayprovider";
 
   // Export helpers load lazily on the first export so a slow/blocked module
@@ -92,16 +93,106 @@
     return dtsg;
   }
 
-  // Run one of Instagram's persisted queries and return its `data`, retrying
-  // on transient throttling (429) and 5xx with exponential backoff.
-  async function gql(docId, variables, tries = 4, retried = false) {
-    const body = new URLSearchParams({
-      fb_dtsg: await getDtsg(),
-      doc_id: docId,
-      variables: JSON.stringify(variables),
+  function failure(message, status = 0, tryOtherId = false) {
+    return Object.assign(new Error(message), { status, tryOtherId });
+  }
+
+  /* ===== query ids ===== */
+  // name -> { id, provided } as last read from the page by src/pageids.js.
+  const pageIds = new Map();
+  const wanted = new Set([DOC_THREAD.name, DOC_MESSAGES.name]); // names to ask the page for
+  const asked = new Set(); // names already asked for since this page loaded
+  const lastSource = new Map(); // name -> "page" | "built-in", for the popup's check
+  let lastRefresh = 0;
+  const idsLoaded = chrome.storage.local
+    .get("queryIds")
+    .then(({ queryIds }) => {
+      for (const [name, v] of Object.entries(queryIds || {})) {
+        pageIds.set(name, v);
+        wanted.add(name);
+      }
+    })
+    .catch(() => {});
+
+  function askPage(names) {
+    return new Promise((resolve) => {
+      const nonce = Math.random().toString(36).slice(2);
+      const done = (ids) => {
+        window.removeEventListener("message", onReply);
+        resolve(ids);
+      };
+      const onReply = (e) => {
+        if (e.source === window && e.data?.igxIds === "ids" && e.data.nonce === nonce) done(e.data.ids || {});
+      };
+      window.addEventListener("message", onReply);
+      window.postMessage({ igxIds: "ask", nonce, names }, "*");
+      setTimeout(() => done({}), 500);
     });
-    let lastErr = null;
-    for (let attempt = 0; attempt < tries; attempt++) {
+  }
+
+  // Read current ids from the page: at most once a minute, or right away the
+  // first time a query name is used on this page.
+  async function refreshIds(name) {
+    await idsLoaded;
+    const isNew = name && !asked.has(name);
+    if (name) wanted.add(name);
+    if (!isNew && Date.now() - lastRefresh < 60000) return;
+    lastRefresh = Date.now();
+    for (const n of wanted) asked.add(n);
+
+    const found = await askPage([...wanted]);
+    let changed = false;
+    for (const [n, v] of Object.entries(found)) {
+      if (!wanted.has(n) || !/^\d{6,25}$/.test(v?.id || "")) continue;
+      const entry = { id: v.id, provided: v.provided || {} };
+      if (JSON.stringify(pageIds.get(n)) === JSON.stringify(entry)) continue;
+      pageIds.set(n, entry);
+      changed = true;
+    }
+    if (changed) chrome.storage.local.set({ queryIds: Object.fromEntries(pageIds) }).catch(() => {});
+  }
+  setTimeout(() => refreshIds(), 3000);
+
+  /* ===== pacing ===== */
+  // Every Instagram request from this tab waits its turn, a little under a
+  // second apart, so capture and export never hammer the API.
+  // ponytail: one global pace per tab; per-endpoint budgets if Instagram ever needs them.
+  const PACE_MS = 800;
+  const WAITS_429 = [30, 60, 120]; // seconds to back off when Instagram says "slow down"
+  let paceChain = Promise.resolve();
+  let lastRequestAt = 0;
+  function pace() {
+    const turn = paceChain.then(async () => {
+      const wait = lastRequestAt + PACE_MS + Math.random() * 400 - Date.now();
+      if (wait > 0) await sleep(wait);
+      lastRequestAt = Date.now();
+    });
+    paceChain = turn.catch(() => {});
+    return turn;
+  }
+
+  // Back off with a visible countdown in the popup.
+  async function waitFor(seconds) {
+    const until = Date.now() + seconds * 1000;
+    chrome.runtime.sendMessage({ type: "IG_EXPORTER_WAIT", until }).catch(() => {});
+    await sleep(seconds * 1000);
+    chrome.runtime.sendMessage({ type: "IG_EXPORTER_WAIT", until: 0 }).catch(() => {});
+  }
+
+  /* ===== requests ===== */
+  // One persisted query with a given id. 429s back off (when `waitOn429`) and
+  // 5xx/network errors retry briefly; an expired token is refetched once.
+  async function run(docId, variables, waitOn429) {
+    let retries = 0;
+    let throttled = 0;
+    let freshToken = false;
+    for (;;) {
+      await pace();
+      const body = new URLSearchParams({
+        fb_dtsg: await getDtsg(),
+        doc_id: docId,
+        variables: JSON.stringify(variables),
+      });
       let res;
       try {
         res = await fetch("/api/graphql", {
@@ -112,40 +203,66 @@
           headers: { "x-ig-app-id": APP_ID },
           body,
         });
-      } catch (e) {
-        lastErr = new Error("Network request failed.");
-        await sleep(600 * (attempt + 1));
+      } catch {
+        if (++retries > 3) throw failure("Network request failed.");
+        await sleep(1000 * retries);
         continue;
       }
-      if (res.status === 429 || res.status >= 500) {
-        lastErr = new Error(
-          res.status === 429
-            ? "Instagram is rate-limiting requests (429). Slow down and retry."
-            : `Instagram server error (${res.status}).`
-        );
-        await sleep(1200 * Math.pow(2, attempt));
+      if (res.status === 429) {
+        if (!waitOn429 || throttled >= WAITS_429.length) {
+          throw failure("Instagram is rate-limiting requests (429). Wait a few minutes and retry.", 429);
+        }
+        await waitFor(WAITS_429[throttled++]);
+        continue;
+      }
+      if (res.status >= 500) {
+        if (++retries > 3) throw failure(`Instagram server error (${res.status}).`, res.status);
+        await sleep(2000 * retries);
         continue;
       }
       if (res.status === 401 || res.status === 403) {
-        throw new Error("Not authorized — make sure you're logged in to Instagram in this browser.");
+        throw failure("Not authorized — make sure you're logged in to Instagram in this browser.", res.status);
       }
-      if (!res.ok) throw new Error(`Unexpected response (${res.status}).`);
+      if (!res.ok) throw failure(`Unexpected response (${res.status}).`, res.status, true);
       let json;
       try {
         json = await res.json();
       } catch {
-        // A rejected (expired) token gets the HTML app shell back — refetch it
-        // and retry once.
+        // A rejected (expired) token gets the HTML app shell back: refetch it once.
         dtsg = null;
-        if (!retried) return gql(docId, variables, tries, true);
-        throw new Error("Instagram returned a non-JSON response.");
+        if (!freshToken) {
+          freshToken = true;
+          continue;
+        }
+        throw failure("Instagram returned a non-JSON response.", 0, true);
       }
       if (!json.data) {
-        throw new Error(`Instagram GraphQL error: ${json.errors?.[0]?.message || "no data"}`);
+        throw failure(`Instagram GraphQL error: ${json.errors?.[0]?.message || "no data"}`, 0, true);
       }
       return json.data;
     }
-    throw lastErr || new Error("Request failed.");
+  }
+
+  // Run a query ({ name, id }) with the id the page currently uses, falling
+  // back to the built-in id if Instagram rejects it.
+  async function gql(query, variables, { waitOn429 = true } = {}) {
+    await refreshIds(query.name);
+    const page = pageIds.get(query.name);
+    if (page && page.id !== query.id) {
+      try {
+        const data = await run(page.id, igxMergeVariables(variables, page.provided), waitOn429);
+        lastSource.set(query.name, "page");
+        return data;
+      } catch (err) {
+        if (!err.tryOtherId) throw err;
+      }
+    }
+    // The page's provided variables belong to the page's id; only reuse them
+    // when the built-in id is that same id.
+    const same = page?.id === query.id;
+    const data = await run(query.id, same ? igxMergeVariables(variables, page.provided) : variables, waitOn429);
+    lastSource.set(query.name, same ? "page" : "built-in");
+    return data;
   }
 
   // Approximate count of items that will survive normalization, so the popup's
@@ -493,12 +610,30 @@
     }
 
     // Profile export (offscreen.js) runs its GraphQL queries here, because
-    // /api/graphql only answers requests from instagram.com itself.
+    // /api/graphql only answers requests from instagram.com itself. A 429 goes
+    // straight back so the exporter can show its own countdown and retry.
     if (message.action === "IG_GQL") {
-      gql(message.docId, message.variables).then(
-        (data) => sendResponse({ data }),
-        (err) => sendResponse({ error: err?.message || String(err) })
+      const { query, variables } = message;
+      gql(query, variables, { waitOn429: false }).then(
+        (data) => sendResponse({ data, source: lastSource.get(query.name) }),
+        (err) => sendResponse({ error: err?.message || String(err), status: err?.status || 0 })
       );
+      return true;
+    }
+
+    // The popup's "Check Instagram": load the open chat's header and newest page.
+    if (message.action === "CHECK_DM") {
+      (async () => {
+        const urlId = getUrlId();
+        if (!urlId) return { ok: false, detail: "Open a chat on instagram.com to include chats" };
+        const head = await gql(DOC_THREAD, { thread_fbid: urlId });
+        if (!head.get_slide_thread_nullable?.as_ig_direct_thread) throw new Error("Couldn't load this conversation.");
+        const page = await gql(DOC_MESSAGES, { id: urlId, after: null, [PAGE_VAR]: PAGE });
+        const n = page.fetch__SlideThread?.as_ig_direct_thread?.slide_messages?.edges?.length || 0;
+        if (!n) throw new Error("Instagram returned no messages.");
+        const sources = [DOC_THREAD, DOC_MESSAGES].map((q) => lastSource.get(q.name));
+        return { ok: true, detail: `${n} recent messages loaded`, sources };
+      })().then(sendResponse, (err) => sendResponse({ ok: false, detail: err?.message || String(err) }));
       return true;
     }
   });

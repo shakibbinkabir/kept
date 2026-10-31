@@ -2,6 +2,24 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.4.0] — 2026-10-31
+
+"Never broken for long." Tested end to end against live Instagram: every profile mode, the open post / reel / highlight detection, and chat capture, auto-scroll and export.
+
+### Added
+
+- **Query ids are read from Instagram's own page.** Instagram rotates the ids of its private queries every few weeks, which used to break the exporter until a new release. A small script now reads the current ids (and their settings) from the instagram.com tab and the extension remembers them, falling back to its built-in ids if Instagram rejects one. Both chat queries had already been rotated since 3.2.1, and Instagram had only kept accepting the old ids.
+- **Check Instagram.** A button at the bottom of the popup tests every feature against Instagram in about ten seconds (account search, posts, single posts, reels, stories, highlights, and the open chat if there is one) and shows which ones work.
+- **Report a problem.** Opens a GitHub issue filled in with the error, the version and the check results, with usernames removed. You review it before posting. Also on every error card, next to *Copy details*.
+- **Gentle pacing, shown on screen.** Requests are spaced a little under a second apart. When Instagram asks to slow down, the exporter waits 30 s, 60 s, then 120 s, with a countdown in the popup, instead of retrying within seconds and failing.
+- **Privacy statement** ([PRIVACY.md](PRIVACY.md)): what the extension reads, sends and stores, why it needs each permission, no remote code, never for sale. The popup links to it and says the extension isn't affiliated with Instagram or Meta.
+
+### Changed
+
+- Exports are a little slower because of the pacing; reels in particular take about a second each.
+- New `storage` permission, to remember Instagram's current query ids. Chrome grants it without a prompt.
+- The README is rewritten around what people search for (export Instagram DMs, download stories, highlights and reels), with an FAQ.
+
 ## [3.3.0] — 2026-10-31
 
 Every feature was tested end to end in a real browser against live Instagram for this release: all profile modes and filters on a public and a private account, the open post / reel / highlight / story detection, the popup's input checks and Retry, and DM capture, scroll and auto-scroll, export and thread switching. Each download was opened and checked: every file matches its index, and every image and video is the format its name says.

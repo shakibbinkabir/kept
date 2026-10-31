@@ -18,13 +18,13 @@ import {
   getMediaInfo,
   getReel,
   getHighlightsTray,
+  setWaitReporter,
+  idSources,
   IGError,
 } from "./src/igapi.js";
 
 const MEDIA_CONCURRENCY = 6;
 const textEncoder = new TextEncoder();
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let lastBlobUrl = null;
 
@@ -43,6 +43,8 @@ chrome.runtime.onMessage.addListener((msg) => {
 
   if (msg.type === "RUN_EXPORT") {
     runExport(msg.job);
+  } else if (msg.type === "RUN_CHECK") {
+    runCheck(msg.jobId);
   } else if (msg.type === "REVOKE" && msg.url) {
     if (msg.url === lastBlobUrl) lastBlobUrl = null;
     URL.revokeObjectURL(msg.url);
@@ -403,7 +405,6 @@ async function exportHighlights(job, user) {
       queue.push({ path: `${folder}/${pad(i + 1, 3)}_${dateStr(ex.takenAt)}.${m.type}`, url: m.url, ex, title });
     });
     progress(jobId, "enumerating", queue.length, null, `Scanned ${hi + 1}/${selected.length} highlights…`);
-    if (hi < selected.length - 1) await sleep(300); // be gentle between calls
   }
 
   if (queue.length === 0) throw new IGError("No downloadable media found in those highlights.", 0);
@@ -487,6 +488,8 @@ function finishBlob(job, bytes, filename, summary) {
 
 async function runExport(job) {
   const { jobId, mode, username } = job;
+  // When Instagram says "slow down", the popup shows a countdown.
+  setWaitReporter((until) => send({ type: "EXPORT_PROGRESS", jobId, phase: "waiting", until }));
   try {
     // A single post, or the one highlight open in the tab, carries its own
     // owner — no profile lookup needed.
@@ -532,5 +535,77 @@ async function runExport(job) {
       error: err?.message || "Export failed.",
       status: err?.status ?? null,
     });
+  } finally {
+    setWaitReporter(null);
   }
+}
+
+/* ===== "Check Instagram" ===== */
+
+// One small request per feature against a public account that always has
+// posts, reels and highlights, so a failure points at Instagram, not the
+// account being exported.
+const CANARY = "instagram";
+
+async function runCheck(jobId) {
+  const report = (key, label, state, detail) => send({ type: "CHECK_PROGRESS", jobId, key, label, state, detail });
+  setWaitReporter((until) => send({ type: "CHECK_PROGRESS", jobId, waiting: until }));
+
+  const ctx = {};
+  const steps = [
+    ["search", "Find accounts", async () => {
+      ctx.user = await resolveUser(CANARY);
+      return "account search and profile info work";
+    }],
+    ["posts", "Posts", async () => {
+      let n = 0;
+      await paginateFeed(CANARY, (items) => {
+        n = items.length;
+        ctx.pk = items.find((i) => i.pk)?.pk;
+        return true;
+      });
+      if (!n) throw new IGError("Instagram returned no posts.", 0);
+      return `${n} posts on the first page`;
+    }],
+    ["post", "Single posts", async () => {
+      if (!ctx.pk) throw new IGError("Skipped: needs the posts check.", 0);
+      await getMediaInfo(String(ctx.pk).split("_")[0]);
+      return "post details load";
+    }],
+    ["reels", "Reels", async () => {
+      let n = 0;
+      await paginateReels(ctx.user.id, (items) => {
+        n = items.length;
+        return true;
+      });
+      if (!n) throw new IGError("Instagram returned no reels.", 0);
+      return "reels tab and reel details load";
+    }],
+    ["stories", "Stories", async () => {
+      const { items } = await getReel(ctx.user.id);
+      return items.length ? `${items.length} active stories` : "works (no active stories right now)";
+    }],
+    ["highlights", "Highlights", async () => {
+      const tray = await getHighlightsTray(ctx.user.id);
+      if (!tray.length) throw new IGError("Instagram returned no highlights.", 0);
+      const { items } = await getReel(`highlight:${tray[0].id}`);
+      if (!items.length) throw new IGError("A highlight came back empty.", 0);
+      return `${tray.length} highlights`;
+    }],
+  ];
+
+  for (const [key, label, fn] of steps) {
+    if (key !== "search" && !ctx.user) {
+      report(key, label, "fail", "Skipped: needs account search");
+      continue;
+    }
+    report(key, label, "running");
+    try {
+      report(key, label, "ok", await fn());
+    } catch (err) {
+      report(key, label, "fail", err?.message || String(err));
+    }
+  }
+  setWaitReporter(null);
+  send({ type: "CHECK_DONE", jobId, idSources: { ...idSources } });
 }

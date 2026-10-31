@@ -15,16 +15,16 @@ const ORIGIN = "https://www.instagram.com";
 
 // Persisted GraphQL queries used by instagram.com's own profile page and story
 // viewer (the old REST search/profile/feed/story endpoints now answer 404, 429,
-// 500 or an HTML page). Instagram rotates these ids every so often; when
-// profile export starts failing with a GraphQL error, open a profile on
-// instagram.com and run require("<query name>.graphql").params.id in the
-// DevTools console for the query names below, then paste the new ids here.
-const DOC_SEARCH = "40560838120170065"; // PolarisAPITopsearchQuery: username search
-const DOC_TIMELINE = "39527599490219966"; // PolarisProfilePostsTabContentQuery_connection: posts grid, by username
-const DOC_USER = "28036671149327607"; // profile header info, by user id
-const DOC_HIGHLIGHTS = "26970053832668570"; // PolarisProfileStoryHighlightsTrayContentQuery: by user id
-const DOC_REEL = "29341065465524437"; // PolarisStoriesV3ReelPageStandaloneQuery: a story ring or highlight
-const DOC_REELS_TAB = "39544804838467783"; // PolarisProfileReelsTabContentQuery_connection: a user's reels, by user id
+// 500 or an HTML page). Instagram rotates the ids every few weeks; bridge.js
+// swaps in the id the page currently uses (read by src/pageids.js), so the
+// ids here are only the fallback. To refresh them by hand, open a profile on
+// instagram.com and run require("<name>.graphql").params.id in DevTools.
+const DOC_SEARCH = { name: "PolarisAPITopsearchQuery", id: "40560838120170065" }; // username search
+const DOC_TIMELINE = { name: "PolarisProfilePostsTabContentQuery_connection", id: "39527599490219966" }; // posts grid
+const DOC_USER = { name: "PolarisProfilePageContentQuery", id: "40158838120366999" }; // profile info
+const DOC_HIGHLIGHTS = { name: "PolarisProfileStoryHighlightsTrayContentQuery", id: "26970053832668570" };
+const DOC_REEL = { name: "PolarisStoriesV3ReelPageStandaloneQuery", id: "29341065465524437" }; // a story ring or highlight
+const DOC_REELS_TAB = { name: "PolarisProfileReelsTabContentQuery_connection", id: "39544804838467783" }; // a user's reels
 const TIMELINE_FLAGS = {
   include_multi_captions: true,
   __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: true,
@@ -39,9 +39,11 @@ const REEL_FLAGS = {
 const USER_FLAGS = {
   __relay_internal__pv__PolarisCannesGuardianExperienceEnabledrelayprovider: true,
   __relay_internal__pv__PolarisCASB976ProfileEnabledrelayprovider: false,
+  __relay_internal__pv__PolarisProfileInformTreatmentBannerEnabledrelayprovider: false,
   __relay_internal__pv__PolarisWebSchoolsEnabledrelayprovider: false,
+  __relay_internal__pv__PolarisProfileRingsGradientEnabledrelayprovider: true,
   __relay_internal__pv__PolarisRepostsConsumptionEnabledrelayprovider: true,
-  __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: false,
+  __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: true,
 };
 
 class IGError extends Error {
@@ -56,13 +58,48 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// GET an instagram.com JSON endpoint with the headers IG's web client sends.
-// Retries on transient throttling (429) and 5xx with exponential backoff.
-async function fetchJson(path, { tries = 4 } = {}) {
-  const url = path.startsWith("http") ? path : ORIGIN + path;
-  let lastErr = null;
+/* ===== pacing ===== */
+// Requests from this document wait their turn, a little under a second apart
+// (GraphQL is paced the same way in bridge.js). When Instagram answers 429,
+// back off for 30 s, 60 s, then 120 s, telling the UI how long through
+// setWaitReporter so it can show a countdown.
+// ponytail: one global pace; per-endpoint budgets if Instagram ever needs them.
+const PACE_MS = 800;
+const WAITS_429 = [30, 60, 120];
+let paceChain = Promise.resolve();
+let lastRequestAt = 0;
+let reportWait = null;
 
-  for (let attempt = 0; attempt < tries; attempt++) {
+function pace() {
+  const turn = paceChain.then(async () => {
+    const wait = lastRequestAt + PACE_MS + Math.random() * 400 - Date.now();
+    if (wait > 0) await delay(wait);
+    lastRequestAt = Date.now();
+  });
+  paceChain = turn.catch(() => {});
+  return turn;
+}
+
+/** fn(untilMs) is called before each back-off, and with 0 when it ends. */
+export function setWaitReporter(fn) {
+  reportWait = fn;
+}
+
+async function backOff(seconds) {
+  reportWait?.(Date.now() + seconds * 1000);
+  await delay(seconds * 1000);
+  reportWait?.(0);
+}
+
+// GET an instagram.com JSON endpoint with the headers IG's web client sends.
+// 429s back off with a countdown; 5xx and network errors retry briefly.
+async function fetchJson(path) {
+  const url = path.startsWith("http") ? path : ORIGIN + path;
+  let retries = 0;
+  let throttled = 0;
+
+  for (;;) {
+    await pace();
     let res;
     try {
       res = await fetch(url, {
@@ -77,20 +114,21 @@ async function fetchJson(path, { tries = 4 } = {}) {
         },
       });
     } catch (err) {
-      lastErr = new IGError("Network request failed: " + err.message, 0);
-      await delay(800 * (attempt + 1));
+      if (++retries > 3) throw new IGError("Network request failed: " + err.message, 0);
+      await delay(1000 * retries);
       continue;
     }
 
-    if (res.status === 429 || res.status >= 500) {
-      lastErr = new IGError(
-        res.status === 429
-          ? "Instagram is rate-limiting requests (429). Slow down and retry."
-          : `Instagram server error (${res.status}).`,
-        res.status
-      );
-      // Backoff: 1.5s, 3s, 6s, ...
-      await delay(1500 * Math.pow(2, attempt));
+    if (res.status === 429) {
+      if (throttled >= WAITS_429.length) {
+        throw new IGError("Instagram is rate-limiting requests (429). Wait a few minutes and retry.", 429);
+      }
+      await backOff(WAITS_429[throttled++]);
+      continue;
+    }
+    if (res.status >= 500) {
+      if (++retries > 3) throw new IGError(`Instagram server error (${res.status}).`, res.status);
+      await delay(2000 * retries);
       continue;
     }
 
@@ -113,18 +151,29 @@ async function fetchJson(path, { tries = 4 } = {}) {
       throw new IGError("Instagram returned a non-JSON response.", res.status);
     }
   }
-
-  throw lastErr || new IGError("Request failed.", 0);
 }
 
-// Run a persisted GraphQL query. The old GET /graphql/query path now returns
-// an HTML page for most queries, and POST /api/graphql rejects requests from
-// the extension's own origin, so the query runs inside an open instagram.com
-// tab (src/bridge.js), exactly as Instagram's web client sends it.
-async function graphql(docId, variables) {
-  const res = await chrome.runtime.sendMessage({ type: "IG_GQL", docId, variables });
-  if (!res?.data) throw new IGError(res?.error || "Instagram GraphQL error: no data.", 0);
-  return res.data;
+/** Query name -> "page" | "built-in": which id the last call used. */
+export const idSources = {};
+
+// Run a persisted GraphQL query ({ name, id }). The old GET /graphql/query
+// path now returns an HTML page for most queries, and POST /api/graphql
+// rejects requests from the extension's own origin, so the query runs inside
+// an open instagram.com tab (src/bridge.js), exactly as Instagram's web client
+// sends it. A 429 comes back here so the countdown shows in the popup.
+async function graphql(query, variables) {
+  for (let throttled = 0; ; throttled++) {
+    const res = await chrome.runtime.sendMessage({ type: "IG_GQL", query, variables });
+    if (res?.data) {
+      idSources[query.name] = res.source;
+      return res.data;
+    }
+    if (res?.status === 429 && throttled < WAITS_429.length) {
+      await backOff(WAITS_429[throttled]);
+      continue;
+    }
+    throw new IGError(res?.error || "Instagram GraphQL error: no data.", res?.status || 0);
+  }
 }
 
 /**
@@ -160,7 +209,7 @@ export async function resolveUser(username) {
  * Walk a user's posts grid page by page (pinned posts first, then newest
  * first). onItems(rawItems) may return true to stop pagination early.
  */
-export async function paginateFeed(username, onItems, { pageDelayMs = 600 } = {}) {
+export async function paginateFeed(username, onItems) {
   let after = null;
   do {
     const data = await graphql(DOC_TIMELINE, {
@@ -179,9 +228,7 @@ export async function paginateFeed(username, onItems, { pageDelayMs = 600 } = {}
     if (stop) break;
 
     after = conn.page_info?.has_next_page ? conn.page_info.end_cursor : null;
-    if (!after) break;
-    await delay(pageDelayMs);
-  } while (true);
+  } while (after);
 }
 
 /**
@@ -190,7 +237,7 @@ export async function paginateFeed(username, onItems, { pageDelayMs = 600 } = {}
  * each reel's full item (video URL, date, caption) comes from media info.
  * onItems(rawItems) may return true to stop early.
  */
-export async function paginateReels(userId, onItems, { pageDelayMs = 600 } = {}) {
+export async function paginateReels(userId, onItems) {
   let after = null;
   do {
     const data = await graphql(DOC_REELS_TAB, {
@@ -218,7 +265,6 @@ export async function paginateReels(userId, onItems, { pageDelayMs = 600 } = {})
     }
 
     after = conn.page_info?.has_next_page ? conn.page_info.end_cursor : null;
-    if (after) await delay(pageDelayMs);
   } while (after);
 }
 
