@@ -78,14 +78,14 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.8.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.8.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.8.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.8.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.8.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.8.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.8.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v3.8.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.9.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.9.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.9.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.9.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.9.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.9.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.9.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v3.9.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -368,8 +368,14 @@ igexporter/
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
 ├── test/                  # self-checks: node test/<name>.test.mjs
-└── icons/
+├── styles/tokens.css      # design tokens: colour, type, spacing, motion; light and dark
+├── fonts/                 # Manrope (SIL Open Font License), bundled
+├── icons/                 # extension icons + ui.svg, the interface icon set
+├── brand/                 # the Keeper ring kit, usage notes, and the script that draws it
+└── site/                  # the website (kept.thisissbk.com): node site/build.mjs → site/public/
 ```
+
+The website is plain HTML, CSS and JS. `node site/build.mjs` fills in the feature status from this README and turns CHANGELOG.md and PRIVACY.md into pages, writing the result to `site/public/`; open `site/public/index.html` to preview it.
 
 Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 

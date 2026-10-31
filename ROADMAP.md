@@ -43,7 +43,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - File dates set to the post date
 - Usernames in file names, and file name patterns you can set
 
-## 3.9: Design foundation
+## 3.9: Design foundation ✅ shipped in v3.9.0
 
 - New brand: logo, toolbar icon, colors
 - Design system: color, type, spacing, corner radius, shadow and motion tokens

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Instagram Exporter",
-  "version": "3.8.0",
+  "version": "3.9.0",
   "description": "Export Instagram DMs to DYI-format JSON, and download anyone's posts, images, reels, or profile picture as foldered ZIPs.",
   "permissions": [
     "activeTab",
@@ -24,12 +24,14 @@
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },

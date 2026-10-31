@@ -17,6 +17,10 @@ npm-debug.log*
 *.pem
 dist/
 
+# Website build output and design-check working files
+site/public/
+.taste-skill/
+
 # Local captures / dumps used during development
 xhr*_dump.json
 probe-capture-*.json

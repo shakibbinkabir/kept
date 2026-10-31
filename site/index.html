@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kept · Keep your Instagram chats and posts on your computer</title>
+  <meta name="description" content="Kept is a free, open-source browser extension that saves your Instagram chats with their photos and voice notes, and your posts, reels, stories and highlights, to your own computer. Nothing leaves your browser." />
+  <meta property="og:title" content="Kept" />
+  <meta property="og:description" content="Your Instagram chats, voice notes and posts, kept on your own computer." />
+  <meta property="og:image" content="https://kept.thisissbk.com/og.png" />
+  <meta property="og:url" content="https://kept.thisissbk.com/" />
+  <meta name="theme-color" content="#10181d" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip" href="#why">Skip to content</a>
+
+  <nav class="nav" aria-label="Main">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#status">Status</a>
+    <a href="#faq">FAQ</a>
+    <a class="button" href="#install">Install</a>
+  </nav>
+
+  <main>
+    <div class="split">
+      <div class="stage" id="stage">
+        <img class="stage-mark" src="mark-on-dark.svg" alt="" width="256" height="256" />
+        <canvas id="ring" aria-hidden="true"></canvas>
+        <img class="stage-pic" data-pic="locket" src="assets/locket-for-a-portrait-miniature.jpg" width="1117" height="1400" alt="A seventeenth-century French locket, open, with a small painted portrait inside" />
+        <img class="stage-pic" data-pic="case" src="assets/young-woman-wearing-lace-gloves-holding-a.jpg" width="1400" height="887" alt="A nineteenth-century photograph of a young woman holding an open daguerreotype case" loading="lazy" />
+        <img class="stage-pic" data-pic="letters" src="assets/the-artist-s-letter-rack.jpg" width="1134" height="1400" alt="William Harnett's painting The Artist's Letter Rack: letters and cards held in a pink ribbon frame" loading="lazy" />
+      </div>
+
+      <div class="column">
+        <header class="hero">
+          <p class="lead reveal">Your Instagram chats, voice notes and posts, kept on your own computer.</p>
+          <h1 class="wordmark" id="wordmark">
+            <span class="sr">Kept</span>
+            <svg viewBox="0 0 496 244" aria-hidden="true"><path d="M12 20V170M70 70L12 128M34 107L75 170M120 120H220M220 120A50 50 0 1 0 205.4 155.4M268 70V220M268 120A50 50 0 1 1 268 120.01ZM437 35V140A30 30 0 0 0 467 170M409 70H471" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </h1>
+        </header>
+
+        <section class="intro" id="why" aria-label="Why">
+          <p class="reveal" data-pic="locket"><strong>People have always kept what matters close: a face in a locket, a photograph in a velvet case, letters held in a rack.</strong></p>
+          <p class="reveal" data-pic="case">Now it lives in chats. The first message from someone you love, a grandparent's voice note, the photos from a trip. On Instagram it is one deleted account away from gone.</p>
+          <p class="reveal" data-pic="letters">Kept saves it to your computer, in the format Instagram itself uses for its data download, with a page you can read without an internet connection.</p>
+          <p class="reveal" data-pic="ring">It runs only in your browser, with the Instagram session you already have. No account, no password, no server of ours. <a href="#demo">Try it below</a>.</p>
+        </section>
+
+        <section class="features" id="features">
+          <h2 class="reveal">What it keeps</h2>
+
+          <article class="module reveal">
+            <div class="panel" data-ui>
+              <ul class="tree">
+                <li class="dir">messages/inbox/ana_1784…</li>
+                <li>message_1.json</li>
+                <li>chat.txt</li>
+                <li class="dir">photos <span>48</span></li>
+                <li class="dir">videos <span>6</span></li>
+                <li class="dir">audio <span>11</span></li>
+              </ul>
+            </div>
+            <div class="text">
+              <h3>Chats, whole</h3>
+              <p>Every message, reaction, call and shared post, with the photos, videos and voice notes saved as real files.</p>
+              <p>The JSON matches Instagram's own export, so tools that read that format read this too. A plain chat.txt comes with it.</p>
+            </div>
+          </article>
+
+          <article class="module reveal">
+            <div class="panel" data-ui>
+              <ul class="picker">
+                <li class="on"><i></i>Ana<span>Today</span></li>
+                <li class="on"><i></i>Family<span>Yesterday</span></li>
+                <li><i></i>Sam · request<span>Oct 12</span></li>
+              </ul>
+            </div>
+            <div class="text">
+              <h3>One chat, or every chat</h3>
+              <p>Pick conversations from your list, message requests included, or take the whole inbox in one go. No scrolling through each one.</p>
+              <p>Set a From and To date to keep just a season of it.</p>
+            </div>
+          </article>
+
+          <article class="module reveal">
+            <div class="panel gallery-panel" data-ui>
+              <div class="chips"><span>All</span><span class="on">Photos</span><span>Voice notes</span><span>Links</span></div>
+              <div class="thumbs">
+                <img src="assets/seascape.jpg" alt="" width="1400" height="989" loading="lazy" />
+                <img src="assets/mourning-ring.jpg" alt="" width="1127" height="1400" loading="lazy" />
+                <img src="assets/locket-for-a-portrait-miniature.jpg" alt="" width="1117" height="1400" loading="lazy" />
+              </div>
+            </div>
+            <div class="text">
+              <h3>Read it offline</h3>
+              <p>Open index.html and the chat looks like a chat again: bubbles, days, photos inline, voice notes that play.</p>
+              <p>Search every message, jump to a date, show only photos or voice notes, or browse all the media at once.</p>
+            </div>
+          </article>
+
+          <article class="module reveal">
+            <div class="panel" data-ui>
+              <ul class="tree">
+                <li class="dir">Instagram/nasa/posts</li>
+                <li>2026-10-30_DfH-Y3JugI4/01.jpg</li>
+                <li>2026-10-30_DfH-Y3JugI4/caption.txt</li>
+                <li class="dir">Instagram/nasa/reels</li>
+                <li>2026-10-26_DeXk2Lr9QpA.mp4</li>
+              </ul>
+            </div>
+            <div class="text">
+              <h3>Posts, reels, stories, highlights</h3>
+              <p>From any public account, or a private one you follow: every post with its caption, every reel, today's stories, each highlight in its own folder.</p>
+              <p>Everything, the latest few, or a date range.</p>
+            </div>
+          </article>
+
+          <article class="module reveal">
+            <div class="panel" data-ui>
+              <ul class="opts">
+                <li class="on"><i></i>Save as files in a folder, not a ZIP</li>
+                <li class="on"><i></i>Only what I haven't downloaded yet</li>
+                <li class="name">File names <b>{username}_{date}_{code}</b></li>
+              </ul>
+            </div>
+            <div class="text">
+              <h3>Big, and only what's new</h3>
+              <p>Save straight into a folder with no size limit. Next time, download only what is new since the last run.</p>
+              <p>If an export stops halfway, run it again and it carries on where it left off.</p>
+            </div>
+          </article>
+        </section>
+      </div>
+    </div>
+
+    <section class="showcase" id="demo" aria-labelledby="demo-title">
+      <div class="field field-dark">
+        <label class="demo-label" for="demo-input">Write the chat. Lines starting with “Me:” are yours; [photo] adds a picture.</label>
+        <textarea id="demo-input" rows="7" spellcheck="false">Ana: Did you keep the photos from the harbour?
+Me: Every one. They're on my laptop now.
+Ana: [photo]
+Me: That's the one. And your voice note from that night.
+Ana: Then I can stop worrying about my phone.</textarea>
+      </div>
+      <div class="field field-light">
+        <div class="chatui" data-ui>
+          <div class="chat-top">
+            <span class="chat-name">Ana</span>
+            <input id="demo-search" type="search" placeholder="Search" aria-label="Search the sample chat" />
+          </div>
+          <p class="chat-day">Friday 31 October</p>
+          <ol class="chat-list" id="demo-out" aria-live="polite"></ol>
+          <p class="chat-count" id="demo-count"></p>
+        </div>
+      </div>
+      <h2 class="split-title" id="demo-title"><span class="a">You talk.</span> <span class="b">It's kept.</span></h2>
+    </section>
+
+    <section class="how" id="how">
+      <div class="how-steps">
+        <h2 class="reveal">Three clicks</h2>
+        <div class="step" data-step="1"><p class="big">Open the chat on instagram.com.</p><p>Any conversation, in Chrome, Brave or Edge, logged in as usual.</p></div>
+        <div class="step" data-step="2"><p class="big">Then click Start, and Auto-scroll.</p><p>Kept reads the chat from Instagram's own API as it scrolls back to the first message.</p></div>
+        <div class="step" data-step="3"><p class="big">Finally, Export. It's on your computer.</p><p>A ZIP, or a folder, with every message, photo and voice note, and a page to read it on.</p></div>
+      </div>
+      <div class="how-stage">
+        <div class="popup" data-ui data-state="1" id="popup">
+          <div class="popup-head"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M201.9 131.4A74 74 0 1 1 137.5 54.6" fill="none" stroke="currentColor" stroke-width="38" stroke-linecap="round" /><circle cx="184.7" cy="80.4" r="24" fill="#3282b8" /></svg>Kept</div>
+          <div class="popup-tabs"><span class="on">Chat</span><span>Profile</span></div>
+          <div class="popup-card">
+            <p class="popup-status"><i></i><span class="s1">Ready · Ana</span><span class="s2">Capturing · loading older messages</span><span class="s3">Exported · saved to Downloads</span></p>
+            <p class="popup-count"><b class="n">0</b> <span>messages</span></p>
+            <div class="popup-bar"><span></span></div>
+          </div>
+          <div class="popup-buttons"><span class="primary">Start capture</span><span>Auto-scroll</span><span>Export chat</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="where" id="privacy">
+      <h2 class="reveal">Where it goes</h2>
+      <div class="names reveal">
+        <p class="kind">It talks to</p>
+        <p>instagram.com</p>
+        <p>cdninstagram.com</p>
+        <p>fbcdn.net</p>
+        <p>fbsbx.com</p>
+        <p class="kind">It never uses</p>
+        <p>A server of ours</p>
+        <p>Your password</p>
+        <p>Analytics</p>
+        <p>Ads or trackers</p>
+        <p>Remote code</p>
+        <p class="kind">It keeps</p>
+        <p>Your files, on your disk</p>
+        <p>Your export options</p>
+        <p>Which posts you saved</p>
+        <p class="kind">You can check</p>
+        <p><a href="{{REPO}}">Every line of code</a></p>
+        <p><a href="privacy.html">The privacy notes</a></p>
+        <p><a href="{{REPO}}/blob/main/LICENSE">The MIT licence</a></p>
+      </div>
+    </section>
+
+    <section class="status" id="status">
+      <div class="status-stage">
+        <div class="check" data-ui>
+          <p class="check-head">Instagram check <span>{{CHECKED}}</span></p>
+          <ul id="check-list">{{CHECK_ROWS}}</ul>
+        </div>
+      </div>
+      <div class="status-list">
+        <h2 class="reveal">Working today</h2>
+        <p class="status-note reveal">Instagram changes its private API without notice. Every release is tested end to end against live Instagram, and the popup's Check Instagram button tests your own setup in about ten seconds.</p>
+        <ul class="rows" id="rows">{{STATUS_ROWS}}</ul>
+      </div>
+    </section>
+
+    <section class="install" id="install">
+      <h2 class="reveal">Install it</h2>
+      <ol class="reveal">
+        <li>Download the latest release from <a href="{{REPO}}/releases/latest">GitHub</a> and unzip it.</li>
+        <li>Open <b>chrome://extensions</b> (or brave://extensions, edge://extensions).</li>
+        <li>Turn on Developer mode, top right.</li>
+        <li>Click Load unpacked and choose the unzipped folder.</li>
+        <li>Pin Kept, open instagram.com, and click the ring.</li>
+      </ol>
+      <p class="install-note reveal">A Chrome Web Store listing is on the way. Until then this is the whole install; updates are a new download and one click on the reload arrow.</p>
+      <div class="cta reveal">
+        <p>It's free, open source, and takes about a minute to set up.</p>
+        <p class="cta-actions"><a class="button" href="{{REPO}}/releases/latest">Download Kept {{VERSION}}</a> <a href="{{REPO}}">Read the source</a></p>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <h2 class="reveal">Questions</h2>
+      <div class="answers reveal">
+        <p><b>Is it free?</b> Yes, and open source under the MIT licence. There is no paid version and nothing to sign up for.</p>
+        <p><b>Does it need my Instagram password?</b> No. It uses the session you are already logged in with on instagram.com, the way the Instagram website does. It never sees your password.</p>
+        <p><b>Does anything get sent to you?</b> No. There is no server. The only traffic is between your browser and Instagram's own servers.</p>
+        <p><b>Can I save my whole inbox?</b> Yes. Choose Export several chats or the whole inbox, pick Inbox and Message requests, and tick Every chat.</p>
+        <p><b>Does it keep photos and voice notes?</b> Yes, as real files beside the messages, fetched while Instagram's links are still valid. Untick the option for a quick text-only export.</p>
+        <p><b>How do I read a saved chat?</b> Unzip it and open index.html in any browser. It works offline, with search, dates, filters and a gallery.</p>
+        <p><b>Can I keep only some dates?</b> Yes. Set From and To before exporting, for one chat or many.</p>
+        <p><b>Can I download only new posts?</b> Yes. Tick Only what I haven't downloaded yet. Kept remembers what each export saved, per account.</p>
+        <p><b>What about private accounts?</b> You can save what your account can already see: public accounts, and private ones you follow.</p>
+        <p><b>Will Instagram mind?</b> Kept uses your normal session and paces its requests a little under a second apart, waiting when Instagram asks it to slow down. It reads; it never posts, likes or follows.</p>
+        <p><b>Which browsers?</b> Chrome, Brave, Edge and other Chromium browsers on a computer. Not Firefox, Safari or phones yet.</p>
+        <p><b>Something broke?</b> Click Check Instagram in the popup, then Report a problem. It opens a GitHub issue with the details filled in, usernames removed, for you to review.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Kept keeps your Instagram on your computer.</p>
+    <p class="links"><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a><a href="{{REPO}}">GitHub</a></p>
+    <p>2026 · Not affiliated with Instagram or Meta</p>
+    <p class="credits">{{CREDITS}}</p>
+  </footer>
+
+  <script src="ring.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+</html>

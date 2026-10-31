@@ -2,6 +2,23 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.9.0] — 2026-10-31
+
+"Design foundation." The brand, design system and website for the 4.0 rename to Kept. Checked in a browser: the popup in light and dark, every icon at 16, 32 and 48 px, and the website at desktop, tablet and phone widths.
+
+### Added
+
+- **A new mark and toolbar icon: the Keeper ring,** an open ring holding a gem, in the "Ink & sky" palette. The 16 and 32 px icons use a heavier cut so the gem stays clear of the ring. The full kit (mark, "kept" wordmark, lockups, tiles, store promo tile, social image) is in `brand/`, with usage notes and the script that draws it.
+- **Design tokens** (`styles/tokens.css`): colour, type, spacing, corners, shadows and motion, with light and dark themes that follow your system setting.
+- **Manrope, bundled.** One variable typeface shipped with the extension, so nothing loads from a font service.
+- **A custom icon set** (`icons/ui.svg`): 24 interface icons on one grid, in the mark's round strokes.
+- **The website** in `site/`, ready for kept.thisissbk.com: the ring in 3D, a sample chat you can type into and search, what Kept saves, how it works, where your data goes, feature status read from this README, install steps, answers, and the changelog and privacy notes built from this repo. It launches with 4.0.
+
+### Changed
+
+- The popup uses the design tokens: it follows your system's light or dark setting and uses Manrope and the new mark.
+- PRIVACY.md now lists the saved-post codes kept for "Only what I haven't downloaded yet" (added in 3.8).
+
 ## [3.8.0] — 2026-10-31
 
 "Big exports." Tested end to end against live Instagram: posts, images, reels, a highlight and a chat saved as folders; "only new" skipped 3 of 5 posts, then reported nothing new; an export of 20 posts was stopped halfway by reloading the extension and, run again, skipped the 9 already saved and finished the other 11, with no partial or duplicate files; a ZIP with a custom name pattern carried every post's date and time.
