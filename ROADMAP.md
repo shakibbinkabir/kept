@@ -35,7 +35,7 @@ The extension gets a new name in 4.0 (another product already uses "IG Exporter"
 - Filter a chat by voice notes, photos, links or calls
 - Media gallery for each chat
 
-## 3.8: Big exports
+## 3.8: Big exports ✅ shipped in v3.8.0
 
 - Download only what's new on repeat exports
 - Resume interrupted exports

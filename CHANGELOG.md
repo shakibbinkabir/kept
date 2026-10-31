@@ -2,6 +2,22 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.8.0] — 2026-10-31
+
+"Big exports." Tested end to end against live Instagram: posts, images, reels, a highlight and a chat saved as folders; "only new" skipped 3 of 5 posts, then reported nothing new; an export of 20 posts was stopped halfway by reloading the extension and, run again, skipped the 9 already saved and finished the other 11, with no partial or duplicate files; a ZIP with a custom name pattern carried every post's date and time.
+
+### Added
+
+- **Save as files in a folder, not a ZIP.** Each file goes straight into `Downloads/Instagram/<account>/<posts|images|reels|stories|highlights>/` as soon as it's downloaded, so there is no 4 GB limit and nothing big is held in memory. Chats can be saved as a folder too (`Downloads/Instagram/chats/…`). Folder names stay the same between runs, so a repeat export updates the same folder.
+- **Only what I haven't downloaded yet.** The extension remembers which posts, reels, stories and highlight items each export saved, per account and type, and skips them next time. The result says how many were already saved.
+- **Resume a stopped export.** In folder mode each post is remembered as soon as all its files are saved, so if an export stops (browser closed, Instagram error), running it again with "Only what I haven't downloaded yet" picks up where it left off. After an error the Retry button becomes **Resume**.
+- **File names you choose.** Set a pattern with `{username}`, `{date}`, `{time}`, `{code}` and `{index}`, for example `{username}_{date}_{code}`. Every name keeps the post code or number, so two posts never share one.
+- **Post dates on files in ZIPs.** Every file in a ZIP now carries the date and time it was posted (chat media: when it was sent), so unzipped files sort by when they were posted.
+
+### Changed
+
+- Captions are saved alongside each post's media as it downloads.
+
 ## [3.7.0] — 2026-10-31
 
 "Choose your chats." Tested end to end against live Instagram: the chat list loaded (15, then 30 with Load more), two chats from the last 7 days exported into one archive (921 messages, 47 media files, both pages and the inbox page open offline), the whole Message requests folder was scanned, and a 30-day range cut a 198-message chat down to its 28 recent messages.

@@ -46,6 +46,9 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Profile picture** — the full-resolution DP, downloaded directly (an account with no photo says so instead of saving Instagram's grey placeholder).
 - **A single post / reel** — open it on instagram.com (including private accounts you follow, and reels from the Reels feed) and grab just that post's media.
 - **Filtering** — export *everything*, the *most recent N*, the *oldest N*, or a *date range*. Pinned posts are sorted into their real date, so they never skew a range or a count.
+- **Big exports** — save as files straight into `Downloads/Instagram/<account>/<type>/` instead of one ZIP: no 4 GB limit, and a repeat export updates the same folder.
+- **Only what's new** — skip everything an earlier export already saved, per account and type. It also resumes an export that stopped halfway.
+- **Your file names** — a pattern like `{username}_{date}_{code}` (tokens: `{username}` `{date}` `{time}` `{code}` `{index}`). Files in ZIPs carry the date they were posted.
 - **Real file types** — images keep Instagram's own format (mostly WebP, sometimes JPEG) and are named accordingly; names in any script (Bengali, Arabic, …) are kept readable.
 - Runs in the background, so closing the popup mid-download is safe; progress shows on the toolbar badge.
 
@@ -75,13 +78,14 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.7.0 |
-| Current stories | ✅ Working | 2026-10-31 · v3.7.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.7.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v3.7.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v3.7.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.7.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.7.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v3.8.0 |
+| Current stories | ✅ Working | 2026-10-31 · v3.8.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v3.8.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v3.8.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v3.8.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v3.8.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v3.8.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v3.8.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -115,6 +119,12 @@ Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
 3. Click the **IG Exporter** icon and switch to the **Profile** tab.
 4. Type/confirm the `@username`, pick **What to export** (All posts / All images / All reels / Current stories / Story highlights / Profile picture / This post-reel). For the feed modes, choose a **Range** (Everything, Most recent N, Oldest N, or a Date range).
 5. Click **Export**. The toolbar badge shows progress; when it finishes, Chrome prompts you to save the ZIP (or image).
+
+Options under the Range (for everything except a single post and the profile picture):
+
+- **Save as files in a folder, not a ZIP** — files go straight into `Downloads/Instagram/<username>/<posts|images|reels|stories|highlights>/` as they download, with no 4 GB limit. Each run adds an `index_<time>.json`.
+- **Only what I haven't downloaded yet** — skips what earlier exports of this account and type saved. If an export in folder mode stops halfway, run it again with this ticked (or click **Resume**) and it carries on.
+- **File names** — leave empty for the defaults (`001_2024-05-01_Cabc123` in a ZIP, `2024-05-01_Cabc123` in a folder), or type a pattern with `{username}` `{date}` `{time}` `{code}` `{index}`.
 
 > You can only export from **public accounts** or **private accounts you follow** — same as what your session can already see. Requests are paced a little under a second apart, and if Instagram asks the exporter to slow down, it waits (30 s, then 60 s, then 120 s) with a countdown in the popup.
 
@@ -188,6 +198,12 @@ Yes. Click **Export several chats or the whole inbox…** in the Chat tab, pick 
 
 **Can I export only messages from certain dates?**
 Yes. Set **From** and **To** in the Chat tab before exporting.
+
+**Can I download only new posts since my last export?**
+Yes. Tick **Only what I haven't downloaded yet** in the Profile tab. The extension remembers what each export saved (per account and type) and skips it.
+
+**My export is huge or stopped halfway. What do I do?**
+Tick **Save as files in a folder, not a ZIP**: files are saved one by one with no size limit. If it stops, run it again with **Only what I haven't downloaded yet** ticked, or click **Resume**, and it continues where it stopped.
 
 **How do I read an exported chat?**
 Unzip it and open `index.html` in any browser. It works offline: search the whole chat, jump to a date, view photos and play voice notes.
@@ -296,7 +312,9 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 
 - **Login required.** You can only export public accounts or private ones you follow — exactly what your session can already see.
 - **Unofficial endpoints.** It uses Instagram's own web API, which is undocumented and changes periodically. Query ids are read from the open instagram.com page automatically (falling back to the ids built into `src/igapi.js` and `src/bridge.js`), so most id rotations need no update. If a query is renamed or its shape changes, an update is still needed; **Check Instagram** shows which feature broke.
-- **In-memory ZIP.** The whole archive is assembled in memory before saving, so exporting a very large account (many GB) can exhaust memory. Use the *Most recent N* / *date range* filters for huge profiles.
+- **ZIPs are built in memory**, up to 4 GB. For big accounts, tick **Save as files in a folder, not a ZIP**: files are saved one by one, with no size limit.
+- **File dates in folder mode.** Browsers can't set a downloaded file's date, so files saved to a folder are dated when they were downloaded; their names start with the post date. Files inside ZIPs carry the post date.
+- **Only new** remembers what this browser saved. Deleting files doesn't make them "new" again; untick the option to download everything.
 - **Reels take one request each.** The Reels tab lists only reel ids, so *All reels* fetches every reel's details separately. *Everything* on an account with thousands of reels is slow; use *Most recent N* or a date range.
 - **Rate limits.** Requests are paced a little under a second apart, which makes very large exports slower but safer. If Instagram still answers `429`, the exporter waits 30 s, 60 s, then 120 s with a countdown, and stops with a clear message if that isn't enough.
 - **Media URLs expire**, so files are fetched immediately during the run rather than listed for later.
@@ -345,6 +363,7 @@ igexporter/
 │   ├── normalizer.js      # chat: raw SlideMessage nodes → DYI shape
 │   ├── chatarchive.js     # chat: media plan, chat.txt transcript, optional Instagram encoding
 │   ├── chatpage.js        # chat: the offline index.html viewer (search, jump to date, media)
+│   ├── names.js           # file names: patterns, dates, safe characters
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
@@ -352,7 +371,7 @@ igexporter/
 └── icons/
 ```
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 

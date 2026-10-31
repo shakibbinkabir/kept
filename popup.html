@@ -445,6 +445,11 @@
     .date-row { margin: 4px 0 0; }
     .picker-open { margin-top: 2px; text-align: left; font-size: 11px; }
 
+    /* ===== Saving options (profile) ===== */
+    .save-opts { display: grid; gap: 6px; margin: 4px 0 12px; }
+    .save-opts .field { margin: 4px 0 0; }
+    .field-hint { font-size: 10px; color: var(--text-faint); margin-top: 4px; }
+
     /* ===== "Check Instagram" card ===== */
     .check-card { margin-top: 12px; margin-bottom: 0; }
     .check-head {
@@ -554,6 +559,7 @@
     <div class="chat-options">
       <label class="check"><input type="checkbox" id="optMedia" checked /> <span>Include photos, videos and voice notes</span></label>
       <label class="check" title="For tools built for Instagram's own data download, which stores emoji and accents as garbled bytes"><input type="checkbox" id="optEncoding" /> <span>Match Instagram's text encoding</span></label>
+      <label class="check" title="Files go straight into Downloads/Instagram/chats/, with no 4 GB limit"><input type="checkbox" id="optChatFolder" /> <span>Save as a folder, not a ZIP (for big exports)</span></label>
       <div class="field-row date-row">
         <div><label class="field-label" for="chatFrom">From (optional)</label><input type="date" id="chatFrom" /></div>
         <div><label class="field-label" for="chatTo">To (optional)</label><input type="date" id="chatTo" /></div>
@@ -606,6 +612,16 @@
       <div>
         <label class="field-label" for="toInput">To</label>
         <input type="date" id="toInput" />
+      </div>
+    </div>
+
+    <div class="save-opts" id="saveOpts">
+      <label class="check" title="Files go straight into Downloads/Instagram/&lt;account&gt;/&lt;type&gt;/, with no 4 GB limit"><input type="checkbox" id="optFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
+      <label class="check"><input type="checkbox" id="optOnlyNew" /> <span>Only what I haven't downloaded yet (also resumes a stopped export)</span></label>
+      <div class="field">
+        <label class="field-label" for="optPattern">File names</label>
+        <input type="text" id="optPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
+        <div class="field-hint">{username} {date} {time} {code} {index}</div>
       </div>
     </div>
 

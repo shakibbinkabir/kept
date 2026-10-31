@@ -11,6 +11,7 @@
 import { createZip } from "./src/zip.js";
 import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
 import { chatPage, inboxPage } from "./src/chatpage.js";
+import { pad, dateStr, sanitize, ident, fileBase } from "./src/names.js";
 import {
   resolveUser,
   paginateFeed,
@@ -66,33 +67,6 @@ chrome.runtime.onMessage.addListener((msg) => {
 
 /* ===== small utilities ===== */
 
-// Keep letters/marks/digits from any script (Bengali, Arabic, CJK, …) so names
-// stay readable; replace everything else, including path separators. Emoji
-// selectors/joiners go first so a dropped emoji doesn't leave one behind.
-function sanitize(name) {
-  return String(name)
-    .replace(/[\uFE00-\uFE0F\u200D]/g, "")
-    .replace(/[^\p{L}\p{M}\p{N}_\-.]+/gu, "_")
-    .replace(/^[_.]+|_+$/g, "") || "untitled";
-}
-
-// Usernames and post codes are already file-safe ([A-Za-z0-9._-]); keep them
-// verbatim. sanitize() would trim a leading or trailing underscore off them,
-// naming @some_user_'s files after @some_user.
-function ident(id) {
-  return String(id).replace(/[^\w.\-]+/g, "_") || "untitled";
-}
-
-function pad(n, width = 2) {
-  return String(n).padStart(width, "0");
-}
-
-function dateStr(takenAt) {
-  if (!takenAt) return "0000-00-00";
-  const d = new Date(takenAt * 1000);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
 function nowStamp() {
   return new Date().toISOString().replace(/[:.]/g, "-");
 }
@@ -142,29 +116,89 @@ function primaryMedia(ex) {
   return ex.media.find((m) => !m.isThumb) || null;
 }
 
-// Download a flat queue of { path, url } media into ZIP entries, reporting
-// file-level progress. Fixes each q.path's extension to the real file type in
-// place, so indexes built afterwards from the queue match the ZIP.
-// Returns { entries, failed, total }.
-async function fetchQueueToEntries(jobId, queue, label) {
+// Fetch a queue of { path, url | bytes, id?, time? } into the sink with
+// file-level progress, fixing each q.path's extension to the real file type in
+// place, so indexes built afterwards match what was saved. An item (q.id) is
+// done once all of its files are saved. Returns { failed, total, saved }.
+async function fetchQueue(job, queue, label, sink) {
   const total = queue.length;
+  const left = new Map();
+  const bad = new Set();
+  const saved = new Set();
+  for (const q of queue) if (q.id) left.set(q.id, (left.get(q.id) || 0) + 1);
   let done = 0;
   let failed = 0;
-  progress(jobId, "downloading", 0, total, `Downloading ${total} ${label}…`);
-  const fetched = await mapPool(queue, MEDIA_CONCURRENCY, async (q) => {
+  progress(job.jobId, "downloading", 0, total, `Downloading ${total} ${label}…`);
+  await mapPool(queue, MEDIA_CONCURRENCY, async (q) => {
     try {
-      const bytes = await fetchBytes(q.url);
-      q.path = withRealExt(q.path, bytes);
-      return { path: q.path, bytes };
+      const bytes = q.bytes || (await fetchBytes(q.url));
+      if (q.url) q.path = withRealExt(q.path, bytes);
+      if (!(await sink.add(q.path, bytes, q.time))) throw new Error("not saved");
+      saved.add(q.path);
     } catch {
       failed++;
-      return null;
+      bad.add(q.id);
     } finally {
       done++;
-      progress(jobId, "downloading", done, total);
+      progress(job.jobId, "downloading", done, total);
+      if (q.id) {
+        left.set(q.id, left.get(q.id) - 1);
+        if (!left.get(q.id) && !bad.has(q.id)) sink.done(q.id);
+      }
     }
   });
-  return { entries: fetched.filter(Boolean), failed, total };
+  return { failed, total, saved };
+}
+
+// "Only new": drop what an earlier export of this account already saved.
+function skipSeen(job, items, idOf = (ex) => ex.shortcode) {
+  const seen = new Set(job.seen || []);
+  const fresh = items.filter((x) => !seen.has(idOf(x)));
+  job.skipped = items.length - fresh.length;
+  if (items.length && !fresh.length) throw new IGError("Nothing new since your last export.", 0);
+  return fresh;
+}
+
+/* ===== saving: one ZIP, or files straight into a folder ===== */
+
+// A ZIP is built in memory and capped at 4 GB. Folder mode hands each file to
+// chrome.downloads as soon as it's fetched, into Downloads/Instagram/<root>/,
+// so there's no size limit and a stopped export keeps what it saved.
+function makeSink(job, root = "", username = "") {
+  const folder = !!job.options?.folder;
+  const entries = [];
+  const ids = [];
+  const stamp = nowStamp();
+  const remember = (list) => job.seenKey && list.length && send({ type: "REMEMBER", key: job.seenKey, ids: list });
+  return {
+    folder,
+    entries,
+    name: (ex, index) => fileBase(job.options?.pattern, { folder, username, takenAt: ex.takenAt, code: ex.shortcode, index }),
+    async add(path, bytes, time) {
+      if (!folder) return entries.push({ path, bytes, date: time ? new Date(time * 1000) : undefined }) > 0;
+      // Each run's index gets its own name, so repeat runs into one folder keep theirs.
+      return saveToFolder(`Instagram/${root}/${path === "index.json" ? `index_${stamp}.json` : path}`, bytes);
+    },
+    // In folder mode each finished item is remembered as it lands, so running
+    // the export again with "only new" picks up where it stopped.
+    done(id) {
+      if (folder) remember([id]);
+      else ids.push(id);
+    },
+    finish(zipName, summary) {
+      summary = { ...summary, skipped: job.skipped || 0 };
+      if (!folder) return finishBlob(job, createZip(entries), zipName, summary, job.seenKey ? { key: job.seenKey, ids } : null);
+      send({ type: "EXPORT_DONE", jobId: job.jobId, filename: `Downloads/Instagram/${root}/`, summary });
+    },
+  };
+}
+
+async function saveToFolder(filename, bytes) {
+  const type = MIME[filename.split(".").pop()] || "application/octet-stream";
+  const url = URL.createObjectURL(new Blob([bytes], { type }));
+  const resp = await chrome.runtime.sendMessage({ type: "SAVE_TO_FOLDER", url, filename }).catch(() => null);
+  if (!resp?.ok) URL.revokeObjectURL(url);
+  return !!resp?.ok;
 }
 
 /* ===== enumeration ===== */
@@ -245,7 +279,7 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
   // posts with images, not the five newest posts minus the reels among them.
   const hasImage = (ex) => ex.media.some((m) => !m.isVideo && !m.isThumb);
   const grid = (onItems) => paginateFeed(user.username, onItems);
-  const items = await collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter);
+  const items = skipSeen(job, await collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter));
 
   // Attach a planned file list to each post; drop posts that contribute nothing.
   const posts = [];
@@ -262,30 +296,26 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
     );
   }
 
-  // Flatten to a download queue so we can show real file-level progress.
+  // Flatten to a download queue (captions too) for real file-level progress.
+  const suffix = imagesOnly ? "images" : "posts";
+  const sink = makeSink(job, `${ident(user.username)}/${suffix}`, user.username);
   const queue = [];
   posts.forEach((p, i) => {
-    const idx = i + 1;
-    const folder = `${pad(idx, 3)}_${dateStr(p.post.takenAt)}_${ident(p.post.shortcode)}`;
+    const folder = sink.name(p.post, i + 1);
+    const item = { id: p.post.shortcode, time: p.post.takenAt };
     p.folder = folder;
-    for (const f of p.files) queue.push({ path: `${folder}/${f.name}`, url: f.url, file: f });
+    for (const f of p.files) queue.push({ path: `${folder}/${f.name}`, url: f.url, file: f, ...item });
+    if (p.post.caption) queue.push({ path: `${folder}/caption.txt`, bytes: textEncoder.encode(p.post.caption), ...item });
   });
 
-  const { entries, failed, total } = await fetchQueueToEntries(jobId, queue, "files");
-  for (const q of queue) q.file.name = q.path.slice(q.path.indexOf("/") + 1);
+  const { failed, total } = await fetchQueue(job, queue, "files", sink);
+  for (const q of queue) if (q.file) q.file.name = q.path.slice(q.path.indexOf("/") + 1);
 
-  // caption.txt per post + a top-level index.json.
+  // A top-level index.json.
   const index = [];
   posts.forEach((p, i) => {
-    const idx = i + 1;
-    if (p.post.caption) {
-      entries.push({
-        path: `${p.folder}/caption.txt`,
-        bytes: textEncoder.encode(p.post.caption),
-      });
-    }
     index.push({
-      index: idx,
+      index: i + 1,
       folder: p.folder,
       shortcode: p.post.shortcode,
       taken_at: p.post.takenAt,
@@ -296,37 +326,29 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
       files: p.files.map((f) => f.name),
     });
   });
-  entries.push({
-    path: "index.json",
-    bytes: textEncoder.encode(JSON.stringify({ username: user.username, exported_at: nowStamp(), count: posts.length, posts: index }, null, 2)),
-  });
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({ username: user.username, exported_at: nowStamp(), count: posts.length, posts: index }, null, 2)));
 
-  progress(jobId, "zipping", null, null, "Packaging ZIP…");
-  const zipBytes = createZip(entries);
-  const suffix = imagesOnly ? "images" : "posts";
-  finishBlob(job, zipBytes, `${ident(user.username)}_${suffix}_${nowStamp()}.zip`, { posts: posts.length, files: total, failed });
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`${ident(user.username)}_${suffix}_${nowStamp()}.zip`, { posts: posts.length, files: total, failed });
 }
 
 async function exportReels(job, user) {
   const { jobId } = job;
   // The Reels tab, not the grid: reels can be hidden from the posts grid.
   const tab = (onItems) => paginateReels(user.id, onItems);
-  const reels = await collectItems(jobId, tab, (ex) => ex.kind === "reel", job.options.filter);
+  const reels = skipSeen(job, await collectItems(jobId, tab, (ex) => ex.kind === "reel", job.options.filter));
   if (reels.length === 0) throw new IGError("No reels found for this selection.", 0);
 
+  const sink = makeSink(job, `${ident(user.username)}/reels`, user.username);
   const queue = [];
   reels.forEach((r, i) => {
-    const idx = i + 1;
     const video = r.media.find((m) => m.isVideo);
     if (!video) return;
-    const name = `${pad(idx, 3)}_${dateStr(r.takenAt)}_${ident(r.shortcode)}.mp4`;
-    queue.push({ path: name, url: video.url, post: r });
+    queue.push({ path: `${sink.name(r, i + 1)}.mp4`, url: video.url, post: r, id: r.shortcode, time: r.takenAt });
   });
 
-  const { entries, failed, total } = await fetchQueueToEntries(jobId, queue, "reels");
-  entries.push({
-    path: "index.json",
-    bytes: textEncoder.encode(JSON.stringify({
+  const { failed, total } = await fetchQueue(job, queue, "reels", sink);
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: user.username,
       exported_at: nowStamp(),
       count: queue.length,
@@ -339,12 +361,10 @@ async function exportReels(job, user) {
         url: `https://www.instagram.com/reel/${q.post.shortcode}/`,
         caption: q.post.caption,
       })),
-    }, null, 2)),
-  });
+  }, null, 2)));
 
-  progress(jobId, "zipping", null, null, "Packaging ZIP…");
-  const zipBytes = createZip(entries);
-  finishBlob(job, zipBytes, `${ident(user.username)}_reels_${nowStamp()}.zip`, { reels: total, failed });
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`${ident(user.username)}_reels_${nowStamp()}.zip`, { reels: total, failed });
 }
 
 async function exportStories(job, user) {
@@ -352,16 +372,12 @@ async function exportStories(job, user) {
   progress(jobId, "enumerating", 0, null, "Loading stories…");
   const { items: rawItems } = await getReel(user.id);
 
+  const sink = makeSink(job, `${ident(user.username)}/stories`, user.username);
   const queue = [];
-  rawItems.forEach((raw, i) => {
-    const ex = extractMedia(raw);
+  skipSeen(job, rawItems.map(extractMedia)).forEach((ex, i) => {
     const m = primaryMedia(ex);
     if (!m) return;
-    queue.push({
-      path: `${pad(i + 1, 3)}_${dateStr(ex.takenAt)}_${ident(ex.shortcode)}.${m.type}`,
-      url: m.url,
-      ex,
-    });
+    queue.push({ path: `${sink.name(ex, i + 1)}.${m.type}`, url: m.url, ex, id: ex.shortcode, time: ex.takenAt });
   });
 
   if (queue.length === 0) {
@@ -369,10 +385,8 @@ async function exportStories(job, user) {
   }
   progress(jobId, "enumerating", queue.length, null, `Found ${queue.length} stories…`);
 
-  const { entries, failed, total } = await fetchQueueToEntries(jobId, queue, "stories");
-  entries.push({
-    path: "index.json",
-    bytes: textEncoder.encode(JSON.stringify({
+  const { failed, total } = await fetchQueue(job, queue, "stories", sink);
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: user.username,
       exported_at: nowStamp(),
       type: "stories",
@@ -384,11 +398,10 @@ async function exportStories(job, user) {
         date: dateStr(q.ex.takenAt),
         kind: q.ex.kind,
       })),
-    }, null, 2)),
-  });
+  }, null, 2)));
 
-  progress(jobId, "zipping", null, null, "Packaging ZIP…");
-  finishBlob(job, createZip(entries), `${ident(user.username)}_stories_${nowStamp()}.zip`, { stories: total, failed });
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`${ident(user.username)}_stories_${nowStamp()}.zip`, { stories: total, failed });
 }
 
 // `user` is null when exporting just the highlight open in the tab — the
@@ -402,30 +415,35 @@ async function exportHighlights(job, user) {
   const selected = wantId ? [{ id: wantId, title: "" }] : await getHighlightsTray(user.id);
   if (selected.length === 0) throw new IGError(`@${user.username} has no highlights.`, 0);
 
-  // Build the download queue, one folder per highlight.
   let owner = user?.username || "";
-  const queue = [];
+  let found = [];
   for (let hi = 0; hi < selected.length; hi++) {
     const h = selected[hi];
     const reel = await getReel(`highlight:${h.id}`);
     const title = h.title || reel.title || "Highlight";
     owner = owner || reel.owner;
-    const folder = `${pad(hi + 1, 2)}_${sanitize(title)}`;
-    reel.items.forEach((raw, i) => {
+    for (const raw of reel.items) {
       const ex = extractMedia(raw);
       const m = primaryMedia(ex);
-      if (!m) return;
-      queue.push({ path: `${folder}/${pad(i + 1, 3)}_${dateStr(ex.takenAt)}.${m.type}`, url: m.url, ex, title });
-    });
-    progress(jobId, "enumerating", queue.length, null, `Scanned ${hi + 1}/${selected.length} highlights…`);
+      if (m) found.push({ ex, m, title, hi });
+    }
+    progress(jobId, "enumerating", found.length, null, `Scanned ${hi + 1}/${selected.length} highlights…`);
   }
+  found = skipSeen(job, found, (f) => f.ex.shortcode);
+  if (found.length === 0) throw new IGError("No downloadable media found in those highlights.", 0);
 
-  if (queue.length === 0) throw new IGError("No downloadable media found in those highlights.", 0);
+  // One folder per highlight. Folder mode names it by title alone, since
+  // the tray order (and so the number) changes as highlights are added.
+  const sink = makeSink(job, `${ident(owner || "instagram")}/highlights`, owner);
+  const perFolder = {};
+  const queue = found.map((f) => {
+    const folder = sink.folder ? sanitize(f.title) : `${pad(f.hi + 1, 2)}_${sanitize(f.title)}`;
+    perFolder[folder] = (perFolder[folder] || 0) + 1;
+    return { path: `${folder}/${sink.name(f.ex, perFolder[folder])}.${f.m.type}`, url: f.m.url, ex: f.ex, title: f.title, id: f.ex.shortcode, time: f.ex.takenAt };
+  });
 
-  const { entries, failed, total } = await fetchQueueToEntries(jobId, queue, "items");
-  entries.push({
-    path: "index.json",
-    bytes: textEncoder.encode(JSON.stringify({
+  const { failed, total } = await fetchQueue(job, queue, "items", sink);
+  await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: owner,
       exported_at: nowStamp(),
       type: "highlights",
@@ -439,11 +457,10 @@ async function exportHighlights(job, user) {
         date: dateStr(q.ex.takenAt),
         kind: q.ex.kind,
       })),
-    }, null, 2)),
-  });
+  }, null, 2)));
 
-  progress(jobId, "zipping", null, null, "Packaging ZIP…");
-  finishBlob(job, createZip(entries), `${ident(owner || "instagram")}_highlights_${nowStamp()}.zip`, { highlights: selected.length, files: total, failed });
+  progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
+  sink.finish(`${ident(owner || "instagram")}_highlights_${nowStamp()}.zip`, { highlights: selected.length, files: total, failed });
 }
 
 async function exportProfilePic(job, user) {
@@ -464,8 +481,10 @@ async function exportSinglePost(job) {
   if (files.length === 0) throw new IGError("That post has no downloadable media.", 0);
 
   const base = `${ident(raw.user?.username || job.username || post.shortcode)}_${ident(post.shortcode || code)}`;
-  const queue = files.map((f) => ({ path: f.name, url: f.url }));
-  const { entries, failed, total } = await fetchQueueToEntries(jobId, queue, "files");
+  const sink = makeSink({ ...job, options: {} }); // one file or a small ZIP, never a folder
+  const queue = files.map((f) => ({ path: f.name, url: f.url, time: post.takenAt }));
+  const { failed, total } = await fetchQueue(job, queue, "files", sink);
+  const { entries } = sink;
   if (entries.length === 0) throw new IGError("Couldn't download that post's media.", 0);
 
   // A lone media file with no caption is saved as-is rather than zipped.
@@ -474,19 +493,21 @@ async function exportSinglePost(job) {
     return;
   }
 
-  if (post.caption) {
-    entries.push({ path: "caption.txt", bytes: textEncoder.encode(post.caption) });
-  }
+  if (post.caption) await sink.add("caption.txt", textEncoder.encode(post.caption), post.takenAt);
   progress(jobId, "zipping", null, null, "Packaging ZIP…");
-  finishBlob(job, createZip(entries), `${base}.zip`, { files: total, failed });
+  sink.finish(`${base}.zip`, { files: total, failed });
 }
 
 /* ===== finalize ===== */
 
 // Without a type Chrome sniffs the blob and may swap the extension (.zip → .txt).
-const MIME = { zip: "application/zip", jpg: "image/jpeg", png: "image/png", webp: "image/webp", mp4: "video/mp4" };
+const MIME = {
+  zip: "application/zip", jpg: "image/jpeg", png: "image/png", webp: "image/webp", mp4: "video/mp4",
+  json: "application/json", txt: "text/plain", html: "text/html",
+};
 
-function finishBlob(job, bytes, filename, summary) {
+// `remember` ({ key, ids }) is stored once the download is accepted, for "only new".
+function finishBlob(job, bytes, filename, summary, remember = null) {
   if (lastBlobUrl) {
     URL.revokeObjectURL(lastBlobUrl);
     lastBlobUrl = null;
@@ -494,7 +515,7 @@ function finishBlob(job, bytes, filename, summary) {
   const type = MIME[filename.split(".").pop()] || "application/octet-stream";
   const url = URL.createObjectURL(new Blob([bytes], { type }));
   lastBlobUrl = url;
-  send({ type: "EXPORT_DOWNLOAD_URL", jobId: job.jobId, url, filename, summary });
+  send({ type: "EXPORT_DOWNLOAD_URL", jobId: job.jobId, url, filename, summary, remember });
 }
 
 /* ===== dispatch ===== */
@@ -564,6 +585,9 @@ async function runExport(job) {
 async function runChatExport(job) {
   const { jobId, chats, options = {} } = job;
   try {
+    const title = chats.length > 1 ? `${chats.length}_chats` : sanitize(chats[0].title || "");
+    const name = `${title === "untitled" ? "thread" : title}_${nowStamp()}`;
+    const sink = makeSink({ ...job, options }, `chats/${name}`);
     const plan = [];
     for (const chat of chats) {
       const folder = chatFolder(chat);
@@ -571,20 +595,17 @@ async function runChatExport(job) {
         for (const item of planMedia(chat)) plan.push({ ...item, path: `${folder}/${item.path}` });
       }
     }
-    let entries = [];
     let failed = 0;
     if (plan.length) {
-      const got = await fetchQueueToEntries(jobId, plan, "photos, videos and voice notes");
+      const got = await fetchQueue(job, plan, "photos, videos and voice notes", sink);
       failed = got.failed;
-      const saved = new Set(got.entries.map((e) => e.path));
       // Failed downloads keep Instagram's (expiring) link.
       for (const item of plan) {
-        if (saved.has(item.path)) for (const ref of item.refs) ref.uri = item.path;
+        if (got.saved.has(item.path)) for (const ref of item.refs) ref.uri = item.path;
       }
-      entries = got.entries;
     }
 
-    progress(jobId, "zipping", null, null, "Packaging ZIP…");
+    progress(jobId, "zipping", null, null, sink.folder ? "Finishing…" : "Packaging ZIP…");
     const pages = [];
     chats.forEach((chat, i) => {
       const folder = chatFolder(chat);
@@ -596,12 +617,10 @@ async function runChatExport(job) {
     });
     // Open index.html to read offline; media loads from the folders beside it.
     pages.unshift({ path: "index.html", bytes: textEncoder.encode(chats.length > 1 ? inboxPage(chats) : chatPage(chats[0])) });
-    entries = pages.concat(entries);
+    for (const page of pages) await sink.add(page.path, page.bytes);
 
     const messages = chats.reduce((n, c) => n + c.messages.length, 0);
-    const title = chats.length > 1 ? `${chats.length}_chats` : sanitize(chats[0].title || "");
-    const name = `instagram_${title === "untitled" ? "thread" : title}_${nowStamp()}.zip`;
-    finishBlob(job, createZip(entries), name, { chats: chats.length, messages, media: plan.length, failed });
+    sink.finish(`instagram_${name}.zip`, { chats: chats.length, messages, media: plan.length, failed });
   } catch (err) {
     send({ type: "EXPORT_ERROR", jobId, error: err?.message || "Couldn't build the chat export." });
   }

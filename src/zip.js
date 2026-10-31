@@ -50,18 +50,17 @@ function dosDateTime(date) {
 
 /**
  * Build a ZIP archive.
- * @param {Array<{path: string, bytes: Uint8Array}>} entries
- * @param {Date} [modDate] modification stamp applied to every entry
+ * @param {Array<{path: string, bytes: Uint8Array, date?: Date}>} entries
+ * @param {Date} [modDate] modification stamp for entries without their own date
  * @returns {Uint8Array}
  */
 export function createZip(entries, modDate = new Date()) {
-  const { dosTime, dosDate } = dosDateTime(modDate);
-
   const localParts = [];
   const centralParts = [];
   let offset = 0;
 
   for (const entry of entries) {
+    const { dosTime, dosDate } = dosDateTime(entry.date || modDate);
     const nameBytes = textEncoder.encode(entry.path);
     const data = entry.bytes;
     const crc = crc32(data);

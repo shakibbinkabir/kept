@@ -12,6 +12,11 @@ const els = {
   exportBtn: document.getElementById("exportBtn"),
   optMedia: document.getElementById("optMedia"),
   optEncoding: document.getElementById("optEncoding"),
+  optChatFolder: document.getElementById("optChatFolder"),
+  saveOpts: document.getElementById("saveOpts"),
+  optFolder: document.getElementById("optFolder"),
+  optOnlyNew: document.getElementById("optOnlyNew"),
+  optPattern: document.getElementById("optPattern"),
   chatFrom: document.getElementById("chatFrom"),
   chatTo: document.getElementById("chatTo"),
 
@@ -216,6 +221,7 @@ function classifyError(msg, problems) {
 function showError(title, body, problems) {
   state.errorContext = "chat";
   state.lastError = { title, body, problems };
+  els.retryBtn.textContent = "Retry";
   setPhase("error", "Error", "");
   els.errorTitle.textContent = title || "Something went wrong";
   els.errorBody.textContent = body + (problems?.length ? `\n• ${problems.slice(0, 3).join("\n• ")}` : "");
@@ -399,6 +405,7 @@ function refreshProfileFields() {
   const isFeed = mode === "posts" || mode === "images" || mode === "reels";
   const filter = els.filterSelect.value;
   els.filterField.hidden = !isFeed;
+  els.saveOpts.hidden = mode === "post" || mode === "profilePic";
   els.countField.hidden = !(isFeed && (filter === "recent" || filter === "oldest"));
   els.dateField.hidden = !(isFeed && filter === "range");
   if (filter === "recent") els.countFieldLabel.textContent = "How many (most recent)";
@@ -448,6 +455,7 @@ function profileHintFor(body) {
   if (m.includes("rate") || m.includes("429")) return "Instagram is throttling requests. Wait a minute and retry.";
   if (m.includes("no such user") || m.includes("not found")) return "Check the username spelling.";
   if (m.includes("no posts") || m.includes("no images") || m.includes("no reels")) return "Try a different range or mode.";
+  if (m.includes("nothing new")) return "Untick “Only what I haven't downloaded yet” to download everything again.";
   if (m.includes("post") && m.includes("open")) return "Open a post/reel page first, or pick a different mode.";
   return "";
 }
@@ -459,6 +467,8 @@ function showProfileError(title, body) {
   els.errorBody.textContent = body || "";
   els.errorHint.textContent = profileHintFor(body);
   els.errorCard.hidden = false;
+  // A folder export keeps what it saved, so it can pick up where it stopped.
+  els.retryBtn.textContent = state.profile.lastJob?.options?.folder && !/nothing new/i.test(body) ? "Resume" : "Retry";
   setProfilePhase("error", "Error", "");
   els.pProgress.classList.remove("active");
   els.profileExportBtn.disabled = false;
@@ -469,7 +479,7 @@ function showProfileError(title, body) {
 function summaryLabel(s) {
   if (!s) return "complete";
   const count = (n, one, many = one + "s") => `${n} ${n === 1 ? one : many}`;
-  const fail = s.failed ? `, ${s.failed} failed` : "";
+  const fail = (s.failed ? `, ${s.failed} failed` : "") + (s.skipped ? `, ${s.skipped} already saved` : "");
   if (s.posts != null) return count(s.posts, "post") + fail;
   if (s.reels != null) return count(s.reels, "reel") + fail;
   if (s.stories != null) return count(s.stories, "story", "stories") + fail;
@@ -518,6 +528,12 @@ function buildJobFromForm() {
 
   if (mode === "highlights" && state.profile.detectedHighlightId) {
     options.highlightId = state.profile.detectedHighlightId;
+  }
+
+  if (!els.saveOpts.hidden) {
+    options.folder = els.optFolder.checked;
+    options.onlyNew = els.optOnlyNew.checked;
+    options.pattern = els.optPattern.value.trim();
   }
 
   return { mode, username, options };
@@ -716,7 +732,7 @@ function openPicker(open) {
 function exportChats() {
   const folders = FOLDERS();
   const ids = els.everyChat.checked ? undefined : [...picker.selected].filter((id) => folders.includes(picker.chats.get(id)?.folder));
-  const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked };
+  const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked };
   clearError();
   openPicker(false);
   els.exportBtn.disabled = true;
@@ -933,7 +949,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // The chat is captured and validated: the offscreen doc downloads its
     // media and builds the ZIP; progress comes back as EXPORT_* messages.
     if (message.type === "IG_EXPORTER_SUCCESS") {
-      const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked };
+      const options = { media: els.optMedia.checked, instagramEncoding: els.optEncoding.checked, folder: els.optChatFolder.checked };
       setPhase("exporting", "Exporting", options.media ? "saving media" : "packaging");
       chrome.runtime.sendMessage({ type: "CHAT_EXPORT", chat: message.result, options }, (resp) => {
         if (chrome.runtime.lastError || !resp?.ok) {
@@ -958,6 +974,30 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(() => {});
   els.optMedia.addEventListener("change", saveChatOptions);
   els.optEncoding.addEventListener("change", saveChatOptions);
+
+  // Saving options (folder / only new / file names), remembered too. The
+  // folder choice is shared by the Chat and Profile tabs.
+  const showPattern = () => (els.optPattern.placeholder = els.optFolder.checked ? "{date}_{code}" : "{index}_{date}_{code}");
+  chrome.storage.local
+    .get("saveOptions")
+    .then(({ saveOptions: o }) => {
+      if (!o) return;
+      els.optFolder.checked = els.optChatFolder.checked = !!o.folder;
+      els.optOnlyNew.checked = !!o.onlyNew;
+      els.optPattern.value = o.pattern || "";
+      showPattern();
+    })
+    .catch(() => {});
+  const saveSaveOptions = (e) => {
+    if (e?.target === els.optChatFolder) els.optFolder.checked = els.optChatFolder.checked;
+    els.optChatFolder.checked = els.optFolder.checked;
+    showPattern();
+    chrome.storage.local
+      .set({ saveOptions: { folder: els.optFolder.checked, onlyNew: els.optOnlyNew.checked, pattern: els.optPattern.value.trim() } })
+      .catch(() => {});
+  };
+  for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew]) el.addEventListener("change", saveSaveOptions);
+  els.optPattern.addEventListener("change", saveSaveOptions);
 
   // Several chats
   els.pickerOpen.addEventListener("click", () => openPicker(true));
@@ -1011,7 +1051,9 @@ document.addEventListener("DOMContentLoaded", () => {
   els.retryBtn.addEventListener("click", () => {
     if (state.errorContext === "profile") {
       clearError();
-      if (state.profile.lastJob) startProfileExport(state.profile.lastJob);
+      const job = state.profile.lastJob;
+      if (job?.options?.folder) job.options = { ...job.options, onlyNew: true }; // resume
+      if (job) startProfileExport(job);
       return;
     }
     clearError();

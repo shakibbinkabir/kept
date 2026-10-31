@@ -18,17 +18,18 @@ const pendingDownloads = new Map(); // downloadId -> { url, jobId }
 // Download managers (e.g. IDM) hook every download and can drop the filename
 // we ask for, leaving a blob UUID. Re-assert our own names when Chrome asks.
 const wantedNames = new Map(); // download url -> filename
+const overwrite = new Set(); // folder-mode urls: a repeat export replaces the same file
 
-function saveFile(url, filename, callback) {
+function saveFile(url, filename, callback, saveAs = true) {
   wantedNames.set(url, filename);
-  chrome.downloads.download({ url, filename, saveAs: true }, callback);
+  chrome.downloads.download({ url, filename, saveAs }, callback);
 }
 
 chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
   const filename = wantedNames.get(item.url);
   if (!filename) return; // not ours — Chrome proceeds with its own choice
   wantedNames.delete(item.url);
-  suggest({ filename, conflictAction: "uniquify" });
+  suggest({ filename, conflictAction: overwrite.delete(item.url) ? "overwrite" : "uniquify" });
 });
 
 /* ===== offscreen lifecycle ===== */
@@ -69,6 +70,23 @@ async function gqlInTab(msg) {
   }
 }
 
+/* ===== "only new" ===== */
+
+// What each account's exports already saved (post codes / story ids), per
+// mode. Writes are chained so two batches can't overwrite each other.
+let seenWrites = Promise.resolve();
+function rememberSeen(key, ids) {
+  if (!key || !ids?.length) return;
+  seenWrites = seenWrites
+    .then(async () => {
+      const old = (await chrome.storage.local.get(key))[key] || [];
+      await chrome.storage.local.set({ [key]: [...new Set([...old, ...ids])] });
+    })
+    .catch(() => {});
+}
+
+const MULTI = ["posts", "images", "reels", "stories", "highlights"];
+
 /* ===== badge ===== */
 
 function setBadge(text, color = "#0095f6") {
@@ -91,12 +109,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     (async () => {
       try {
         await ensureOffscreen();
+        const options = msg.options || {};
+        const who = String(msg.username || options.highlightId || "").toLowerCase();
+        const seenKey = !chat && MULTI.includes(msg.mode) ? `seen:${who}:${msg.mode}` : null;
+        const seen = seenKey && options.onlyNew ? (await chrome.storage.local.get(seenKey))[seenKey] || [] : null;
         chrome.runtime.sendMessage({
           target: "offscreen",
           type: chat ? "RUN_CHAT_EXPORT" : "RUN_EXPORT",
           job: chat
-            ? { jobId, chat: msg.chat, options: msg.options || {} }
-            : { jobId, mode: msg.mode, username: msg.username, options: msg.options || {} },
+            ? { jobId, chat: msg.chat, options }
+            : { jobId, mode: msg.mode, username: msg.username, options, seenKey, seen },
         });
         setBadge("…");
         sendResponse({ ok: true, jobId });
@@ -144,6 +166,33 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // async sendResponse
   }
 
+  // From offscreen (folder mode): save one file straight into Downloads/Instagram/….
+  if (msg?.type === "SAVE_TO_FOLDER") {
+    overwrite.add(msg.url);
+    saveFile(msg.url, msg.filename, (downloadId) => {
+      if (chrome.runtime.lastError || downloadId == null) {
+        overwrite.delete(msg.url);
+        return sendResponse({ ok: false });
+      }
+      // Answer once the file is fully written, so a stopped export never
+      // counts a half-saved file as done.
+      pendingDownloads.set(downloadId, { url: msg.url, done: sendResponse });
+    }, false);
+    return true; // async sendResponse
+  }
+
+  // From offscreen (folder mode): items saved so far, for "only new" / resume.
+  if (msg?.type === "REMEMBER") {
+    rememberSeen(msg.key, msg.ids);
+    return;
+  }
+
+  // From offscreen (folder mode): every file handed to Chrome.
+  if (msg?.type === "EXPORT_DONE") {
+    clearBadgeSoon("✓");
+    return; // popup renders it
+  }
+
   // From offscreen: progress tick → badge.
   if (msg?.type === "EXPORT_PROGRESS") {
     if (msg.phase === "downloading" && msg.total) {
@@ -166,6 +215,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return;
       }
       pendingDownloads.set(downloadId, { url: msg.url, jobId: msg.jobId });
+      if (msg.remember) rememberSeen(msg.remember.key, msg.remember.ids);
       clearBadgeSoon("✓");
       chrome.runtime.sendMessage({ type: "EXPORT_DONE", jobId: msg.jobId, filename: msg.filename, summary: msg.summary || {} }).catch(() => {});
     });
@@ -186,6 +236,7 @@ chrome.downloads.onChanged.addListener((delta) => {
   if (!entry) return;
   if (delta.state.current === "complete" || delta.state.current === "interrupted") {
     chrome.runtime.sendMessage({ target: "offscreen", type: "REVOKE", url: entry.url }).catch(() => {});
+    entry.done?.({ ok: delta.state.current === "complete" });
     pendingDownloads.delete(delta.id);
   }
 });

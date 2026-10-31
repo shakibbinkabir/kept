@@ -15,7 +15,7 @@ const KINDS = [
 /**
  * One download per distinct media URL. Each item's `refs` are the media
  * objects whose `uri` should become the local path once it's downloaded.
- * @returns {{url: string, path: string, refs: object[]}[]} paths relative to the chat folder
+ * @returns {{url: string, path: string, time: number, refs: object[]}[]} paths relative to the chat folder; time in seconds
  */
 export function planMedia(chat) {
   const byUrl = new Map();
@@ -26,7 +26,7 @@ export function planMedia(chat) {
         if (!/^https?:/.test(media.uri || "")) continue;
         let item = byUrl.get(media.uri);
         if (!item) {
-          item = { url: media.uri, path: `${dir}/${msg.timestamp_ms}_${++n}.${ext}`, refs: [] };
+          item = { url: media.uri, path: `${dir}/${msg.timestamp_ms}_${++n}.${ext}`, time: Math.floor(msg.timestamp_ms / 1000), refs: [] };
           byUrl.set(media.uri, item);
         }
         item.refs.push(media);
