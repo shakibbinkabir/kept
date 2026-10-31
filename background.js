@@ -180,6 +180,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // async sendResponse
   }
 
+  // From a save button on instagram.com: save that photo or video now.
+  if (msg?.type === "QUICK_SAVE") {
+    (async () => {
+      await ensureOffscreen();
+      const { saveOptions = {} } = await chrome.storage.local.get("saveOptions");
+      return chrome.runtime.sendMessage({ target: "offscreen", type: "QUICK_SAVE", code: msg.code, hint: msg.hint, video: msg.video, options: saveOptions });
+    })().then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't save that." }));
+    return true; // async sendResponse
+  }
+
   // From the popup: your saved collections, for its collection list.
   if (msg?.type === "LIST_COLLECTIONS") {
     ensureOffscreen()

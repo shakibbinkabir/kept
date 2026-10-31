@@ -139,6 +139,9 @@ async function loadSettings() {
   const o = all.saveOptions || {};
   $("sFolder").checked = !!o.folder;
   $("sOnlyNew").checked = !!o.onlyNew;
+  $("sBestVideo").checked = o.bestVideo !== false;
+  $("sJpg").checked = !!o.jpg;
+  $("sInpage").checked = o.inpage !== false;
   $("sPattern").value = o.pattern || "";
   $("sPattern").placeholder = o.folder ? "{date}_{code}" : "{index}_{date}_{code}";
   const c = all.chatOptions || {};
@@ -166,11 +169,11 @@ function saveSettings() {
   $("sPattern").placeholder = $("sFolder").checked ? "{date}_{code}" : "{index}_{date}_{code}";
   showPreview();
   store.set({
-    saveOptions: { folder: $("sFolder").checked, onlyNew: $("sOnlyNew").checked, pattern: $("sPattern").value.trim() },
+    saveOptions: { folder: $("sFolder").checked, onlyNew: $("sOnlyNew").checked, pattern: $("sPattern").value.trim(), bestVideo: $("sBestVideo").checked, jpg: $("sJpg").checked, inpage: $("sInpage").checked },
     chatOptions: { media: $("sMedia").checked, instagramEncoding: $("sEncoding").checked },
   });
 }
-for (const id of ["sFolder", "sOnlyNew", "sMedia", "sEncoding", "sPattern"]) $(id).addEventListener("change", saveSettings);
+for (const id of ["sFolder", "sOnlyNew", "sMedia", "sEncoding", "sPattern", "sBestVideo", "sJpg", "sInpage"]) $(id).addEventListener("change", saveSettings);
 $("forgetSeen").addEventListener("click", async () => {
   const all = await store.get(null);
   await store.remove(Object.keys(all).filter((k) => k.startsWith("seen:") || k === "audience:me"));

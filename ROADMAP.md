@@ -104,7 +104,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Snapshot comparison for your own account: new followers, unfollowers, who doesn't follow you back
 - One-time follower/following export of a public account, capped and slowly paced
 
-## 4.7: On Instagram itself
+## 4.7: On Instagram itself ✅ shipped in v4.7.0
 
 - Download buttons on instagram.com that match its theme and never cover its controls, including saving a single carousel image
 - Best-quality video (Instagram's separate video and audio combined)

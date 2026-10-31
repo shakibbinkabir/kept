@@ -10,6 +10,7 @@
 // periodically. When the exporter breaks, this is almost always the file to
 // fix. App id 936619743392459 is the well-known Instagram Web app id.
 
+import { bestDash } from "./mp4mux.js";
 const APP_ID = "936619743392459";
 const ORIGIN = "https://www.instagram.com";
 
@@ -289,7 +290,10 @@ function mediaFromNode(node) {
   const out = [];
   if (node.media_type === 2) {
     const url = pickVideoUrl(node);
-    if (url) out.push({ url, type: "mp4", isVideo: true });
+    // Instagram's best video is often only in its DASH manifest, as separate
+    // video and audio files; `dash` points at them when they beat the MP4.
+    const dash = bestDash(node.video_dash_manifest, Math.max(0, ...(node.video_versions || []).map((v) => v.height || 0)));
+    if (url) out.push({ url, type: "mp4", isVideo: true, dash });
     // The poster frame is useful context for reels/videos.
     const thumb = pickImageUrl(node);
     if (thumb) out.push({ url: thumb, type: "jpg", isVideo: false, isThumb: true });

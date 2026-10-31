@@ -93,6 +93,8 @@ const els = {
   welcome: document.getElementById("welcome"),
   welcomeBtn: document.getElementById("welcomeBtn"),
   pickBtn: document.getElementById("pickBtn"),
+  optBestVideo: document.getElementById("optBestVideo"),
+  optJpg: document.getElementById("optJpg"),
   usernameField: document.getElementById("usernameField"),
   collectionField: document.getElementById("collectionField"),
   collectionSelect: document.getElementById("collectionSelect"),
@@ -680,6 +682,8 @@ function buildJobFromForm() {
     options.folder = els.optFolder.checked;
     options.onlyNew = els.optOnlyNew.checked;
     options.pattern = els.optPattern.value.trim();
+    options.bestVideo = els.optBestVideo.checked;
+    options.jpg = els.optJpg.checked;
   }
 
   return { mode, username, options };
@@ -1196,6 +1200,8 @@ document.addEventListener("DOMContentLoaded", () => {
       els.optFolder.checked = els.optChatFolder.checked = !!o.folder;
       els.optOnlyNew.checked = !!o.onlyNew;
       els.optPattern.value = o.pattern || "";
+      els.optBestVideo.checked = o.bestVideo !== false;
+      els.optJpg.checked = !!o.jpg;
       showPattern();
     })
     .catch(() => {});
@@ -1204,10 +1210,11 @@ document.addEventListener("DOMContentLoaded", () => {
     els.optChatFolder.checked = els.optFolder.checked;
     showPattern();
     chrome.storage.local
-      .set({ saveOptions: { folder: els.optFolder.checked, onlyNew: els.optOnlyNew.checked, pattern: els.optPattern.value.trim() } })
+      .get("saveOptions")
+      .then(({ saveOptions: old = {} }) => chrome.storage.local.set({ saveOptions: { ...old, folder: els.optFolder.checked, onlyNew: els.optOnlyNew.checked, pattern: els.optPattern.value.trim(), bestVideo: els.optBestVideo.checked, jpg: els.optJpg.checked } }))
       .catch(() => {});
   };
-  for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew]) el.addEventListener("change", saveSaveOptions);
+  for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew, els.optBestVideo, els.optJpg]) el.addEventListener("change", saveSaveOptions);
   els.optPattern.addEventListener("change", saveSaveOptions);
 
   // A live example of the file names the pattern gives.

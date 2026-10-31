@@ -2,6 +2,16 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.7.0] — 2026-10-31
+
+"On Instagram itself." Tested end to end against live Instagram: the save button appeared in the top-left corner of a photo and saved it in one click, and on a six-photo carousel it saved just the photo on screen; a reel came out at 1080×1920 with sound (41 seconds long, seeking works) instead of 720p; images saved as JPG were real JPEGs.
+
+### Added
+
+- **A save button on instagram.com.** Hover over a photo or video in the feed, on a profile grid, in a post or in Reels, and a small Kept button appears in its top-left corner, where Instagram has none of its own controls. One click saves that photo or video to `Downloads/Instagram/<account>/`; on a carousel it saves the photo you're looking at. It floats above the page without changing it, and can be turned off in the Export Center.
+- **Best-quality video.** Instagram often keeps its sharpest video (up to 1080p) as separate picture and sound files. Kept now joins them into one MP4, without re-encoding, whenever that beats the ordinary 720p file, for posts, reels, stories, highlights, saved posts and the save button. If anything goes wrong it falls back to the ordinary file. On by default; turn it off under Options for smaller files.
+- **Save images as JPG.** Instagram serves most images as WebP; tick **Save images as JPG** (Options, or the Export Center) to convert them as they're saved.
+
 ## [4.6.0] — 2026-10-31
 
 "Your audience." Tested end to end against live Instagram: your own followers and following were exported in full as CSV with the accounts that don't follow you back; a second export compared itself with the first and listed new followers and unfollowers; another account's lists were exported slowly and capped.

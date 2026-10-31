@@ -14,6 +14,7 @@ import { chatPage, inboxPage } from "./src/chatpage.js";
 import { pad, dateStr, sanitize, ident, fileBase } from "./src/names.js";
 import { profilePage } from "./src/profilepage.js";
 import { usersCsv, snapshotOf, compare } from "./src/audience.js";
+import { muxDash } from "./src/mp4mux.js";
 import {
   resolveUser,
   paginateFeed,
@@ -53,6 +54,12 @@ function progress(jobId, phase, done, total, message) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.target !== "offscreen") return;
+
+  // A save button on instagram.com.
+  if (msg.type === "QUICK_SAVE") {
+    quickSave(msg).then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't save that." }));
+    return true;
+  }
 
   // The popup's collection list (your saved collections).
   if (msg.type === "GET_COLLECTIONS") {
@@ -150,8 +157,12 @@ async function fetchQueue(job, queue, label, sink) {
   progress(job.jobId, "downloading", 0, total, `Downloading ${total} ${label}…`);
   await mapPool(queue, MEDIA_CONCURRENCY, async (q) => {
     try {
-      const bytes = q.bytes || (await fetchBytes(q.url));
+      let bytes = q.bytes || (await fetchMedia(job, q));
       if (q.url) q.path = withRealExt(q.path, bytes);
+      if (job.options?.jpg && /\.(webp|png)$/.test(q.path)) {
+        bytes = await toJpg(bytes);
+        q.path = q.path.replace(/\.(webp|png)$/, ".jpg");
+      }
       if (!(await sink.add(q.path, bytes, q.time))) throw new Error("not saved");
       saved.add(q.path);
     } catch {
@@ -167,6 +178,62 @@ async function fetchQueue(job, queue, label, sink) {
     }
   });
   return { failed, total, saved };
+}
+
+// A video at its best: Instagram's separate DASH video and audio joined into
+// one MP4 when that beats the ordinary file; the ordinary file otherwise, or
+// if anything about the DASH pair goes wrong.
+async function fetchMedia(job, q) {
+  if (q.dash && job.options?.bestVideo !== false) {
+    try {
+      const [video, audio] = await Promise.all([fetchBytes(q.dash.video), q.dash.audio ? fetchBytes(q.dash.audio) : null]);
+      return audio ? muxDash(video, audio) : video;
+    } catch {}
+  }
+  return fetchBytes(q.url);
+}
+
+// "Save images as JPG": Instagram serves most images as WebP.
+async function toJpg(bytes) {
+  const bitmap = await createImageBitmap(new Blob([bytes]));
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0);
+  return new Uint8Array(await (await canvas.convertToBlob({ type: "image/jpeg", quality: 0.92 })).arrayBuffer());
+}
+
+// One click on instagram.com: save the photo or video you're looking at
+// (the matching carousel item when it can tell which; the whole post if not).
+async function quickSave({ code, hint, video, options = {} }) {
+  if (!code) throw new IGError("Couldn't tell which post that is.", 0);
+  const raw = await getMediaInfo(shortcodeToMediaId(code));
+  const ex = extractMedia(raw);
+  const files = ex.media.filter((m) => !m.isThumb);
+  const name = (u) => (u || "").split("?")[0].split("/").pop();
+  let picks = files;
+  if (hint) {
+    const match = files.filter((m) => !m.isVideo && name(m.url) === hint);
+    if (match.length) picks = match;
+  } else if (video) {
+    const videos = files.filter((m) => m.isVideo);
+    if (videos.length === 1) picks = videos;
+  }
+  const job = { jobId: `quick_${Date.now()}`, options };
+  for (const m of picks) {
+    let bytes = await fetchMedia(job, m);
+    let ext = m.isVideo ? "mp4" : imageExt(bytes) || "jpg";
+    if (options.jpg && (ext === "webp" || ext === "png")) {
+      bytes = await toJpg(bytes);
+      ext = "jpg";
+    }
+    const n = files.length > 1 ? `_${pad(files.indexOf(m) + 1)}` : "";
+    if (!(await saveToFolder(`Instagram/${ident(ex.owner || "instagram")}/${dateStr(ex.takenAt)}_${ident(ex.shortcode || code)}${n}.${ext}`, bytes, job.jobId))) {
+      throw new IGError("Chrome didn't save the file.", 0);
+    }
+  }
+  return { ok: true, count: picks.length };
 }
 
 // "Only new": drop what an earlier export of this account already saved.
@@ -339,7 +406,7 @@ async function exportArchive(job) {
   const queue = [];
   stories.forEach((ex, i) => {
     const m = primaryMedia(ex);
-    if (m) queue.push({ path: `${month(ex.takenAt)}/${sink.name(ex, i + 1)}.${m.type}`, url: m.url, ex, id: ex.shortcode, time: ex.takenAt });
+    if (m) queue.push({ path: `${month(ex.takenAt)}/${sink.name(ex, i + 1)}.${m.type}`, url: m.url, dash: m.dash, ex, id: ex.shortcode, time: ex.takenAt });
   });
   const { failed, total, saved } = await fetchQueue(job, queue, "stories", sink);
   const monthName = (t) => new Date(t * 1000).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
@@ -482,7 +549,7 @@ function planPostFiles(post, { imagesOnly = false } = {}) {
     }
     if (imagesOnly && m.isVideo) continue;
     slot++;
-    files.push({ name: `${pad(slot)}.${m.type}`, url: m.url });
+    files.push({ name: `${pad(slot)}.${m.type}`, url: m.url, dash: m.dash });
   }
   return files;
 }
@@ -519,7 +586,7 @@ async function exportFolderedZip(job, user, { imagesOnly, tagged = false }) {
     const folder = sink.name(p.post, i + 1);
     const item = { id: p.post.shortcode, time: p.post.takenAt };
     p.folder = folder;
-    for (const f of p.files) queue.push({ path: `${folder}/${f.name}`, url: f.url, file: f, ...item });
+    for (const f of p.files) queue.push({ path: `${folder}/${f.name}`, url: f.url, dash: f.dash, file: f, ...item });
     if (p.post.caption) queue.push({ path: `${folder}/caption.txt`, bytes: textEncoder.encode(p.post.caption), ...item });
   });
 
@@ -560,7 +627,7 @@ async function exportReels(job, user) {
   reels.forEach((r, i) => {
     const video = r.media.find((m) => m.isVideo);
     if (!video) return;
-    queue.push({ path: `${sink.name(r, i + 1)}.mp4`, url: video.url, post: r, id: r.shortcode, time: r.takenAt });
+    queue.push({ path: `${sink.name(r, i + 1)}.mp4`, url: video.url, dash: video.dash, post: r, id: r.shortcode, time: r.takenAt });
   });
 
   const { failed, total, saved } = await fetchQueue(job, queue, "reels", sink);
@@ -594,7 +661,7 @@ async function exportStories(job, user) {
   skipSeen(job, rawItems.map(extractMedia)).forEach((ex, i) => {
     const m = primaryMedia(ex);
     if (!m) return;
-    queue.push({ path: `${sink.name(ex, i + 1)}.${m.type}`, url: m.url, ex, id: ex.shortcode, time: ex.takenAt });
+    queue.push({ path: `${sink.name(ex, i + 1)}.${m.type}`, url: m.url, dash: m.dash, ex, id: ex.shortcode, time: ex.takenAt });
   });
 
   if (queue.length === 0) {
@@ -658,7 +725,7 @@ async function exportHighlights(job, user) {
   const queue = found.map((f) => {
     const folder = sink.folder ? sanitize(f.title) : `${pad(f.hi + 1, 2)}_${sanitize(f.title)}`;
     perFolder[folder] = (perFolder[folder] || 0) + 1;
-    return { path: `${folder}/${sink.name(f.ex, perFolder[folder])}.${f.m.type}`, url: f.m.url, ex: f.ex, title: f.title, id: f.ex.shortcode, time: f.ex.takenAt };
+    return { path: `${folder}/${sink.name(f.ex, perFolder[folder])}.${f.m.type}`, url: f.m.url, dash: f.m.dash, ex: f.ex, title: f.title, id: f.ex.shortcode, time: f.ex.takenAt };
   });
   // Each highlight's cover image, as cover.jpg in its folder.
   const covers = [];
@@ -736,7 +803,7 @@ async function exportSaved(job) {
       if (!files.length) return;
       const folder = `${several ? sanitize(col.name) + "/" : ""}${sink.name(ex, i + 1)}`;
       const item = { id: ex.shortcode, time: ex.takenAt };
-      for (const f of files) queue.push({ path: `${folder}/${f.name}`, url: f.url, file: f, ...item });
+      for (const f of files) queue.push({ path: `${folder}/${f.name}`, url: f.url, dash: f.dash, file: f, ...item });
       if (ex.caption) queue.push({ path: `${folder}/caption.txt`, bytes: textEncoder.encode(ex.caption), ...item });
       posts.push({ ex, files, folder, collection: col.name });
     });

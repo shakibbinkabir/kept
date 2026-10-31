@@ -195,7 +195,7 @@ $("noneBtn").addEventListener("click", () => {
 $("exportBtn").addEventListener("click", async () => {
   const { saveOptions = {} } = await chrome.storage.local.get("saveOptions");
   const picked = [...state.selected];
-  const options = { folder: !!saveOptions.folder, onlyNew: false, pattern: saveOptions.pattern || "" };
+  const options = { folder: !!saveOptions.folder, onlyNew: false, pattern: saveOptions.pattern || "", bestVideo: saveOptions.bestVideo !== false, jpg: !!saveOptions.jpg };
   if (mode === "highlights") options.highlightIds = picked;
   else options.only = picked;
   $("exportBtn").disabled = true;
