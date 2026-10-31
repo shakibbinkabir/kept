@@ -74,6 +74,8 @@ Every release is tested end to end in a real browser against live Instagram:
 | Single post / reel | ✅ Working | 2026-10-31 · v3.3.0 |
 | DM capture, scroll / auto-scroll, JSON export | ✅ Working | 2026-10-31 · v3.3.0 |
 
+What's coming next, release by release up to 5.0, is in [ROADMAP.md](ROADMAP.md).
+
 Something broken that this table says works? Click **Copy details** on the error in the popup and paste it into a [new issue](https://github.com/shakibbinkabir/igexporter/issues/new).
 
 ---
