@@ -2,6 +2,19 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [3.2.3] — 2026-10-31
+
+### Fixed
+
+- **Profile export failed with *Not found (404)*.** Instagram removed the username search endpoint (`/api/v1/web/search/topsearch/` now answers `404`), so every mode that takes a username failed before exporting anything. Search now uses the same GraphQL query as instagram.com's search box.
+- **Stories and highlights**: the `reels_media` endpoint they came from now answers `500`. They load through the story viewer's GraphQL query instead.
+- **Posts, reels, images and highlights**: the GET `/graphql/query` path now returns an HTML page for the posts-grid and highlights-tray queries. Every profile query now goes through `POST /api/graphql`, the way instagram.com sends them, and the posts-grid query id is updated.
+
+### Changed
+
+- **Profile export needs an instagram.com tab open** (any page, logged in). `/api/graphql` rejects requests from the extension's own origin with an HTML page, so the queries run inside that tab. A tab opened before the extension was installed or reloaded works too: the exporter injects itself into it.
+- Chat capture refetches an expired session token and retries once, instead of failing with *Instagram returned a non-JSON response* until you reloaded the page.
+
 ## [3.2.2] — 2026-10-07
 
 ### Fixed

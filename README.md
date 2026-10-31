@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
-  <a href="https://github.com/shakibbinkabir/igexporter/releases"><img src="https://img.shields.io/badge/version-3.2.2-blue.svg" alt="Version" /></a>
+  <a href="https://github.com/shakibbinkabir/igexporter/releases"><img src="https://img.shields.io/badge/version-3.2.3-blue.svg" alt="Version" /></a>
   <a href="https://developer.chrome.com/docs/extensions/mv3/intro/"><img src="https://img.shields.io/badge/Manifest-V3-green.svg" alt="Manifest V3" /></a>
 </p>
 
@@ -76,7 +76,7 @@ Works in any Chromium-based browser (Chrome, Edge, Brave, Arc, Vivaldi).
 
 ## Usage — Profile media export
 
-1. Make sure you're **logged in** to Instagram in this browser.
+1. Make sure you're **logged in** to Instagram in this browser and have an instagram.com tab open (any page). Instagram only answers its GraphQL API from its own pages, so the exporter runs its queries through that tab.
 2. (Optional) Open the profile, post, reel, or highlight you care about — the popup auto-fills the username and detects an open post or highlight.
 3. Click the **IG Exporter** icon and switch to the **Profile** tab.
 4. Type/confirm the `@username`, pick **What to export** (All posts / All images / All reels / Current stories / Story highlights / Profile picture / This post-reel). For the feed modes, choose a **Range** (Everything, Most recent N, Oldest N, or a Date range).
@@ -170,15 +170,16 @@ popup.js (Profile tab) ──job──▶ background.js (service worker)
               ┌────────────────────────┼─────────────────────────┐
               ▼                        ▼                          ▼
      instagram.com web API     *.cdninstagram.com /        builds ZIP in memory,
-     (enumerate posts via       *.fbcdn.net (media bytes)  createObjectURL → SW download
-      your session cookie)
+     (GraphQL relayed through   *.fbcdn.net (media bytes)  createObjectURL → SW download
+      bridge.js in an open
+      instagram.com tab)
 ```
 
-- **`bridge.js`** — content script on instagram.com. On **Start Capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. The query doc ids at the top of the file rotate — the header comment says how to refresh them.
+- **`bridge.js`** — content script on instagram.com. On **Start Capture** it loads the open `/direct/t/<id>/` thread's metadata and newest page through the same persisted GraphQL queries Instagram's web client runs (`POST /api/graphql` with your session cookie and the page's `fb_dtsg` token); scrolling the thread (or **Auto-scroll**) pages older history, streaming the live count to the popup. It also runs the profile exporter's GraphQL queries, relayed by `background.js`, since `/api/graphql` rejects requests from the extension's own origin. The query doc ids at the top of the file rotate — the header comment says how to refresh them.
 - **`normalizer.js` / `schema.js`** — map each `SlideMessage` node (text, images, videos, view-once media, voice messages, GIFs/stickers, shared reels/posts/links, call notices, …) to the DYI shape and validate it. If Instagram changes the DM API, these two plus `bridge.js` are where the fix goes.
-- **`background.js`** — MV3 service worker; the stable hub for profile exports. Spins up the offscreen document, mirrors progress onto the toolbar badge, and performs every `chrome.downloads.download` (chat JSON included), re-asserting the filename so download-manager extensions like IDM can't rename it.
+- **`background.js`** — MV3 service worker; the stable hub for profile exports. Spins up the offscreen document, relays its GraphQL queries to an open instagram.com tab (injecting `bridge.js` if that tab predates the extension), mirrors progress onto the toolbar badge, and performs every `chrome.downloads.download` (chat JSON included), re-asserting the filename so download-manager extensions like IDM can't rename it.
 - **`offscreen.js` / `offscreen.html`** — a headless offscreen document (the only context that can both fetch with host permissions *and* `URL.createObjectURL` a blob). Runs the chosen export pipeline, fetches CDN bytes with bounded concurrency, and assembles the ZIP.
-- **`src/igapi.js`** — thin client over the endpoints instagram.com itself uses: search (username → id), the profile page's GraphQL queries (posts grid, profile info, highlights tray), `reels_media` (stories and highlights), and media info (single posts). The one file to patch if Instagram changes its endpoints.
+- **`src/igapi.js`** — thin client over the endpoints instagram.com itself uses: the GraphQL queries behind its search box (username → id), profile page (posts grid, profile info, highlights tray) and story viewer (stories and highlights), plus media info (single posts). The one file to patch if Instagram changes its endpoints.
 - **`src/zip.js`** — dependency-free, store-only ZIP writer with CRC32. No compression because media is already compressed.
 
 Nothing is sent off-device. The only network traffic is to Instagram and its media CDNs, using your existing session.
@@ -190,7 +191,7 @@ Nothing is sent off-device. The only network traffic is to Instagram and its med
 **Profile media export:**
 
 - **Login required.** You can only export public accounts or private ones you follow — exactly what your session can already see.
-- **Unofficial endpoints.** It uses Instagram's own web API, which is undocumented and changes periodically. The GraphQL query ids at the top of `src/igapi.js` rotate every so often; when profile export fails with a GraphQL "execution error", refreshing those ids (from the `/graphql/query` requests instagram.com makes on a profile page) is almost always the fix.
+- **Unofficial endpoints.** It uses Instagram's own web API, which is undocumented and changes periodically. The GraphQL query ids at the top of `src/igapi.js` rotate every so often; when profile export fails with a GraphQL "execution error", refreshing those ids is almost always the fix: open a profile on instagram.com and run `require("<query name>.graphql").params.id` in the DevTools console for each query name listed next to the ids.
 - **In-memory ZIP.** The whole archive is assembled in memory before saving, so exporting a very large account (many GB) can exhaust memory. Use the *Most recent N* / *date range* filters for huge profiles.
 - **Rate limits.** Aggressive exporting can trigger Instagram throttling (`429`); the exporter backs off and retries, but very large jobs may still be interrupted.
 - **Media URLs expire**, so files are fetched immediately during the run rather than listed for later.

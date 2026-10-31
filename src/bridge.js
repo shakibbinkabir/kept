@@ -94,7 +94,7 @@
 
   // Run one of Instagram's persisted queries and return its `data`, retrying
   // on transient throttling (429) and 5xx with exponential backoff.
-  async function gql(docId, variables, tries = 4) {
+  async function gql(docId, variables, tries = 4, retried = false) {
     const body = new URLSearchParams({
       fb_dtsg: await getDtsg(),
       doc_id: docId,
@@ -134,7 +134,10 @@
       try {
         json = await res.json();
       } catch {
-        dtsg = null; // a rejected token gets the HTML app shell back — refetch next time
+        // A rejected (expired) token gets the HTML app shell back — refetch it
+        // and retry once.
+        dtsg = null;
+        if (!retried) return gql(docId, variables, tries, true);
         throw new Error("Instagram returned a non-JSON response.");
       }
       if (!json.data) {
@@ -485,6 +488,16 @@
     if (message.action === "EXPORT_REQUEST") {
       doExport();
       return;
+    }
+
+    // Profile export (offscreen.js) runs its GraphQL queries here, because
+    // /api/graphql only answers requests from instagram.com itself.
+    if (message.action === "IG_GQL") {
+      gql(message.docId, message.variables).then(
+        (data) => sendResponse({ data }),
+        (err) => sendResponse({ error: err?.message || String(err) })
+      );
+      return true;
     }
   });
 

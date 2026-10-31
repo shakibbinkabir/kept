@@ -51,6 +51,23 @@ async function ensureOffscreen() {
   }
 }
 
+/* ===== GraphQL relay ===== */
+
+// Instagram's /api/graphql only answers requests from its own pages, so the
+// offscreen engine's queries run in an instagram.com tab via src/bridge.js.
+async function gqlInTab(msg) {
+  const [tab] = await chrome.tabs.query({ url: "https://www.instagram.com/*", discarded: false });
+  if (!tab) return { error: "Open instagram.com in a tab (logged in), then try again." };
+  const ask = () => chrome.tabs.sendMessage(tab.id, { action: "IG_GQL", docId: msg.docId, variables: msg.variables });
+  try {
+    return await ask();
+  } catch {
+    // Tabs opened before the extension was (re)loaded don't have bridge.js yet.
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["src/bridge.js"] });
+    return ask();
+  }
+}
+
 /* ===== badge ===== */
 
 function setBadge(text, color = "#0095f6") {
@@ -83,6 +100,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ ok: false, error: err?.message || "Could not start export." });
       }
     })();
+    return true; // async sendResponse
+  }
+
+  // From offscreen: run a GraphQL query in an instagram.com tab.
+  if (msg?.type === "IG_GQL") {
+    gqlInTab(msg).then(sendResponse, (err) => sendResponse({ error: err?.message || "Couldn't reach the instagram.com tab." }));
     return true; // async sendResponse
   }
 

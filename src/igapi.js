@@ -13,18 +13,27 @@
 const APP_ID = "936619743392459";
 const ORIGIN = "https://www.instagram.com";
 
-// Persisted GraphQL queries used by instagram.com's own profile page (the old
-// REST profile/feed endpoints now answer 429 or an HTML page). Instagram
-// rotates these ids every so often; when profile export starts failing with a
-// GraphQL "execution error", open a profile on instagram.com, watch the
-// /graphql/query requests in DevTools, and copy the new doc_id + variables.
-const DOC_TIMELINE = "28570182382647478"; // a user's posts grid, by username
+// Persisted GraphQL queries used by instagram.com's own profile page and story
+// viewer (the old REST search/profile/feed/story endpoints now answer 404, 429,
+// 500 or an HTML page). Instagram rotates these ids every so often; when
+// profile export starts failing with a GraphQL error, open a profile on
+// instagram.com and run require("<query name>.graphql").params.id in the
+// DevTools console for the query names below, then paste the new ids here.
+const DOC_SEARCH = "40560838120170065"; // PolarisAPITopsearchQuery: username search
+const DOC_TIMELINE = "39527599490219966"; // PolarisProfilePostsTabContentQuery_connection: posts grid, by username
 const DOC_USER = "28036671149327607"; // profile header info, by user id
-const DOC_HIGHLIGHTS = "26970053832668570"; // highlights tray, by user id
+const DOC_HIGHLIGHTS = "26970053832668570"; // PolarisProfileStoryHighlightsTrayContentQuery: by user id
+const DOC_REEL = "29341065465524437"; // PolarisStoriesV3ReelPageStandaloneQuery: a story ring or highlight
 const TIMELINE_FLAGS = {
+  include_multi_captions: true,
   __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider: true,
-  __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: false,
+  __relay_internal__pv__PolarisShortDramaEnabledrelayprovider: true,
+  __relay_internal__pv__PolarisSEOIsCrawlerrelayprovider: false,
+  __relay_internal__pv__PolarisThreadsStyleCommentsEnabledrelayprovider: false,
   __relay_internal__pv__PolarisReelsRecoDebugOverlayEnabledrelayprovider: false,
+};
+const REEL_FLAGS = {
+  __relay_internal__pv__PolarisCommunityNoteStoriesLabelEnabledrelayprovider: true,
 };
 const USER_FLAGS = {
   __relay_internal__pv__PolarisCannesGuardianExperienceEnabledrelayprovider: true,
@@ -107,15 +116,13 @@ async function fetchJson(path, { tries = 4 } = {}) {
   throw lastErr || new IGError("Request failed.", 0);
 }
 
-// Run a persisted GraphQL query. GET needs no CSRF token, so this works from
-// the offscreen document with nothing but the session cookie.
+// Run a persisted GraphQL query. The old GET /graphql/query path now returns
+// an HTML page for most queries, and POST /api/graphql rejects requests from
+// the extension's own origin, so the query runs inside an open instagram.com
+// tab (src/bridge.js), exactly as Instagram's web client sends it.
 async function graphql(docId, variables) {
-  const qs = new URLSearchParams({ doc_id: docId, variables: JSON.stringify(variables) });
-  const res = await fetchJson(`/graphql/query/?${qs}`);
-  if (!res?.data) {
-    const e = res?.errors?.[0];
-    throw new IGError(`Instagram GraphQL error: ${e?.description || e?.message || "no data"}.`, 0);
-  }
+  const res = await chrome.runtime.sendMessage({ type: "IG_GQL", docId, variables });
+  if (!res?.data) throw new IGError(res?.error || "Instagram GraphQL error: no data.", 0);
   return res.data;
 }
 
@@ -127,10 +134,11 @@ export async function resolveUser(username) {
   const clean = String(username).trim().replace(/^@/, "").toLowerCase();
   if (!clean) throw new IGError("Enter a username.", 0);
 
-  const search = await fetchJson(
-    `/api/v1/web/search/topsearch/?${new URLSearchParams({ query: clean, context: "blended" })}`
-  );
-  const hit = (search.users || []).map((u) => u.user).find((u) => u?.username?.toLowerCase() === clean);
+  const data = await graphql(DOC_SEARCH, {
+    data: { context: "blended", query: clean, include_reel: "true", search_surface: "web_top_search" },
+  });
+  const users = data.xdt_api__v1__fbsearch__topsearch_connection?.users || [];
+  const hit = users.map((u) => u.user).find((u) => u?.username?.toLowerCase() === clean);
   if (!hit) throw new IGError(`No such user: @${clean}`, 404);
 
   const { user = {} } = await graphql(DOC_USER, { id: String(hit.pk), enable_integrity_filters: true, ...USER_FLAGS });
@@ -154,9 +162,12 @@ export async function paginateFeed(username, onItems, { pageDelayMs = 600 } = {}
   let after = null;
   do {
     const data = await graphql(DOC_TIMELINE, {
+      after,
+      before: null,
       data: { count: 33 }, // the server caps pages at 33
+      first: 33,
+      last: null,
       username,
-      ...(after ? { after } : {}),
       ...TIMELINE_FLAGS,
     });
     const conn = data.xdt_api__v1__feed__user_timeline_graphql_connection;
@@ -264,8 +275,13 @@ export async function getMediaInfo(mediaId) {
  * @returns {{items: Array, title: string, owner: string}}
  */
 export async function getReel(reelId) {
-  const data = await fetchJson(`/api/v1/feed/reels_media/?reel_ids=${encodeURIComponent(reelId)}`);
-  const reel = data?.reels?.[reelId] || {};
+  const data = await graphql(DOC_REEL, {
+    reel_ids_arr: [reelId],
+    is_highlight: reelId.startsWith("highlight:"),
+    ...REEL_FLAGS,
+  });
+  // No active story → an empty list.
+  const reel = data.xdt_api__v1__feed__reels_media?.reels_media?.[0] || {};
   return {
     items: Array.isArray(reel.items) ? reel.items : [],
     title: reel.title || "",
