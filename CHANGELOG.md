@@ -2,6 +2,20 @@
 
 All notable changes to IG Exporter. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [4.2.0] — 2026-10-31
+
+"Pick before you export." Tested end to end against live Instagram: the picker listed an account's posts with thumbnails and stopped on request, a shift-click ticked three posts and exactly those three were exported; one of five highlights was picked and exported alone; the gallery pages of both exports opened offline with every file present; a folder export got its own gallery file; and the file name previews matched what the exports produced.
+
+### Added
+
+- **Choose which ones to export.** In the Profiles tab, **Choose which ones to export…** opens a full page with the account's posts, images or reels as a grid of thumbnails (or its highlights as a list). Tick the ones you want (shift-click to tick a run of them), then export just those with your usual saving options. Posts appear as they load; **Stop loading** when you've seen enough.
+- **A gallery page in profile exports.** Every posts, images, reels, stories or highlights export now includes an `index.html` you can open offline: a grid of what was saved (highlights grouped by name), with each post's photos and videos full screen, its caption, date and a link back to Instagram, and a search over captions. Folder exports get one per run, `gallery_<time>.html`, beside the `index_<time>.json`.
+- **A live preview of file name patterns** in the popup's options and in the Export Center, showing exactly what a post and a reel will be called.
+
+### Changed
+
+- The Export Center's settings are now separate sections: Appearance, Saving, Chats and Remembered downloads.
+
 ## [4.1.0] — 2026-10-31
 
 "The chat page, polished." Checked in a browser with a 100,000-message chat (first messages in under half a second, all of it built in the background in about 9 seconds, scrolling at 60 frames a second, search finding the last message), a sample chat for the viewer, voice player and print layout, and a real export of six chats with their voice notes.

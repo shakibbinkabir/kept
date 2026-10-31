@@ -179,6 +179,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // async sendResponse
   }
 
+  // From the picker page: list an account's posts (or highlights), or stop listing.
+  if (msg?.type === "LIST_POSTS") {
+    const jobId = `list_${Date.now()}`;
+    ensureOffscreen()
+      .then(() => {
+        chrome.runtime.sendMessage({ target: "offscreen", type: "RUN_LIST", jobId, username: msg.username, mode: msg.mode });
+        sendResponse({ ok: true, jobId });
+      })
+      .catch((err) => sendResponse({ ok: false, error: err?.message || "Could not start listing." }));
+    return true; // async sendResponse
+  }
+  if (msg?.type === "LIST_STOP") {
+    chrome.runtime.sendMessage({ target: "offscreen", type: "RUN_LIST_STOP", jobId: msg.jobId }).catch(() => {});
+    return;
+  }
+
   // From popup: "Check Instagram" runs one request per feature in the offscreen doc.
   if (msg?.type === "RUN_CHECK") {
     const jobId = `check_${Date.now()}`;

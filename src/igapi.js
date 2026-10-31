@@ -298,6 +298,13 @@ function mediaFromNode(node) {
  * Normalize a raw feed/media item into a flat, export-friendly shape.
  * @returns {{shortcode, takenAt, productType, kind, caption, media: Array}}
  */
+// A small image for picker grids: the narrowest candidate at least 240px wide.
+function thumbOf(node) {
+  const c = node?.image_versions2?.candidates || [];
+  const fit = c.filter((x) => x.width >= 240).sort((a, b) => a.width - b.width)[0] || c[c.length - 1];
+  return fit?.url || "";
+}
+
 export function extractMedia(item) {
   const productType = item.product_type || "feed";
   let kind;
@@ -323,6 +330,7 @@ export function extractMedia(item) {
     caption: item.caption?.text || "",
     // Pinned posts lead the grid (and pinned reels the Reels tab) out of date order.
     pinned: !!(item.timeline_pinned_user_ids?.length || item.clips_tab_pinned_user_ids?.length),
+    thumb: thumbOf(item.media_type === 8 ? item.carousel_media?.[0] : item) || thumbOf(item),
     media,
   };
 }

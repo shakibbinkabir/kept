@@ -73,7 +73,7 @@ The extension took a new name in 4.0, Kept (another product already used "IG Exp
 - Full-screen photo and video viewer, and voice notes with a waveform
 - Printable book layout: cover page, chapter-style dates, clean page breaks; save as PDF through the browser's print
 
-## 4.2: Pick before you export
+## 4.2: Pick before you export ✅ shipped in v4.2.0
 
 - Preview grid with checkboxes for posts and highlights
 - Offline `index.html` gallery in profile exports

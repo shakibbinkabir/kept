@@ -92,6 +92,7 @@ const els = {
   doneCloseBtn: document.getElementById("doneCloseBtn"),
   welcome: document.getElementById("welcome"),
   welcomeBtn: document.getElementById("welcomeBtn"),
+  pickBtn: document.getElementById("pickBtn"),
 };
 
 const REPO = "https://github.com/shakibbinkabir/kept";
@@ -493,6 +494,7 @@ function refreshProfileFields() {
   const filter = els.filterSelect.value;
   els.filterField.hidden = !isFeed;
   els.saveOpts.hidden = mode === "post" || mode === "profilePic";
+  els.pickBtn.hidden = !["posts", "images", "reels", "highlights"].includes(mode) || !!state.profile.detectedHighlightId;
   els.countField.hidden = !(isFeed && (filter === "recent" || filter === "oldest"));
   els.dateField.hidden = !(isFeed && filter === "range");
   if (filter === "recent") els.countFieldLabel.textContent = "How many (most recent)";
@@ -1012,6 +1014,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   els.centerBtn.addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("center.html") }));
   els.doneCloseBtn.addEventListener("click", hideDone);
+  els.pickBtn.addEventListener("click", () => {
+    const user = els.usernameInput.value.trim().replace(/^@/, "");
+    if (!user) return showProfileError("Username required", "Enter the @username whose posts you want to choose from.");
+    chrome.tabs.create({ url: chrome.runtime.getURL(`pick.html?user=${encodeURIComponent(user)}&mode=${els.modeSelect.value}`) });
+  });
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
@@ -1146,6 +1153,18 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   for (const el of [els.optFolder, els.optChatFolder, els.optOnlyNew]) el.addEventListener("change", saveSaveOptions);
   els.optPattern.addEventListener("change", saveSaveOptions);
+
+  // A live example of the file names the pattern gives.
+  import("./src/names.js").then(({ fileBase }) => {
+    const preview = document.getElementById("patternPreview");
+    const show = () => {
+      const name = fileBase(els.optPattern.value, { folder: els.optFolder.checked, username: els.usernameInput.value.trim() || "username", takenAt: Math.floor(Date.now() / 1000), code: "DfH-Y3JugI4", index: 1 });
+      preview.textContent = `Example: ${name}${els.modeSelect.value === "posts" || els.modeSelect.value === "images" ? "/01.jpg" : els.modeSelect.value === "reels" ? ".mp4" : ".jpg"}`;
+    };
+    for (const el of [els.optPattern, els.usernameInput]) el.addEventListener("input", show);
+    for (const el of [els.optFolder, els.modeSelect]) el.addEventListener("change", show);
+    chrome.storage.local.get("saveOptions").then(show, show);
+  });
 
   // Several chats
   els.pickerOpen.addEventListener("click", () => openPicker(true));

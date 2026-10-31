@@ -1,5 +1,7 @@
 // Kept Export Center: what's exporting now, what you've exported, settings,
 // and whether Instagram still answers. Everything lives in chrome.storage.local.
+import { fileBase } from "./src/names.js";
+
 const $ = (id) => document.getElementById(id);
 const store = chrome.storage.local;
 $("version").textContent = `v${chrome.runtime.getManifest().version}`;
@@ -147,9 +149,19 @@ async function loadSettings() {
     ? `Kept remembers ${items} saved item${items === 1 ? "" : "s"} across ${seen.length} account and type pair${seen.length === 1 ? "" : "s"}, so "only new" can skip them.`
     : 'Nothing remembered yet. Exports remember what they saved, so "only new" can skip it next time.';
   $("forgetSeen").disabled = !seen.length;
+  showPreview();
 }
+// A live example of the file names the pattern gives, for a post and a reel.
+function showPreview() {
+  const at = Math.floor(Date.now() / 1000);
+  const name = (index) => fileBase($("sPattern").value, { folder: $("sFolder").checked, username: "nasa", takenAt: at, code: "DfH-Y3JugI4", index });
+  $("patternPreview").textContent = `Example: a post saves as ${name(1)}/01.jpg, a reel as ${name(2)}.mp4`;
+}
+$("sPattern").addEventListener("input", showPreview);
+
 function saveSettings() {
   $("sPattern").placeholder = $("sFolder").checked ? "{date}_{code}" : "{index}_{date}_{code}";
+  showPreview();
   store.set({
     saveOptions: { folder: $("sFolder").checked, onlyNew: $("sOnlyNew").checked, pattern: $("sPattern").value.trim() },
     chatOptions: { media: $("sMedia").checked, instagramEncoding: $("sEncoding").checked },

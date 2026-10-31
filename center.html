@@ -52,8 +52,8 @@
 
       <section id="settings" aria-labelledby="settingsTitle">
         <h1 id="settingsTitle">Settings</h1>
-        <div class="card settings">
-          <div class="setting">
+        <div class="settings">
+          <div class="card setting">
             <p class="setting-name" id="themeLabel">Appearance</p>
             <div class="segmented" role="radiogroup" aria-labelledby="themeLabel">
               <label><input type="radio" name="theme" value="system" checked /> <span>System</span></label>
@@ -61,20 +61,21 @@
               <label><input type="radio" name="theme" value="dark" /> <span>Dark</span></label>
             </div>
           </div>
-          <div class="setting">
+          <div class="card setting">
             <p class="setting-name">Saving</p>
             <label class="check"><input type="checkbox" id="sFolder" /> <span>Save as files in a folder, not a ZIP (no size limit)</span></label>
             <label class="check"><input type="checkbox" id="sOnlyNew" /> <span>Only download what I haven't downloaded yet</span></label>
             <label class="field-label" for="sPattern">File names</label>
             <input type="text" id="sPattern" placeholder="{index}_{date}_{code}" spellcheck="false" autocomplete="off" />
             <p class="hint">Tokens: {username} {date} {time} {code} {index}</p>
+            <p class="preview" id="patternPreview" aria-live="polite"></p>
           </div>
-          <div class="setting">
+          <div class="card setting">
             <p class="setting-name">Chats</p>
             <label class="check"><input type="checkbox" id="sMedia" checked /> <span>Include photos, videos and voice notes</span></label>
             <label class="check"><input type="checkbox" id="sEncoding" /> <span>Match Instagram's text encoding (for tools built for its data download)</span></label>
           </div>
-          <div class="setting">
+          <div class="card setting">
             <p class="setting-name">Remembered downloads</p>
             <p class="hint" id="seenInfo">Kept remembers which posts each export saved, so "only new" can skip them.</p>
             <button id="forgetSeen" class="btn-ghost">Forget what I've downloaded</button>
@@ -97,6 +98,6 @@
   <footer class="foot">Kept runs only in your browser. Not affiliated with Instagram or Meta. <a href="https://github.com/shakibbinkabir/kept" target="_blank" rel="noopener">Source</a> · <a href="https://github.com/shakibbinkabir/kept/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a></footer>
 
   <div class="toast" id="toast" role="status"></div>
-  <script src="center.js"></script>
+  <script type="module" src="center.js"></script>
 </body>
 </html>

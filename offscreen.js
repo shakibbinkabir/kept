@@ -12,6 +12,7 @@ import { createZip } from "./src/zip.js";
 import { planMedia, chatFolder, chatText, chatJson } from "./src/chatarchive.js";
 import { chatPage, inboxPage } from "./src/chatpage.js";
 import { pad, dateStr, sanitize, ident, fileBase } from "./src/names.js";
+import { profilePage } from "./src/profilepage.js";
 import {
   resolveUser,
   paginateFeed,
@@ -31,6 +32,8 @@ const textEncoder = new TextEncoder();
 
 let lastBlobUrl = null;
 const chatParts = new Map(); // jobId -> chats received so far
+const pickCache = new Map(); // "user:mode" -> Map(shortcode -> item), from the picker's listing
+const listStops = new Set(); // listing jobs the picker asked to stop
 
 /* ===== messaging ===== */
 
@@ -57,6 +60,10 @@ chrome.runtime.onMessage.addListener((msg) => {
   } else if (msg.type === "CHAT_PARTS_DONE") {
     runChatExport({ jobId: msg.jobId, chats: chatParts.get(msg.jobId) || [], options: msg.options });
     chatParts.delete(msg.jobId);
+  } else if (msg.type === "RUN_LIST") {
+    runList(msg);
+  } else if (msg.type === "RUN_LIST_STOP") {
+    listStops.add(msg.jobId);
   } else if (msg.type === "RUN_CHECK") {
     runCheck(msg.jobId);
   } else if (msg.type === "REVOKE" && msg.url) {
@@ -177,7 +184,8 @@ function makeSink(job, root = "", username = "") {
     async add(path, bytes, time) {
       if (!folder) return entries.push({ path, bytes, date: time ? new Date(time * 1000) : undefined }) > 0;
       // Each run's index gets its own name, so repeat runs into one folder keep theirs.
-      return saveToFolder(`Instagram/${root}/${path === "index.json" ? `index_${stamp}.json` : path}`, bytes, job.jobId);
+      const perRun = path === "index.json" ? `index_${stamp}.json` : path === "index.html" && !root.startsWith("chats/") ? `gallery_${stamp}.html` : path;
+      return saveToFolder(`Instagram/${root}/${perRun}`, bytes, job.jobId);
     },
     // In folder mode each finished item is remembered as it lands, so running
     // the export again with "only new" picks up where it stopped.
@@ -267,6 +275,66 @@ async function collectItems(jobId, pager, modeFilter, filter) {
   return collected;
 }
 
+/* ===== the offline gallery (index.html) ===== */
+
+// One gallery entry: the files that saved, a cover, and the post's details.
+function galleryItem(ex, paths, saved, url = "", group = "") {
+  const ok = paths.filter((p) => saved.has(p));
+  const files = ok.filter((p) => !/_thumb\.\w+$/.test(p));
+  const cover = files.find((p) => !/\.mp4$/.test(p)) || ok.find((p) => /_thumb\./.test(p)) || files[0];
+  return { files, cover, caption: ex.caption || "", takenAt: ex.takenAt, kind: ex.kind, url, group };
+}
+const addGallery = (sink, username, type, items) => sink.add("index.html", textEncoder.encode(profilePage({ username, type, items })));
+
+/* ===== picking before exporting ===== */
+
+// The items ticked in the picker: from its listing when it's still in memory,
+// otherwise by paging the account again and keeping just those codes.
+async function pickedOr(job, user, collect) {
+  const only = job.options.only;
+  if (!only?.length) return collect();
+  const cache = pickCache.get(`${user.username.toLowerCase()}:${job.mode}`);
+  const hits = only.map((code) => cache?.get(code)).filter(Boolean);
+  const items = hits.length === only.length ? hits : (await collect()).filter((ex) => only.includes(ex.shortcode));
+  return items.sort((a, b) => b.takenAt - a.takenAt);
+}
+
+// Lists an account's posts, images or reels (or its highlights) for the
+// picker page, a page at a time, until done or asked to stop.
+async function runList({ jobId, username, mode }) {
+  setWaitReporter((until) => send({ type: "PICK_WAIT", jobId, until }));
+  try {
+    const user = await resolveUser(username);
+    if (!user.can_view) throw new IGError(`@${user.username} is private and you don't follow them.`, 403);
+    if (mode === "highlights") {
+      const tray = await getHighlightsTray(user.id);
+      send({ type: "PICK_ITEMS", jobId, username: user.username, items: tray.map((h) => ({ id: h.id, title: h.title })) });
+    } else {
+      const cache = new Map();
+      pickCache.set(`${user.username.toLowerCase()}:${mode}`, cache);
+      const want = mode === "reels" ? (ex) => ex.kind === "reel" : mode === "images" ? (ex) => ex.media.some((m) => !m.isVideo && !m.isThumb) : () => true;
+      const pager = mode === "reels" ? (cb) => paginateReels(user.id, cb) : (cb) => paginateFeed(user.username, cb);
+      await pager((rawItems) => {
+        const items = [];
+        for (const raw of rawItems) {
+          const ex = extractMedia(raw);
+          if (!ex.shortcode || cache.has(ex.shortcode) || !want(ex)) continue;
+          cache.set(ex.shortcode, ex);
+          items.push({ code: ex.shortcode, takenAt: ex.takenAt, kind: ex.kind, thumb: ex.thumb, files: ex.media.filter((m) => !m.isThumb).length, caption: ex.caption.slice(0, 160), pinned: ex.pinned });
+        }
+        if (items.length) send({ type: "PICK_ITEMS", jobId, username: user.username, items });
+        return listStops.has(jobId);
+      });
+    }
+    send({ type: "PICK_DONE", jobId, stopped: listStops.has(jobId) });
+  } catch (err) {
+    send({ type: "PICK_ERROR", jobId, error: err?.message || "Couldn't list that account." });
+  } finally {
+    listStops.delete(jobId);
+    setWaitReporter(null);
+  }
+}
+
 /* ===== packaging ===== */
 
 // Build the per-post file list (names + urls) from a normalized item.
@@ -294,7 +362,7 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
   // posts with images, not the five newest posts minus the reels among them.
   const hasImage = (ex) => ex.media.some((m) => !m.isVideo && !m.isThumb);
   const grid = (onItems) => paginateFeed(user.username, onItems);
-  const items = skipSeen(job, await collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter));
+  const items = skipSeen(job, await pickedOr(job, user, () => collectItems(jobId, grid, imagesOnly ? hasImage : () => true, job.options.filter)));
 
   // Attach a planned file list to each post; drop posts that contribute nothing.
   const posts = [];
@@ -323,8 +391,9 @@ async function exportFolderedZip(job, user, { imagesOnly }) {
     if (p.post.caption) queue.push({ path: `${folder}/caption.txt`, bytes: textEncoder.encode(p.post.caption), ...item });
   });
 
-  const { failed, total } = await fetchQueue(job, queue, "files", sink);
+  const { failed, total, saved } = await fetchQueue(job, queue, "files", sink);
   for (const q of queue) if (q.file) q.file.name = q.path.slice(q.path.indexOf("/") + 1);
+  await addGallery(sink, user.username, suffix, posts.map((p) => galleryItem(p.post, p.files.map((f) => `${p.folder}/${f.name}`), saved, `https://www.instagram.com/p/${p.post.shortcode}/`)));
 
   // A top-level index.json.
   const index = [];
@@ -351,7 +420,7 @@ async function exportReels(job, user) {
   const { jobId } = job;
   // The Reels tab, not the grid: reels can be hidden from the posts grid.
   const tab = (onItems) => paginateReels(user.id, onItems);
-  const reels = skipSeen(job, await collectItems(jobId, tab, (ex) => ex.kind === "reel", job.options.filter));
+  const reels = skipSeen(job, await pickedOr(job, user, () => collectItems(jobId, tab, (ex) => ex.kind === "reel", job.options.filter)));
   if (reels.length === 0) throw new IGError("No reels found for this selection.", 0);
 
   const sink = makeSink(job, `${ident(user.username)}/reels`, user.username);
@@ -362,7 +431,8 @@ async function exportReels(job, user) {
     queue.push({ path: `${sink.name(r, i + 1)}.mp4`, url: video.url, post: r, id: r.shortcode, time: r.takenAt });
   });
 
-  const { failed, total } = await fetchQueue(job, queue, "reels", sink);
+  const { failed, total, saved } = await fetchQueue(job, queue, "reels", sink);
+  await addGallery(sink, user.username, "reels", queue.map((q) => galleryItem(q.post, [q.path], saved, `https://www.instagram.com/reel/${q.post.shortcode}/`)));
   await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: user.username,
       exported_at: nowStamp(),
@@ -400,7 +470,8 @@ async function exportStories(job, user) {
   }
   progress(jobId, "enumerating", queue.length, null, `Found ${queue.length} stories…`);
 
-  const { failed, total } = await fetchQueue(job, queue, "stories", sink);
+  const { failed, total, saved } = await fetchQueue(job, queue, "stories", sink);
+  await addGallery(sink, user.username, "stories", queue.map((q) => galleryItem(q.ex, [q.path], saved)));
   await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: user.username,
       exported_at: nowStamp(),
@@ -427,7 +498,8 @@ async function exportHighlights(job, user) {
   const wantId = job.options.highlightId
     ? String(job.options.highlightId).replace(/^highlight:/, "")
     : null;
-  const selected = wantId ? [{ id: wantId, title: "" }] : await getHighlightsTray(user.id);
+  let selected = wantId ? [{ id: wantId, title: "" }] : await getHighlightsTray(user.id);
+  if (!wantId && job.options.highlightIds?.length) selected = selected.filter((h) => job.options.highlightIds.includes(h.id));
   if (selected.length === 0) throw new IGError(`@${user.username} has no highlights.`, 0);
 
   let owner = user?.username || "";
@@ -457,7 +529,8 @@ async function exportHighlights(job, user) {
     return { path: `${folder}/${sink.name(f.ex, perFolder[folder])}.${f.m.type}`, url: f.m.url, ex: f.ex, title: f.title, id: f.ex.shortcode, time: f.ex.takenAt };
   });
 
-  const { failed, total } = await fetchQueue(job, queue, "items", sink);
+  const { failed, total, saved } = await fetchQueue(job, queue, "items", sink);
+  await addGallery(sink, owner, "highlights", queue.map((q) => galleryItem(q.ex, [q.path], saved, "", q.title)));
   await sink.add("index.json", textEncoder.encode(JSON.stringify({
       username: owner,
       exported_at: nowStamp(),

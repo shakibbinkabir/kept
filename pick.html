@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Choose what to export · Kept</title>
+  <link rel="icon" href="icons/icon32.png" />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/pick.css" />
+</head>
+<body>
+  <header class="top">
+    <svg class="logo" viewBox="0 0 256 256" aria-hidden="true"><use href="icons/ui.svg#mark" /></svg>
+    <div class="who">
+      <h1 id="title">Choose what to export</h1>
+      <p id="sub">Loading…</p>
+    </div>
+    <div class="segmented" role="radiogroup" aria-label="What to list">
+      <label><input type="radio" name="mode" value="posts" checked /> <span>Posts</span></label>
+      <label><input type="radio" name="mode" value="images" /> <span>Images</span></label>
+      <label><input type="radio" name="mode" value="reels" /> <span>Reels</span></label>
+      <label><input type="radio" name="mode" value="highlights" /> <span>Highlights</span></label>
+    </div>
+  </header>
+
+  <div class="tools">
+    <p class="status" id="status" aria-live="polite"></p>
+    <button id="stopBtn" class="btn-ghost" hidden>Stop loading</button>
+    <button id="allBtn" class="btn-ghost">Select all</button>
+    <button id="noneBtn" class="btn-ghost">Select none</button>
+  </div>
+  <p class="tip">Tick what you want. Shift-click selects everything between two ticks.</p>
+
+  <main>
+    <ul class="grid" id="grid" aria-label="Posts"></ul>
+    <ul class="list" id="list" aria-label="Highlights" hidden></ul>
+    <div class="empty" id="empty" hidden></div>
+  </main>
+
+  <footer class="bar">
+    <p id="barText">Nothing selected</p>
+    <div class="bar-actions">
+      <button id="showBtn" class="btn-ghost" hidden><svg class="icon" aria-hidden="true"><use href="icons/ui.svg#folder" /></svg>Show in folder</button>
+      <button id="exportBtn" class="btn-primary" disabled>Export</button>
+    </div>
+  </footer>
+
+  <script src="pick.js"></script>
+</body>
+</html>

@@ -76,7 +76,9 @@ Useful for backing up a conversation before it's deleted, keeping messages from 
 - **Filtering** — export *everything*, the *most recent N*, the *oldest N*, or a *date range*. Pinned posts are sorted into their real date, so they never skew a range or a count.
 - **Big exports** — save as files straight into `Downloads/Instagram/<account>/<type>/` instead of one ZIP: no 4 GB limit, and a repeat export updates the same folder.
 - **Only what's new** — skip everything an earlier export already saved, per account and type. It also resumes an export that stopped halfway.
-- **Your file names** — a pattern like `{username}_{date}_{code}` (tokens: `{username}` `{date}` `{time}` `{code}` `{index}`). Files in ZIPs carry the date they were posted.
+- **Your file names** — a pattern like `{username}_{date}_{code}` (tokens: `{username}` `{date}` `{time}` `{code}` `{index}`), with a live preview of the result. Files in ZIPs carry the date they were posted.
+- **Pick before you export** — **Choose which ones to export…** shows the account's posts, images or reels as thumbnails (or its highlights as a list); tick the ones you want and export just those.
+- **An offline gallery** — every profile export includes an `index.html`: a grid of what was saved, each post full screen with its caption and date, and a search over captions.
 - **Real file types** — images keep Instagram's own format (mostly WebP, sometimes JPEG) and are named accordingly; names in any script (Bengali, Arabic, …) are kept readable.
 - Runs in the background, so closing the popup mid-download is safe; progress shows on the toolbar badge.
 
@@ -109,14 +111,15 @@ Every release is tested end to end in a real browser against live Instagram:
 
 | Feature | Status | Last verified |
 | --- | --- | --- |
-| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.1.0 |
-| Current stories | ✅ Working | 2026-10-31 · v4.1.0 |
-| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.1.0 |
-| Profile picture | ✅ Working | 2026-10-31 · v4.1.0 |
-| Single post / reel | ✅ Working | 2026-10-31 · v4.1.0 |
-| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.1.0 |
-| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.1.0 |
-| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.1.0 |
+| Posts, images, reels (everything / most recent / oldest / date range) | ✅ Working | 2026-10-31 · v4.2.0 |
+| Current stories | ✅ Working | 2026-10-31 · v4.2.0 |
+| Story highlights (all, or the open one) | ✅ Working | 2026-10-31 · v4.2.0 |
+| Profile picture | ✅ Working | 2026-10-31 · v4.2.0 |
+| Single post / reel | ✅ Working | 2026-10-31 · v4.2.0 |
+| DM capture, scroll / auto-scroll, chat archive with media | ✅ Working | 2026-10-31 · v4.2.0 |
+| Several chats / whole inbox, date range | ✅ Working | 2026-10-31 · v4.2.0 |
+| Folder saves, only new, resume, file name patterns | ✅ Working | 2026-10-31 · v4.2.0 |
+| Choose posts and highlights, offline gallery | ✅ Working | 2026-10-31 · v4.2.0 |
 
 To check your own setup right now, click **Check Instagram** at the bottom of the popup: it tests every feature against Instagram in about ten seconds.
 
@@ -385,6 +388,7 @@ kept/
 ├── manifest.json          # MV3 manifest
 ├── popup.html / popup.js  # toolbar popup (Chats + Profiles)
 ├── center.html / center.js # Export Center: now, history, settings, Instagram check
+├── pick.html / pick.js    # choose posts or highlights before exporting
 ├── background.js          # service worker — profile export orchestrator
 ├── offscreen.html         # headless offscreen document host
 ├── offscreen.js           # profile export engine (fetch → zip → download)
@@ -396,6 +400,7 @@ kept/
 │   ├── chatarchive.js     # chat: media plan, chat.txt transcript, optional Instagram encoding
 │   ├── chatpage.js        # chat: the offline index.html viewer (search, jump to date, media)
 │   ├── names.js           # file names: patterns, dates, safe characters
+│   ├── profilepage.js     # profile: the offline gallery index.html
 │   ├── schema.js          # chat: output validator
 │   ├── igapi.js           # profile: Instagram web API client
 │   └── zip.js             # profile: store-only ZIP writer
@@ -410,7 +415,7 @@ kept/
 
 The website is plain HTML, CSS and JS. `node site/build.mjs` fills in the feature status from this README and turns CHANGELOG.md and PRIVACY.md into pages, writing the result to `site/public/`; open `site/public/index.html` to preview it.
 
-Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
+Self-checks run with plain Node, no install: `node test/normalizer.test.mjs`, `node test/chatarchive.test.mjs`, `node test/chatpage.test.mjs`, `node test/names.test.mjs`, `node test/profilepage.test.mjs`, `node test/queryvars.test.mjs`, `node test/pacing.test.mjs`.
 
 ### Contributing
 

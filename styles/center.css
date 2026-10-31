@@ -51,9 +51,10 @@ section h1 { margin-bottom: var(--space-4); }
 .empty .icon { color: var(--accent); width: 22px; height: 22px; }
 .empty b { color: var(--text); }
 
-.settings { display: grid; gap: var(--space-5); }
+.settings { display: grid; gap: var(--space-3); }
 .setting { display: grid; gap: var(--space-2); justify-items: start; }
-.setting + .setting { padding-top: var(--space-5); box-shadow: 0 -1px 0 var(--border); }
+.preview { font-size: var(--text-md); color: var(--text); background: var(--bg); border-radius: var(--radius-sm); padding: 8px 12px; overflow-wrap: anywhere; }
+.preview:empty { display: none; }
 .setting-name { font-weight: var(--weight-bold); }
 .check { display: flex; gap: var(--space-2); align-items: flex-start; color: var(--text); cursor: pointer; }
 .check input { accent-color: var(--sky); margin-top: 4px; }
